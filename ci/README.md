@@ -1,1 +1,1 @@
-hamburger 25
+Credits to Google and stuff :)
