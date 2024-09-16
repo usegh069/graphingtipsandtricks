@@ -1,5 +1,4 @@
 const script = document.currentScript;
-alert("gtag script registered")
 var gameID = script.getAttribute("data-gameID");
 
 function emit(){
