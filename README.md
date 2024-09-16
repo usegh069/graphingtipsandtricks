@@ -7,3 +7,7 @@ Long list of links to games
   - [ccported](https://ccported.github.io/ci)
 - Drift Hunters
   - [ccported](https://ccported.github.io/dh)
+- Mr. Mine
+  - [ccported](https://ccported.github.io/mm)
+- Tiny Fishing
+  - [ccported](https://ccported.github.io/tf)
