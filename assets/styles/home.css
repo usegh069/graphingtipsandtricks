@@ -56,11 +56,11 @@ h1 {
     justify-content: space-between;
 }
 .card-title {
-    font-size: 24px;
+    font-size: 28px;
     margin: 0;
 }
 .card-description {
-    font-size: 14px;
+    font-size: 20px;
     margin: 10px 0;
 }
 .card-links {
