@@ -77,19 +77,20 @@ setTimeout(createPopup, 120000);
 
 
 importJSON("/games.json").then(games => {
+    var { games } = games;
     var unseengames = games.filter(game => !hasSeenGame(game.name));
     console.log(unseengames);
 });
 
-async function importJSON(path){
+async function importJSON(path) {
     const res = await fetch(path);
     return res.json();
 }
 
 
-function hasSeenGame(gameID){
+function hasSeenGame(gameID) {
     return localStorage.getItem("seen-gameID") == "yes";
 }
-function markGameSeen(gameID){
+function markGameSeen(gameID) {
     localStorage.setItem("seen-gameID", "yes");
 }
