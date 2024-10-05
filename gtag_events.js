@@ -80,8 +80,8 @@ importJSON("/games.json").then(games => {
     var { games } = games;
     var unseengames = games.filter(game => !hasSeenGame(game.name));
     var string = "New games to play: ";
-    unseengames.forEach(game => {
-        string += game.name + ", ";
+    unseengames.forEach((game, i) => {
+        string += game.fname +(i != games.length - 1) ? ", " : "";
     });
     console.log(string);
 });
