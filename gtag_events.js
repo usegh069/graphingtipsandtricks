@@ -76,7 +76,7 @@ setInterval(emit, 1000 * 60 * 10);
 setTimeout(createPopup, 120000);
 
 
-importJSON("../../games.json").then(games => {
+importJSON("./games.json").then(games => {
     var unseengames = games.filter(game => !hasSeenGame(game.name));
     console.log(unseengames);
 });
