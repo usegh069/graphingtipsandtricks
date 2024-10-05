@@ -79,7 +79,11 @@ setTimeout(createPopup, 120000);
 importJSON("/games.json").then(games => {
     var { games } = games;
     var unseengames = games.filter(game => !hasSeenGame(game.name));
-    console.log(unseengames);
+    var string = "New games to play: ";
+    unseengames.forEach(game => {
+        string += game.name + ", ";
+    });
+    console.log(string);
 });
 
 async function importJSON(path) {
