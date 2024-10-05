@@ -22,7 +22,7 @@
 <body>
     <h1>CC Ported</h1>
     <div class="container">
-        <div class="card">
+        <div class="card" id="cookie_clicker">
             <div class="card-bg" style="background-image: url('assets/images/cookie_clicker.jpg');"></div>
             <div class="card-content">
                 <div>
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id="champion_island">
             <div class="card-bg" style="background-image: url('assets/images/champion_island.webp');"></div>
             <div class="card-content">
                 <div>
@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id = "drift_hunters">
             <div class="card-bg" style="background-image: url('assets/images/drift_hunters.jpg');"></div>
             <div class="card-content">
                 <div>
@@ -74,7 +74,7 @@
                 </div>
             </div>
         </div> -->
-        <div class="card">
+        <div class="card" id="tiny_fishing">
             <div class="card-bg" style="background-image: url('assets/images/tiny_fishing.jpg');"></div>
             <div class="card-content">
                 <div>
@@ -87,7 +87,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id = "nes_emulator">
             <div class="card-bg" style="background-image: url('assets/images/nes_emulator.png');"></div>
             <div class="card-content">
                 <div>
@@ -100,7 +100,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id = "spelunky">
             <div class="card-bg" style="background-image: url('assets/images/spelunky.png');"></div>
             <div class="card-content">
                 <div>
@@ -112,7 +112,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id = "slope">
             <div class="card-bg" style="background-image: url('assets/images/slope.webp');"></div>
             <div class="card-content">
                 <div>
@@ -125,7 +125,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id = "minecraft">
             <div class="card-bg" style="background-image: url('assets/images/minecraft1_5_2.jpg');"></div>
             <div class="card-content">
                 <div>
@@ -138,7 +138,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id = "2048">
             <div class="card-bg" style="background-image: url('assets/images/2048.png');"></div>
             <div class="card-content">
                 <div>
@@ -151,7 +151,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id ="cut_the_rope">
             <div class="card-bg" style="background-image: url('assets/images/cut_the_rope.webp');"></div>
             <div class="card-content">
                 <div>
@@ -164,6 +164,16 @@
             </div>
         </div>
     </div>
+    <script>
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            const id = card.getAttribute('id');
+            markGameSeen(id);
+        });
+        function markGameSeen(id){
+            localStorage.setItem(`seen-${id}`, "yes");
+        }
+    </script>
 </body>
 
 </html>
