@@ -7,6 +7,8 @@ function emit(){
         location: window.location.hostname
     });
 }
+
+const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
 function createPopup() {
     const popup = document.createElement('div');
     popup.style.cssText = `
@@ -60,10 +62,13 @@ function createPopup() {
     popup.appendChild(linkRow);
 
     document.body.appendChild(popup);
+    localStorage.setItem("ccported-popup", "yes")
 }
 
 emit();
 setInterval(emit, 1000 * 60 * 10);
 
 // Show popup after 2 minutes (120000 milliseconds)
-setTimeout(createPopup, 120000);
+if(!seenPopup){
+    setTimeout(createPopup, 120000);
+}
