@@ -137,6 +137,32 @@
                     "link": "https://ccported.github.io/ctr"
                 }
             ]
+        },
+        {
+            "name":"papas_freezeria",
+            "fName":"Papa's Freezeria",
+            "description": "Make ice cream sundaes in this nostalgic Papa's game.",
+            "image": "/assets/images/papas_freezeria.jpg",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/freezeria"
+                }
+            ]
+        },
+        {
+            "name":"papas_pizzeria",
+            "fName":"Papa's Pizzeria",
+            "description":"Run a pizza shop in this iconic fast-paced game.",
+            "image":"/assets/images/papas_pizzeria.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/pizzeria"
+                }
+            ]
         }
     ]
 }
