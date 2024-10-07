@@ -93,7 +93,17 @@ importJSON("/games.json").then(games => {
 });
 
 async function importJSON(path) {
-    const res = await fetch(path);
+    const url = new URL(path, window.location.origin);
+    url.searchParams.append('_', Date.now());
+
+    const res = await fetch(path, {
+        method: "GET",
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    });
     return res.json();
 }
 
