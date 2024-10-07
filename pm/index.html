@@ -2,7 +2,13 @@
 <html>
 
 <head>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
+        gtag('config', 'G-DJDL65P9Y4');
+    </script>
     <title>Pac-Man</title>
     <!-- last updated: Sun May 14 21:10:27 PDT 2023 -->
     <!-- Lock viewport on mobile devices. -->
@@ -17,15 +23,16 @@
     <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- icon used for iOS Web App -->
-    <link rel="apple-touch-icon-precomposed" href="icon/ios_icon.png"/>
+    <link rel="apple-touch-icon-precomposed" href="icon/ios_icon.png" />
 
-    <link rel="icon" type="image/png" href="icon/favicon.png"/>
+    <link rel="icon" type="image/png" href="icon/favicon.png" />
 
     <style>
         body {
-            margin:0;
+            margin: 0;
             background: #000;
         }
+
         @font-face {
             font-family: 'ArcadeR';
             src: url('font/ARCADE_R.TTF');
@@ -33,23 +40,24 @@
             src: url('font/PressStart2P.ttf');
             */
         }
+
         #canvas-warning {
             color: #FF0;
             font-size: 1.5em;
         }
     </style>
 
-<script src="pacman.js"></script>
+    <script src="pacman.js"></script>
 
 </head>
 
 <body>
-
-</div>
-
     <div style='font-family: ArcadeR'> </div>
-    <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
+    <canvas id='canvas'>
+        <div id="canvas-warning">Your browser does not support HTML Canvas. Please upgrade!</div>
+    </canvas>
     <canvas id='atlas' style="display:none"></canvas>
+    <script src = "/gtag_events.js" data-gameID="pacman"></script>
 
 </body>
 

@@ -175,6 +175,20 @@
                 }
             ],
             "tags":["cooking", "simulation", "papa's"]
+        },
+        {
+            "name":"pacman",
+            "fName":"Pac Man",
+            "description":"Gobble up ghosts in this hit 1980s arcade game.",
+            "image":"/assets/images/pacman.png",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/pm"
+                }
+            ],
+            "tags":["arcade", "escape", "retro"]
         }
     ]
 }
