@@ -1,0 +1,180 @@
+{
+    "games": [
+        {
+            "name": "cookie_clicker",
+            "fName": "Cookie Clicker",
+            "description": "Addictive idle game where you bake cookies by clicking and upgrading your production",
+            "image": "/assets/images/cookie_clicker.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/cc"
+                }
+            ],
+            "tags": ["idle", "clicker", "strategy"]
+        },
+        {
+            "name": "champion_island",
+            "fName": "Google Champion Island",
+            "description": "Explore a magical world and compete in mini-games inspired by Japanese folklore.",
+            "image": "/assets/images/champion_island.webp",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/ci"
+                }
+            ],
+            "tags": ["olympics", "adventure", "skill"]
+        },
+        {
+            "name": "drift_hunters",
+            "fName": "Drift Hunters",
+            "description": "Experience thrilling drift racing action with a variety of cars and tracks.",
+            "image": "/assets/images/drift_hunters.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/dh"
+                }
+            ],
+            "tags": ["racing", "drifting", "cars"]
+        },
+        {
+            "name":"tiny_fishing",
+            "fName":"Tiny Fishing",
+            "description": "Relax and enjoy a simple yet addictive fishing game with charming graphics.",
+            "image": "/assets/images/tiny_fishing.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/tf"
+                }
+            ],
+            "tags": ["fishing", "idle", "casual"]
+        },
+        {
+            "name": "nes_emulator",
+            "fName": "NES Emulator",
+            "description": "Experience the nostalgia of classic NES games with this online emulator.",
+            "image": "/assets/images/nes_emulator.png",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/nes/project"
+                }
+            ],
+            "tags": ["emulator", "retro", "nes"]
+        },
+        {
+            "name": "spelunky",
+            "fName": "Spelunky",
+            "description": "Explore a procedurally generated cave system filled with traps and treasures.",
+            "image": "/assets/images/spelunky.png",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/sp/src"
+                }
+            ],
+            "tags": ["adventure", "platformer", "roguelike", "skill"]
+        },
+        {
+            "name": "slope",
+            "fName": "Slope",
+            "description": "Navigate a ball through a neon obstacle course in this fast-paced reaction game.",
+            "image": "/assets/images/slope.webp",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/sl"
+                }
+            ],
+            "tags": ["skill", "reaction", "arcade"]
+        },
+        {
+            "name": "minecraft",
+            "fName": "Minecraft",
+            "description": "Explore and build in a blocky world with this online port of the popular game.",
+            "image": "/assets/images/minecraft1_5_2.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted (1.5.2)",
+                    "link": "https://ccported.github.io/mc/1.5.2"
+                },
+                {
+                    "name": "CCPorted (1.8.8)",
+                    "link": "https://ccported.github.io/mc/1.8"
+                }
+            ],
+            "tags": ["sandbox", "adventure", "building"]
+        },
+        {
+            "name":"2048",
+            "fName":"2048",
+            "description": "The 2048 game is a simple yet brain-teasting puzzle that revolves around combining tiles on a grid.",
+            "image": "/assets/images/2048.png",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/2048/n"
+                },
+                {
+                    "name": "CCPorted (2048 Cupcakes)",
+                    "link": "https://ccported.github.io/2048/c"
+                }
+            ],
+            "tags": ["puzzle", "strategy", "numbers"]
+        },
+        {
+            "name":"cut_the_rope",
+            "fName":"Cut the Rope",
+            "description": "Help Om Nom collect stars and candies in this physics-based puzzle game.",
+            "image": "/assets/images/cut_the_rope.webp",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/ctr"
+                }
+            ],
+            "tags": ["puzzle", "physics", "strategy"]
+        },
+        {
+            "name":"papas_freezeria",
+            "fName":"Papa's Freezeria",
+            "description": "Make ice cream sundaes in this nostalgic Papa's game.",
+            "image": "/assets/images/papas_freezeria.jpg",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/freezeria"
+                }
+            ],
+            "tags": ["cooking", "simulation", "papas"]
+        },
+        {
+            "name":"papas_pizzeria",
+            "fName":"Papa's Pizzeria",
+            "description":"Run a pizza shop in this iconic fast-paced game.",
+            "image":"/assets/images/papas_pizzeria.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/pizzeria"
+                }
+            ],
+            "tags":["cooking", "simulation", "papa's"]
+        }
+    ]
+}

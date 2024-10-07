@@ -1,20 +1,24 @@
 const script = document.currentScript;
 var gameID = script.getAttribute("data-gameID");
 
-function emit(){
-    gtag("event","play_game",{
+function emit() {
+    gtag("event", "play_game", {
         gameID,
         location: window.location.hostname
     });
 }
 
+
+
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
-function createPopup() {
+function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!") {
     const popup = document.createElement('div');
     popup.style.cssText = `
         position: fixed;
         bottom: 20px;
         right: 20px;
+        max-width: 800px;
+        min-width: 500px;
         background-color: rgb(37,37,37);
         border: 2px solid #333;
         border-radius: 10px;
@@ -25,7 +29,7 @@ function createPopup() {
     `;
 
     const message = document.createElement('p');
-    message.textContent = 'Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!';
+    message.textContent = text;
     message.style.marginBottom = '10px';
     message.style.color = 'white';
 
@@ -69,6 +73,34 @@ emit();
 setInterval(emit, 1000 * 60 * 10);
 
 // Show popup after 2 minutes (120000 milliseconds)
-if(!seenPopup){
+if (!seenPopup) {
     setTimeout(createPopup, 120000);
+}
+
+
+importJSON("/games.json").then(games => {
+    var { games } = games;
+    var unseengames = games.filter(game => !hasSeenGame(game.name));
+    if (unseengames.length == 0) return;
+    var string = "New games to play: ";
+    unseengames.forEach((game, i) => {
+        markGameSeen(game.name);
+        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+    });
+    createPopup(string);
+    localStorage.setItem("ccported-popup", "yes")
+
+});
+
+async function importJSON(path) {
+    const res = await fetch(path);
+    return res.json();
+}
+
+
+function hasSeenGame(gameID) {
+    return localStorage.getItem(`seen-${gameID}`) == "yes";
+}
+function markGameSeen(gameID) {
+    localStorage.setItem(`seen-${gameID}`, "yes");
 }

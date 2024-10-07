@@ -15,6 +15,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CC Ported</title>
     <link rel="stylesheet" href="assets/styles/home.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <meta name="description"
         content="Many games ported to different domains to prevent organization unblocking tools from blocking them. Cookie clicker, drift hunters, tiny fishing, spelunky, minecraft, slope, champion island, and NES games all unblocked.">
 </head>
@@ -22,46 +24,70 @@
 <body>
     <h1>CC Ported</h1>
     <div class="container">
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/cookie_clicker.jpg');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Cookie Clicker</h2>
-                    <p class="card-description">Addictive idle game where you bake cookies by clicking and upgrading
-                        your production.</p>
-                </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/cc">Play Cookie Clicker on CCPorted</a>
-                </div>
-            </div>
+        <div class="search">
+            <input id="searchBox" placeholder="Search for something...">
         </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/champion_island.webp');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Google Champion Island</h2>
-                    <p class="card-description">Explore a magical world and compete in mini-games inspired by Japanese
-                        folklore.</p>
+        <div class="subContainer">
+            <div class="cards">
+                <div class="card" id="cookie_clicker">
+                    <div class="card-bg" style="background-image: url('assets/images/cookie_clicker.jpg');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Cookie Clicker</h2>
+                            <p class="card-description">Addictive idle game where you bake cookies by clicking and
+                                upgrading
+                                your production.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="idle">Idle</span>
+                                <span class="tag" data-tag="clicker">clicker</span>
+                            </div>
+                        </div>
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/cc">Play Cookie Clicker on CCPorted</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/ci">Play Google Champion Island on CCPorted</a>
+                <div class="card" id="champion_island">
+                    <div class="card-bg" style="background-image: url('assets/images/champion_island.webp');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Google Champion Island</h2>
+                            <p class="card-description">Explore a magical world and compete in mini-games inspired by
+                                Japanese
+                                folklore.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="olympics">Olympics</span>
+                                <span class="tag" data-tag="adventure">Adventure</span>
+                                <span class="tag" data-tag="skill">Skill</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/ci">Play Google Champion Island on CCPorted</a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/drift_hunters.jpg');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Drift Hunters</h2>
-                    <p class="card-description">Experience thrilling drift racing action with a variety of cars and
-                        tracks.</p>
+                <div class="card" id="drift_hunters">
+                    <div class="card-bg" style="background-image: url('assets/images/drift_hunters.jpg');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Drift Hunters</h2>
+                            <p class="card-description">Experience thrilling drift racing action with a variety of cars
+                                and
+                                tracks.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="racing">Racing</span>
+                                <span class="tag" data-tag="drifting">Drifting</span>
+                                <span class="tag" data-tag="cars">Cars</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/dh">Play Drift Hunters on CCPorted</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/dh">Play Drift Hunters on CCPorted</a>
-                </div>
-            </div>
-        </div>
-        <!-- <div class="card">
+                <!-- <div class="card">
             <div class="card-bg" style="background-image: url('assets/images/mr_mine.webp');"></div>
             <div class="card-content">
                 <div>
@@ -74,85 +100,189 @@
                 </div>
             </div>
         </div> -->
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/tiny_fishing.jpg');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Tiny Fishing</h2>
-                    <p class="card-description">Relax and enjoy a simple yet addictive fishing game with charming pixel
-                        art graphics.</p>
+                <div class="card" id="tiny_fishing">
+                    <div class="card-bg" style="background-image: url('assets/images/tiny_fishing.jpg');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Tiny Fishing</h2>
+                            <p class="card-description">Relax and enjoy a simple yet addictive fishing game with
+                                charming
+                                graphics.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="fishing">Fishing</span>
+                                <span class="tag" data-tag="idle">Idle</span>
+                                <span class="tag" data-tag="casual">Casual</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/tf">Play Tiny Fishing on CCPorted</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/tf">Play Tiny Fishing on CCPorted</a>
+                <div class="card" id="nes_emulator">
+                    <div class="card-bg" style="background-image: url('assets/images/nes_emulator.png');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">NES Emulator</h2>
+                            <p class="card-description">Experience the nostalgia of classic NES games with this online
+                                emulator.
+                            </p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="emulator">Emulator</span>
+                                <span class="tag" data-tag="retro">Retro</span>
+                                <span class="tag" data-tag="nes">NES</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/nes/project">Play NES Games on CCPorted</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="spelunky">
+                    <div class="card-bg" style="background-image: url('assets/images/spelunky.png');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Spelunky</h2>
+                            <p class="card-description">Explore a procedurally generated cave system filled with traps
+                                and
+                                treasures.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="adventure">Adventure</span>
+                                <span class="tag" data-tag="platformer">Platformer</span>
+                                <span class="tag" data-tag="roguelike">Roguelike</span>
+                                <span class="tag" data-tag="skill">Skill</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/sp/src">Play Spelunky on CCPorted</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="slope">
+                    <div class="card-bg" style="background-image: url('assets/images/slope.webp');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Slope</h2>
+                            <p class="card-description">Navigate a ball through a neon obstacle course in this
+                                fast-paced
+                                reaction game.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="skill">Skill</span>
+                                <span class="tag" data-tag="reaction">Reaction</span>
+                                <span class="tag" data-tag="arcade">Arcade</span>
+                            </div>
+                        </div>
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/sl">Play Slope on CCPorted</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="minecraft">
+                    <div class="card-bg" style="background-image: url('assets/images/minecraft1_5_2.jpg');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Minecraft</h2>
+                            <p class="card-description">Explore and build in a blocky world with this online port of the
+                                popular game.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="sandbox">Sandbox</span>
+                                <span class="tag" data-tag="adventure">Adventure</span>
+                                <span class="tag" data-tag="building">Building</span>
+                            </div>
+                        </div>
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/mc/1.5.2">Play Minecraft 1.5.2 on CCPorted (Works with
+                                LAN)</a>
+                            <a href="https://ccported.github.io/mc/1.8">Play Minecraft 1.8.8 on CCPorted (No LAN)</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="2048">
+                    <div class="card-bg" style="background-image: url('assets/images/2048.png');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">2048</h2>
+                            <p class="card-description">The 2048 game is a simple yet brain-teasing puzzle that revolves
+                                around combining tiles on a grid.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="puzzle">Puzzle</span>
+                                <span class="tag" data-tag="strategy">Strategy</span>
+                                <span class="tag" data-tag="numbers">Numbers</span>
+                            </div>
+                        </div>
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/2048/n">Play 2048 on CCPorted</a>
+                            <a href="https://ccported.github.io/2048/c">Play 2048 Cupcakes on CCPorted</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="cut_the_rope">
+                    <div class="card-bg" style="background-image: url('assets/images/cut_the_rope.webp');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Cut the Rope</h2>
+                            <p class="card-description">Help Om Nom collect stars and candies in this physics-based
+                                puzzle
+                                game.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="puzzle">Puzzle</span>
+                                <span class="tag" data-tag="physics">Physics</span>
+                                <span class="tag" data-tag="strategy">Strategy</span>
+                            </div>
+                        </div>
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/ctr">Play Cut the Rope on CCPorted</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="papas_freezeria">
+                    <div class="card-bg" style="background-image: url('assets/images/papas_freezeria.jpg');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Papa's Freezeria</h2>
+                            <p class="card-description">Make ice cream sundaes in this nostalgic Papa's game.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="cooking">Cooking</span>
+                                <span class="tag" data-tag="simulation">Simulation</span>
+                                <span class="tag" data-tag="papas">Papa's</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/flash/papas/freezeria">Play Papa's Freezeria on
+                                CCPorted</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="papas_pizzeria">
+                    <div class="card-bg" style="background-image: url('assets/images/papas_pizzeria.jpg');"></div>
+                    <div class="card-content">
+                        <div>
+                            <h2 class="card-title">Papa's Pizzeria</h2>
+                            <p class="card-description">Run a pizza shop in this iconic fast-paced game.</p>
+                            <div class="card-tags">
+                                <span class="tag" data-tag="cooking">Cooking</span>
+                                <span class="tag" data-tag="simulation">Simulation</span>
+                                <span class="tag" data-tag="papas">Papa's</span>
+                            </div>
+                        </div>
+
+                        <div class="card-links">
+                            <a href="https://ccported.github.io/flash/papas/pizzeria">Play Papa's Pizzeria on
+                                CCPorted</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/nes_emulator.png');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">NES Emulator</h2>
-                    <p class="card-description">Experience the nostalgia of classic NES games with this online emulator.
-                    </p>
-                </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/nes/project">Play NES Games on CCPorted</a>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/spelunky.png');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Spelunky</h2>
-                    <p class="card-description">Explore randomly generated caves in this challenging platformer
-                        adventure game.</p>
-                </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/sp/src">Play Spelunky on CCPorted</a>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/slope.webp');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Slope</h2>
-                    <p class="card-description">Navigate a ball through a neon obstacle course in this fast-paced
-                        reaction game.</p>
-                </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/sl">Play Spelunky on CCPorted</a>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/minecraft1_5_2.jpg');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">Minecraft</h2>
-                    <p class="card-description">You already know what this is.</p>
-                </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/mc/1.5.2">Play Minecraft 1.5.2 on CCPorted (Works with LAN)</a>
-                    <a href="https://ccported.github.io/mc/1.8">Play Minecraft 1.8.8 on CCPorted (No LAN)</a>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-bg" style="background-image: url('assets/images/2048.png');"></div>
-            <div class="card-content">
-                <div>
-                    <h2 class="card-title">2048</h2>
-                    <p class="card-description">The 2048 game is a simple yet brain-teasing puzzle that revolves around numbered tiles on a grid.</p>
-                </div>
-                <div class="card-links">
-                    <a href="https://ccported.github.io/2048/n">Play 2048 on CCPorted</a>
-                    <a href="https://ccported.github.io/2048/c">Play 2048 Cupcakes on CCPorted</a>
-                </div>
+            <div class="dont-see">
+                <h4>Don't see what you are looking for? <a href="javascript:void(0)" id="addGameRequestButton">Request an addition</a></h4>
             </div>
         </div>
     </div>
+    <script src="home.js"></script>
 </body>
 
 </html>
