@@ -11,7 +11,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/cc"
                 }
-            ]
+            ],
+            "tags": ["idle", "clicker", "strategy"]
         },
         {
             "name": "champion_island",
@@ -24,7 +25,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/ci"
                 }
-            ]
+            ],
+            "tags": ["olympics", "adventure", "skill"]
         },
         {
             "name": "drift_hunters",
@@ -37,7 +39,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/dh"
                 }
-            ]
+            ],
+            "tags": ["racing", "drifting", "cars"]
         },
         {
             "name":"tiny_fishing",
@@ -50,7 +53,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/tf"
                 }
-            ]
+            ],
+            "tags": ["fishing", "idle", "casual"]
         },
         {
             "name": "nes_emulator",
@@ -63,7 +67,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/nes/project"
                 }
-            ]
+            ],
+            "tags": ["emulator", "retro", "nes"]
         },
         {
             "name": "spelunky",
@@ -76,7 +81,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/sp/src"
                 }
-            ]
+            ],
+            "tags": ["adventure", "platformer", "roguelike", "skill"]
         },
         {
             "name": "slope",
@@ -89,7 +95,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/sl"
                 }
-            ]
+            ],
+            "tags": ["skill", "reaction", "arcade"]
         },
         {
             "name": "minecraft",
@@ -106,7 +113,8 @@
                     "name": "CCPorted (1.8.8)",
                     "link": "https://ccported.github.io/mc/1.8"
                 }
-            ]
+            ],
+            "tags": ["sandbox", "adventure", "building"]
         },
         {
             "name":"2048",
@@ -123,7 +131,8 @@
                     "name": "CCPorted (2048 Cupcakes)",
                     "link": "https://ccported.github.io/2048/c"
                 }
-            ]
+            ],
+            "tags": ["puzzle", "strategy", "numbers"]
         },
         {
             "name":"cut_the_rope",
@@ -136,7 +145,8 @@
                     "name": "CCPorted",
                     "link": "https://ccported.github.io/ctr"
                 }
-            ]
+            ],
+            "tags": ["puzzle", "physics", "strategy"]
         },
         {
             "name":"papas_freezeria",
@@ -149,7 +159,8 @@
                     "name":"CCPorted",
                     "link":"https://ccported.github.io/flash/papas/freezeria"
                 }
-            ]
+            ],
+            "tags": ["cooking", "simulation", "papas"]
         },
         {
             "name":"papas_pizzeria",
@@ -162,7 +173,8 @@
                     "name":"CCPorted",
                     "link":"https://ccported.github.io/flash/papas/pizzeria"
                 }
-            ]
+            ],
+            "tags":["cooking", "simulation", "papa's"]
         }
     ]
 }
