@@ -1,3 +1,6 @@
+:root{
+    --glow-color: gold;
+}
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
@@ -183,4 +186,32 @@ a:visited{
 .popup-buttons button:hover{
     filter: brightness(0.5);
     transition: 500ms;
+}
+.new{
+    order: -1;
+    /* add a glowing gold shadow effect */
+    box-shadow: 0 0 20px var(--glow-color);
+    animation: glowing 1300ms infinite;
+    border: 5px solid var(--glow-color);
+    box-sizing: border-box;
+}
+
+@keyframes glowing {
+    0% {
+        box-shadow: 0 0 20px var(--glow-color);
+    }
+    50% {
+        box-shadow: 0 0 40px var(--glow-color);
+    }
+    100% {
+        box-shadow: 0 0 20px var(--glow-color);
+    }
+}
+
+/* input.has_content added to show small "x" to clear input */
+input.has-content {
+    background-image: url('../images/close.png');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 15px;
 }
