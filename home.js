@@ -2,22 +2,69 @@
 const supabaseUrl = 'https://dahljrdecyiwfjgklnvz.supabase.co';
 const supabaseKey = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI`
 const client = supabase.createClient(supabaseUrl, supabaseKey);
-
 var searchInput = document.getElementById("searchBox");
+searchInput.value = "";
+var query = new URLSearchParams(window.location.search);
 const cards = document.querySelectorAll('.card');
 const cardsContainer = document.querySelector(".cards");
-const cardsList = Array.from(cards)
-cards.forEach(card => {
+const cardsList = Array.from(cards);
+var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
+
+cards.forEach((card, i) => {
     const id = card.getAttribute('id');
+    checkSeenGame(id, card);
     markGameSeen(id);
 });
 function markGameSeen(id) {
     localStorage.setItem(`seen-${id}`, "yes");
 }
 
-var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
+if (query.has("q")) {
+    searchInput.value = query.get("q");
+    input();
+}
+searchInput.addEventListener("click", (e) => {
+    if (searchInput.value.length > 0) {
 
+        // only clear if the click is on the "x" button
+        var rect = searchInput.getBoundingClientRect();
+        var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+        if (e.clientX > x) {
+            searchInput.value = "";
+            input();
+        }
+    }
+});
+searchInput.addEventListener("mousemove", (e)=>{
+    if (searchInput.value.length > 0) {
+
+        // only set if the click is on the "x" button
+        var rect = searchInput.getBoundingClientRect();
+        var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+        if (e.clientX > x) {
+            searchInput.style.cursor = "pointer";
+        }else{
+            searchInput.style.cursor = "text";
+        }
+    }
+})
 searchInput.addEventListener("input", (e) => {
+    input();
+});
+function input(){
+    // update query parameters
+    var url = new URL(window.location.href);
+    url.searchParams.set("q", searchInput.value);
+    window.history.pushState({}, '', url);
+    // if the input has content, add a little "x" button to clear the input
+    if (searchInput.value.length > 0) {
+        searchInput.classList.add("has-content");
+    } else {
+        searchInput.classList.remove("has-content");
+    }
+    // add click event to clear the input
+
+
     var matching = cardsList.map((card) => {
         var score = 0;
         feilds.forEach(feild => {
@@ -39,8 +86,13 @@ searchInput.addEventListener("input", (e) => {
         if (card[0] == 0) return;
         cardsContainer.appendChild(card[1])
     })
-});
-
+}
+function checkSeenGame(id, card) {
+    if (localStorage.getItem(`seen-${id}`) !== "yes") {
+        card.querySelector(".card-content .card-title").textContent += " (New)";
+        card.classList.add("new");
+    }
+}
 function normalize(string) {
     string = string.toLowerCase();
     string = string.replace(/[^a-z0-9]/g, "");
@@ -52,7 +104,7 @@ var allTags = document.querySelectorAll(".tag");
 allTags.forEach(tag => {
     tag.addEventListener("click", () => {
         searchInput.value = tag.innerText;
-        searchInput.dispatchEvent(new Event("input"));
+        input()
     })
 })
 
@@ -95,7 +147,7 @@ addGameRequestButton.addEventListener("click", () => {
     });
 
 })
-function createAddGamePopup(){
+function createAddGamePopup() {
     const popup = document.createElement("div");
     popup.classList.add("popup");
     popup.innerHTML = `
@@ -112,7 +164,7 @@ function createAddGamePopup(){
     return popup;
 }
 
-function closePopup(){
+function closePopup() {
     document.querySelector(".popup").remove();
     window.gameRQPopupOpen = false;
 }
@@ -121,7 +173,7 @@ document.addEventListener("keydown", (e) => {
     if (e.key == "Escape" && window.gameRQPopupOpen) {
         closePopup();
     }
-    if(e.key == "Enter" && window.gameRQPopupOpen){
+    if (e.key == "Enter" && window.gameRQPopupOpen) {
         document.getElementById("sendGameRequestButton").click();
     }
 });
