@@ -189,6 +189,20 @@
                 }
             ],
             "tags":["arcade", "escape", "retro"]
+        },
+        {
+            "name":"getting_over_it",
+            "fName":"Getting Over It",
+            "description":"Swing a cauldron-bound man up a junk mountain. Prepare for hilarious frustration.",
+            "image":"/assets/images/getting_over_it.png",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/goi"
+                }
+            ],
+            "tags":["physics", "indie", "platformer"]
         }
     ]
 }
