@@ -266,6 +266,8 @@
     margin: auto;
     width: 75%;
     padding-top: 25px;
+    box-sizing: border-box;
+    padding: 15px;
 
 }
 .resignButton{

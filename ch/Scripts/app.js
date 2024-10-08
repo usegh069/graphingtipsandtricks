@@ -466,7 +466,7 @@ function makeMove(oldI, oldJ, newI, newJ) {
     }
 }
 function addToCapturedPieces(piece, color){
-
+    return;
     if(piece == undefined && color == undefined){
         element = document.getElementsByClassName("WhitePiecesCaptured")[0];
         element.innerHTML = "";
