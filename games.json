@@ -309,11 +309,21 @@
                     "link": "https://ccported.github.io/ovo"
                 }
             ],
-            "tags": [
-                "platformer",
-                "skill",
-                "speedrun"
-            ]
+            "tags":["physics", "indie", "platformer"]
+        },
+        {
+            "name":"chess",
+            "fName":"Chess",
+            "description":"Chess is a turn based strategy gamewhere you try to take down the opponent's king.",
+            "image":"/assets/images/chess.png",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/ch"
+                }
+            ],
+            "tags":["strategy", "classic"]
         }
     ]
 }
