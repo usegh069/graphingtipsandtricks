@@ -15,7 +15,11 @@ cards.forEach((card, i) => {
     // get links
     const links = card.querySelectorAll('.card-content .card-links a');
     card.style.cursor = "pointer";
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+        if(e.target.tagName == "SPAN" || e.target.tagName == "A"){
+            // not the card, but an item for which something happens on the card
+            return;
+        }
         window.open(links[0].href, '_blank');
     });
     checkSeenGame(id, card);
