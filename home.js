@@ -12,6 +12,12 @@ var feilds = [".card-content .card-title", ".card-content .card-description", ".
 
 cards.forEach((card, i) => {
     const id = card.getAttribute('id');
+    // get links
+    const links = card.querySelectorAll('.card-content .card-links a');
+    card.style.cursor = "pointer";
+    card.addEventListener('click', () => {
+        window.open(links[0].href, '_blank');
+    });
     checkSeenGame(id, card);
     markGameSeen(id);
 });
@@ -35,7 +41,7 @@ searchInput.addEventListener("click", (e) => {
         }
     }
 });
-searchInput.addEventListener("mousemove", (e)=>{
+searchInput.addEventListener("mousemove", (e) => {
     if (searchInput.value.length > 0) {
 
         // only set if the click is on the "x" button
@@ -43,7 +49,7 @@ searchInput.addEventListener("mousemove", (e)=>{
         var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
         if (e.clientX > x) {
             searchInput.style.cursor = "pointer";
-        }else{
+        } else {
             searchInput.style.cursor = "text";
         }
     }
@@ -51,7 +57,7 @@ searchInput.addEventListener("mousemove", (e)=>{
 searchInput.addEventListener("input", (e) => {
     input();
 });
-function input(){
+function input() {
     // update query parameters
     var url = new URL(window.location.href);
     url.searchParams.set("q", searchInput.value);

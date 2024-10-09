@@ -215,3 +215,9 @@ input.has-content {
     background-position: right 10px center;
     background-size: 15px;
 }
+.highlight {
+    box-shadow: inset 0px 0px 5px 4px var(--glow-color);
+    box-sizing: border-box;
+    display: block;
+    width: fit-content;
+}
