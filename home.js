@@ -16,10 +16,17 @@ cards.forEach((card, i) => {
     const links = card.querySelectorAll('.card-content .card-links a');
     card.style.cursor = "pointer";
     card.addEventListener('click', (e) => {
-        if(e.target.tagName == "SPAN" || e.target.tagName == "A"){
+        if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
             // not the card, but an item for which something happens on the card
+            if (e.target.tagName == "A") {
+                e.preventDefault();
+                // if it's a link, open it
+                incrementClicks(id);
+                window.open(e.target.href, '_blank');
+            }
             return;
         }
+        incrementClicks(id);
         window.open(links[0].href, '_blank');
     });
     checkSeenGame(id, card);
@@ -187,3 +194,74 @@ document.addEventListener("keydown", (e) => {
         document.getElementById("sendGameRequestButton").click();
     }
 });
+
+async function incrementClicks(gameID) {
+
+    let { data: game_clicks, error } = await client
+        .from('game_clicks')
+        .select('clicks')
+        .eq('gameID', gameID);
+
+    if (error) {
+        console.error('Error getting game clicks:', error.message);
+        return;
+    }
+    const clicks = (game_clicks[0] || { clicks: 0}).clicks + 1;
+    // upsert
+    let { data, error: upsertError } = await client
+        .from('game_clicks')
+        .upsert([{ gameID, clicks }]);
+}
+
+
+// sort the games by clicks
+async function getGameClicks(gameID){
+    let { data: game_clicks, error } = await client
+        .from('game_clicks')
+        .select('clicks')
+        .eq('gameID', gameID);
+
+    if (error) {
+        console.error('Error getting game clicks:', error.message);
+        return;
+    }
+    return (game_clicks[0] || { clicks: 0}).clicks;
+}
+async function getAllClicks(){
+    let { data: game_clicks, error } = await client
+        .from('game_clicks')
+        .select('gameID, clicks');
+
+    if (error) {
+        console.error('Error getting game clicks:', error.message);
+        return;
+    }
+    let obj = {};
+    game_clicks.forEach(game => {
+        obj[game.gameID] = game.clicks;
+    });
+    return obj;
+}
+async function assignClickToCards(){
+    let cards = document.querySelectorAll('.card');
+    let clicks = await getAllClicks();
+    cards.forEach(async (card) => {
+        const id = card.getAttribute('id');
+        card.setAttribute('data-clicks', clicks[id] || 0);
+    });
+}
+async function sortCardsByClicks(){
+    await assignClickToCards();
+    let cards = document.querySelectorAll('.card');
+    let cardsArray = Array.from(cards);
+    cardsArray.sort((a, b) => {
+        return parseInt(b.getAttribute('data-clicks')) - parseInt(a.getAttribute('data-clicks'));
+    });
+    let cardsContainer = document.querySelector(".cards");
+    cardsContainer.innerHTML = "";
+    cardsArray.forEach(card => {
+        cardsContainer.appendChild(card);
+    });
+}
+
+sortCardsByClicks();
