@@ -2,8 +2,8 @@
     --glow-color: gold;
 }
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #ffffff;
     margin: 0;
     padding: 0;
 }
@@ -19,13 +19,15 @@ h1 {
     padding: 20px 0;
     background-color: #fff;
     margin: 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 48px;
 }
 .container{
     padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    margin-left: 10vw;
+    margin-right: 10vw;
 }
 .search{
     display: flex;
@@ -37,10 +39,21 @@ h1 {
     flex-wrap: wrap;
     justify-content: center;
     padding: 20px;
+    min-height: 50vh;
 }
+.cards.loading{
+    background-image: url('../images/loading.gif');
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+.card.loading{
+    display: none;
+}
+
 .card {
-    width: 485.4px;
-    height: 300px;
+    width: 500px;
+    height: 325px;
     margin: 15px;
     position: relative;
     overflow: hidden;
@@ -115,12 +128,15 @@ h1 {
 #searchBox{
     width: 300px;
     height: 30px;
-    border-radius: 5px;
-    border: 1px solid #333;
-    padding: 5px;
+    border-radius: 2px;
+    padding: 10px;
+    border: 1px solid #ccc;
     font-size: 16px;
 }
-
+#searchBox:focus{
+    outline: none;
+    border: 1px solid dodgerblue;
+}
 a{
     text-decoration: none;
     color: dodgerblue;
@@ -220,4 +236,15 @@ input.has-content {
     box-sizing: border-box;
     display: block;
     width: fit-content;
+}
+button#sort{
+    padding: 10px;
+    border: none;
+    background-color: transparent;
+    color: #333;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    border: 1px solid #f3f3f3;
+    background-color: #f3f3f3;
 }

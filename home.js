@@ -2,6 +2,8 @@
 const supabaseUrl = 'https://dahljrdecyiwfjgklnvz.supabase.co';
 const supabaseKey = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI`
 const client = supabase.createClient(supabaseUrl, supabaseKey);
+var lastInputTime = Date.now();
+const failedInputCheckLag = 750;
 var searchInput = document.getElementById("searchBox");
 searchInput.value = "";
 var query = new URLSearchParams(window.location.search);
@@ -11,6 +13,9 @@ const cardsList = Array.from(cards);
 var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
 
 cards.forEach((card, i) => {
+    if(document.querySelector(".cards") == card.parentElement){
+        card.classList.add("loading");
+    }
     const id = card.getAttribute('id');
     // get links
     const links = card.querySelectorAll('.card-content .card-links a');
@@ -68,6 +73,7 @@ searchInput.addEventListener("mousemove", (e) => {
 searchInput.addEventListener("input", (e) => {
     input();
 });
+
 function input() {
     // update query parameters
     var url = new URL(window.location.href);
@@ -99,10 +105,23 @@ function input() {
         return b[0] - a[0]
     });
     cardsContainer.innerHTML = "";
-    matching.forEach((card) => {
-        if (card[0] == 0) return;
-        cardsContainer.appendChild(card[1])
-    })
+    matching = matching.filter((card) => {
+        if (card[0] == 0) return false;
+        cardsContainer.appendChild(card[1]);
+        return true;
+    });
+    lastInputTime = Date.now();
+    if(matching.length == 0){
+        setTimeout(()=>{
+            if(Date.now() - lastInputTime >= failedInputCheckLag){
+                client.from("failed_search")
+                .insert([{search_content: searchInput.value}])
+                .then((data) => {
+                    console.log(data);
+                })
+            }
+        }, failedInputCheckLag);
+    }
 }
 function checkSeenGame(id, card) {
     if (localStorage.getItem(`seen-${id}`) !== "yes") {
@@ -206,7 +225,7 @@ async function incrementClicks(gameID) {
         console.error('Error getting game clicks:', error.message);
         return;
     }
-    const clicks = (game_clicks[0] || { clicks: 0}).clicks + 1;
+    const clicks = (game_clicks[0] || { clicks: 0 }).clicks + 1;
     // upsert
     let { data, error: upsertError } = await client
         .from('game_clicks')
@@ -215,7 +234,7 @@ async function incrementClicks(gameID) {
 
 
 // sort the games by clicks
-async function getGameClicks(gameID){
+async function getGameClicks(gameID) {
     let { data: game_clicks, error } = await client
         .from('game_clicks')
         .select('clicks')
@@ -225,9 +244,9 @@ async function getGameClicks(gameID){
         console.error('Error getting game clicks:', error.message);
         return;
     }
-    return (game_clicks[0] || { clicks: 0}).clicks;
+    return (game_clicks[0] || { clicks: 0 }).clicks;
 }
-async function getAllClicks(){
+async function getAllClicks() {
     let { data: game_clicks, error } = await client
         .from('game_clicks')
         .select('gameID, clicks');
@@ -242,17 +261,19 @@ async function getAllClicks(){
     });
     return obj;
 }
-async function assignClickToCards(){
-    let cards = document.querySelectorAll('.card');
+async function assignClickToCards() {
     let clicks = await getAllClicks();
     cards.forEach(async (card) => {
         const id = card.getAttribute('id');
         card.setAttribute('data-clicks', clicks[id] || 0);
     });
 }
-async function sortCardsByClicks(){
-    await assignClickToCards();
-    let cards = document.querySelectorAll('.card');
+
+
+var cachedHotOrder = [];
+async function sortCardsByClicks() {
+    if (cachedHotOrder.length == 0) {
+    }
     let cardsArray = Array.from(cards);
     cardsArray.sort((a, b) => {
         return parseInt(b.getAttribute('data-clicks')) - parseInt(a.getAttribute('data-clicks'));
@@ -264,4 +285,145 @@ async function sortCardsByClicks(){
     });
 }
 
-sortCardsByClicks();
+
+
+var sortButton = document.getElementById("sort");
+var sortState = 0;
+var sortStates = [
+    [sortCardsByClicks, "Hot"],
+    [() => {
+        sortCardsAlphabetically(1);
+    }, "A-Z"],
+    [() => {
+        sortCardsAlphabetically(-1);
+    }, "Z-A"]
+]
+
+
+function sortCardsAlphabetically(direction) {
+    let cardsArray = Array.from(cards);
+    cardsArray.sort((a, b) => {
+        let aText = a.querySelector(".card-content .card-title").innerText;
+        let bText = b.querySelector(".card-content .card-title").innerText;
+        return compareAlpha(aText, bText) * direction;
+    });
+    let cardsContainer = document.querySelector(".cards");
+    cardsContainer.innerHTML = "";
+    cardsArray.forEach(card => {
+        cardsContainer.appendChild(card);
+    });
+}
+
+function compareAlpha(a, b) {
+    let normalizedA = normalize(a);
+    let normalizedB = normalize(b);
+
+    var alphaCharacters = "0123456789abcdefghijklmnopqrstuvwxyz";
+    for (var i = 0; i < normalizedA.length; i++) {
+        if (normalizedB.length <= i) {
+            return 1;
+        }
+        if (alphaCharacters.indexOf(normalizedA[i]) < alphaCharacters.indexOf(normalizedB[i])) {
+            return -1;
+        }
+        if (alphaCharacters.indexOf(normalizedA[i]) > alphaCharacters.indexOf(normalizedB[i])) {
+            return 1;
+        }
+    }
+}
+var sortDirectionText = document.getElementById("order");
+function setSort(state){
+    if(searchInput.value.length > 0){
+        sortDirectionText.innerHTML = "Seach";
+        return;
+    }
+    sortState = state;
+    sortStates[sortState][0]();
+    sortDirectionText.innerHTML = sortStates[sortState][1];
+}
+
+sortButton.addEventListener("click", () => {
+    searchInput.value = "";
+    input();
+    sortState++;
+    if (sortState >= sortStates.length) {
+        sortState = 0;
+    }
+    setSort(sortState);
+})
+
+
+document.querySelector(".cards").classList.add("loading");
+assignClickToCards().then(() => {
+    setSort(0);
+    document.querySelector(".cards").classList.remove("loading");
+    cards.forEach(card => { 
+        card.classList.remove("loading");
+    });
+});
+
+
+
+// function buildCards(games) {
+//     /**
+//      *        {
+//             "name": "cookie_clicker",
+//             "fName": "Cookie Clicker",
+//             "description": "Addictive idle game where you bake cookies by clicking and upgrading your production",
+//             "image": "/assets/images/cookie_clicker.jpg",
+//             "online": true,
+//             "links": [
+//                 {
+//                     "name": "CCPorted",
+//                     "link": "https://ccported.github.io/cc"
+//                 }
+//             ],
+//             "tags": [
+//                 "idle",
+//                 "clicker",
+//                 "strategy"
+//             ]
+//         }
+
+//         <div class="card" id="cookie_clicker">
+//                     <div class="card-bg" style="background-image: url('assets/images/cookie_clicker.jpg');"></div>
+//                     <div class="card-content">
+//                         <div>
+//                             <h2 class="card-title">Cookie Clicker</h2>
+//                             <p class="card-description">Addictive idle game where you bake cookies by clicking and
+//                                 upgrading
+//                                 your production.</p>
+//                             <div class="card-tags">
+//                                 <span class="tag" data-tag="idle">Idle</span>
+//                                 <span class="tag" data-tag="clicker">clicker</span>
+//                             </div>
+//                         </div>
+//                         <div class="card-links">
+//                             <a href="https://ccported.github.io/cc">Play Cookie Clicker on CCPorted</a>
+//                         </div>
+//                     </div>
+//                 </div>
+//      */
+//     for(const games of games){
+//         const card = document.createElement("div");
+//         card.classList.add("card");
+//         card.id = games.name;
+//         card.innerHTML = `
+//             <div class="card-bg" style="background-image: url('${games.image}');"></div>
+//             <div class="card-content">
+//                 <div>
+//                     <h2 class="card-title">${games.fName}</h2>
+//                     <p class="card-description">${games.description}</p>
+//                     <div class="card-tags">
+//                         ${games.tags.map(tag => `<span class="tag" data-tag="${tag}">${tag}</span>`).join("")}
+//                     </div>
+//                 </div>
+//                 <div class="card-links">
+//                     ${games.links.map(link => `<a href="${link.link}">Play ${games.fName} on ${link.name}</a>`).join("")}
+//                 </div>
+//             </div>
+//         `;
+//         document.querySelector(".cards").appendChild(card);
+        
+        
+// }
