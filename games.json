@@ -338,6 +338,20 @@
                 }
             ],
             "tags": ["platformer", "arcade", "casual"]
+        },
+        {
+            "name":"gametime_player",
+            "fName":"Gametime Player",
+            "description":"Run all kinds of retro ROM files with this emulator.",
+            "image":"/assets/images/pokemon_emerald.jpg",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/gp"
+                }
+            ],
+            "tags": ["retro","emulator","gba"]
         }
     ]
 }

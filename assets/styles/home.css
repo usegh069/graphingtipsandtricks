@@ -13,26 +13,44 @@ body {
     justify-content: center;
     align-items: center;
 }
-h1 {
+header h1 {
     text-align: center;
     color: #333;
-    padding: 20px 0;
     background-color: #fff;
     margin: 0;
     font-size: 48px;
 }
+header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px 0;
+    background-color: #ffffff;
+    position: fixed;
+    width: 100%;
+    right: 0;
+    left: 0;
+    z-index: 8888;
+    top: 0;
+}
+header.shadow{
+    box-shadow: 0px 0px 10px #333;
+
+}
 .container{
+    margin-top: 100px;
     padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-left: 10vw;
-    margin-right: 10vw;
 }
 .search{
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    align-items: center;
+    justify-content: flex-end;
+    max-width: 75%;
 }
 .cards {
     display: flex;
@@ -86,6 +104,7 @@ h1 {
     color: #fff;
     display: flex;
     flex-direction: column;
+    z-index: 7777;
     justify-content: space-between;
 }
 .card-title {
@@ -247,4 +266,5 @@ button#sort{
     font-size: 16px;
     border: 1px solid #f3f3f3;
     background-color: #f3f3f3;
+    align-self: flex-end;
 }
