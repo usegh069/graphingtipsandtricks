@@ -10,6 +10,8 @@ var query = new URLSearchParams(window.location.search);
 const cards = document.querySelectorAll('.card');
 const cardsContainer = document.querySelector(".cards");
 const cardsList = Array.from(cards);
+let cachedRomsJSON = null;
+
 var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
 
 cards.forEach((card, i) => {
@@ -74,7 +76,7 @@ searchInput.addEventListener("input", (e) => {
     input();
 });
 
-function input() {
+async function input() {
     // update query parameters
     var url = new URL(window.location.href);
     url.searchParams.set("q", searchInput.value);
@@ -86,8 +88,6 @@ function input() {
         searchInput.classList.remove("has-content");
     }
     // add click event to clear the input
-
-
     var matching = cardsList.map((card) => {
         var score = 0;
         feilds.forEach(feild => {
@@ -112,6 +112,29 @@ function input() {
     });
     lastInputTime = Date.now();
     if(matching.length == 0){
+        try{
+            var results = await testRomSearch(searchInput.value);
+            if(results.length > 0){
+                var h3 = document.createElement("h3");
+                h3.innerHTML = `Rom Results`
+                var fullLibrary = document.createElement("p");
+                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://ccported.github.io/roms'>full library</a></i>";
+
+                var div = document.createElement("div");
+                div.appendChild(h3)
+                div.appendChild(fullLibrary);
+                for(const result of results){
+                    var p = document.createElement("p");
+                    var [url, name, platform] = result;
+                    p.innerHTML = `<a href = https://ccported.github.io/roms/roms/${platform}/${url}>${name}</a>`;
+                    div.appendChild(p)
+                }
+                document.getElementById("check-roms").innerHTML = "";
+                document.getElementById("check-roms").appendChild(div);
+            }
+        }catch(err){
+            document.getElementById("check-roms").innerHTML = err;
+        }
         setTimeout(()=>{
             if(Date.now() - lastInputTime >= failedInputCheckLag){
                 client.from("failed_search")
@@ -121,7 +144,35 @@ function input() {
                 })
             }
         }, failedInputCheckLag);
+    }else{
+        document.getElementById("check-roms").innerHTML = "";
     }
+}
+async function testRomSearch(query) {
+    let response;
+    let json;
+    if(!cachedRomsJSON){
+
+        response = await fetch("https://ccported.github.io/roms/roms.json");
+        json = await response.json();
+        cachedRomsJSON = json;
+    }else{
+        json = cachedRomsJSON;
+    }
+
+    const normalizedQuery = normalize(query);
+    const results = [];
+
+    for (const platform in json) {
+        for (const [url, name] of json[platform]) {
+            const normalizedName = normalize(name);
+            if (normalizedName.includes(normalizedQuery)) {
+                results.push([url, name, platform]);
+            }
+        }
+    }
+
+    return results;
 }
 function checkSeenGame(id, card) {
     if (localStorage.getItem(`seen-${id}`) !== "yes") {

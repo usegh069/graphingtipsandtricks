@@ -57,7 +57,7 @@ header.shadow{
     flex-wrap: wrap;
     justify-content: center;
     padding: 20px;
-    min-height: 50vh;
+    /* min-height: 50vh; */
 }
 .cards.loading{
     background-image: url('../images/loading.gif');
