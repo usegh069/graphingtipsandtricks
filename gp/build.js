@@ -12614,7 +12614,8 @@ System.register("github:matthewbauer/x-retro@master.js", ["github:matthewbauer/x
 System.registerDynamic("settings.json!github:systemjs/plugin-json@0.1.2.js", [], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
-  module.exports = { "extensions": { "gb": "gambatte", "gbc": "gambatte", "smc": "snes9x-next", "fig": "snes9x-next", "sfc": "snes9x-next", "swc": "snes9x-next", "gba": "vba-next", "nes": "quicknes", "sms": "picodrive", "gen": "picodrive", "smd": "picodrive", "md": "picodrive", "32x": "picodrive", "mgw": "gw", "vec": "vecx" }, "overlays": { "gambatte": "./overlays/gamepads/gameboy/", "vba-next": "./overlays/gamepads/gba/", "snes9x-next": "./overlays/gamepads/snes/", "nestopia": "./overlays/gamepads/nes/" }, "keys": { "37": "14", "38": "12", "39": "15", "40": "13", "67": "8", "86": "9", "88": "0", "90": "1" }, "urlPrefix": "https://crossorigin.me/" };
+      
+  module.exports = { "extensions": { "gb": "gambatte", "gbc": "gambatte", "smc": "snes9x-next", "fig": "snes9x-next", "sfc": "snes9x-next", "swc": "snes9x-next", "gba": "vba-next", "nes": "quicknes", "sms": "picodrive", "gen": "picodrive", "smd": "picodrive", "md": "picodrive", "32x": "picodrive", "mgw": "gw", "vec": "vecx" }, "overlays": { "gambatte": "./overlays/gamepads/gameboy/", "vba-next": "./overlays/gamepads/gba/", "snes9x-next": "./overlays/gamepads/snes/", "nestopia": "./overlays/gamepads/nes/" }, "keys": { "37": "14", "38": "12", "39": "15", "40": "13", "67": "8", "86": "9", "90": "0", "88": "1" }, "urlPrefix": "https://crossorigin.me/" };
 });
 System.registerDynamic('utils.js', [], true, function ($__require, exports, module) {
   var global = this || self,
