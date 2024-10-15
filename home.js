@@ -112,35 +112,35 @@ async function input() {
     });
     lastInputTime = Date.now();
     if(matching.length == 0){
-            var results = await testRomSearch(searchInput.value);
-            if(results.length > 0){
-                var h3 = document.createElement("h3");
-                h3.innerHTML = `Rom Results`
-                var fullLibrary = document.createElement("p");
-                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://ccported.github.io/roms'>full library</a></i>";
+        var results = await testRomSearch(searchInput.value);
+        if(results.length > 0){
+            var h3 = document.createElement("h3");
+            h3.innerHTML = `Rom Results`
+            var fullLibrary = document.createElement("p");
+            fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://ccported.github.io/roms'>full library</a></i>";
 
-                var div = document.createElement("div");
-                div.appendChild(h3)
-                div.appendChild(fullLibrary);
-                for(const result of results){
-                    var p = document.createElement("p");
-                    var [url, name, platform] = result;
-                    p.innerHTML = `<a href = https://ccported.github.io/roms/roms/${platform}/${url}>${name}</a>`;
-                    div.appendChild(p)
+            var div = document.createElement("div");
+            div.appendChild(h3)
+            div.appendChild(fullLibrary);
+            for(const result of results){
+                var p = document.createElement("p");
+                var [url, name, platform] = result;
+                p.innerHTML = `<a href = https://ccported.github.io/roms/roms/${platform}/${url}>${name}</a>`;
+                div.appendChild(p)
+            }
+            document.getElementById("check-roms").innerHTML = "";
+            document.getElementById("check-roms").appendChild(div);
+        }else{
+            setTimeout(()=>{
+                if(Date.now() - lastInputTime >= failedInputCheckLag){
+                    client.from("failed_search")
+                    .insert([{search_content: searchInput.value}])
+                    .then((data) => {
+                        console.log(data);
+                    })
                 }
-                document.getElementById("check-roms").innerHTML = "";
-                document.getElementById("check-roms").appendChild(div);
-            }else{
-                setTimeout(()=>{
-                    if(Date.now() - lastInputTime >= failedInputCheckLag){
-                        client.from("failed_search")
-                        .insert([{search_content: searchInput.value}])
-                        .then((data) => {
-                            console.log(data);
-                        })
-                    }
-                }, failedInputCheckLag);
-    }
+            }, failedInputCheckLag);
+        }
     }else{
         document.getElementById("check-roms").innerHTML = "";
     }
