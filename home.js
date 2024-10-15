@@ -112,7 +112,6 @@ async function input() {
     });
     lastInputTime = Date.now();
     if(matching.length == 0){
-        try{
             var results = await testRomSearch(searchInput.value);
             if(results.length > 0){
                 var h3 = document.createElement("h3");
@@ -131,19 +130,17 @@ async function input() {
                 }
                 document.getElementById("check-roms").innerHTML = "";
                 document.getElementById("check-roms").appendChild(div);
-            }
-        }catch(err){
-            document.getElementById("check-roms").innerHTML = err;
-        }
-        setTimeout(()=>{
-            if(Date.now() - lastInputTime >= failedInputCheckLag){
-                client.from("failed_search")
-                .insert([{search_content: searchInput.value}])
-                .then((data) => {
-                    console.log(data);
-                })
-            }
-        }, failedInputCheckLag);
+            }else{
+                setTimeout(()=>{
+                    if(Date.now() - lastInputTime >= failedInputCheckLag){
+                        client.from("failed_search")
+                        .insert([{search_content: searchInput.value}])
+                        .then((data) => {
+                            console.log(data);
+                        })
+                    }
+                }, failedInputCheckLag);
+    }
     }else{
         document.getElementById("check-roms").innerHTML = "";
     }
