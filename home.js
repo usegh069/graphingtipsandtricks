@@ -363,7 +363,16 @@ assignClickToCards().then(() => {
 });
 
 
+const header = document.querySelector('header');
+const scrollThreshold = 0; // Adjust this value as needed
 
+window.addEventListener('scroll', () => {
+  if (window.scrollY > scrollThreshold) {
+    header.classList.add('shadow');
+  } else {
+    header.classList.remove('shadow');
+  }
+});
 // function buildCards(games) {
 //     /**
 //      *        {
