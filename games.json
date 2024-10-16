@@ -352,6 +352,20 @@
                 }
             ],
             "tags": ["retro","emulator","gba"]
+        },
+        {
+            "name":"retro_bowl",
+            "fName":"Retro Bowl",
+            "description":"Retro is an American style football game created by New Star Games. Manage your team's roster, play against rivals, and win the super bowl!",
+            "image":"/assets/images/retro_bowl.jpg",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/rb"
+                }
+            ],
+            "tags": ["retro","football","sports"]
         }
     ]
 }
