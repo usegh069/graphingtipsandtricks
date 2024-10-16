@@ -15,7 +15,7 @@ let cachedRomsJSON = null;
 var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
 
 cards.forEach((card, i) => {
-    if(document.querySelector(".cards") == card.parentElement){
+    if (document.querySelector(".cards") == card.parentElement) {
         card.classList.add("loading");
     }
     const id = card.getAttribute('id');
@@ -111,9 +111,9 @@ async function input() {
         return true;
     });
     lastInputTime = Date.now();
-    if(matching.length == 0){
+    if (matching.length == 0) {
         var results = await testRomSearch(searchInput.value);
-        if(results.length > 0){
+        if (results.length > 0) {
             var h3 = document.createElement("h3");
             h3.innerHTML = `Rom Results`
             var fullLibrary = document.createElement("p");
@@ -122,7 +122,7 @@ async function input() {
             var div = document.createElement("div");
             div.appendChild(h3)
             div.appendChild(fullLibrary);
-            for(const result of results){
+            for (const result of results) {
                 var p = document.createElement("p");
                 var [url, name, platform] = result;
                 p.innerHTML = `<a href = https://ccported.github.io/roms/roms/${platform}/${url}>${name}</a>`;
@@ -130,30 +130,30 @@ async function input() {
             }
             document.getElementById("check-roms").innerHTML = "";
             document.getElementById("check-roms").appendChild(div);
-        }else{
-            setTimeout(()=>{
-                if(Date.now() - lastInputTime >= failedInputCheckLag){
+        } else {
+            setTimeout(() => {
+                if (Date.now() - lastInputTime >= failedInputCheckLag) {
                     client.from("failed_search")
-                    .insert([{search_content: searchInput.value}])
-                    .then((data) => {
-                        console.log(data);
-                    })
+                        .insert([{ search_content: searchInput.value }])
+                        .then((data) => {
+                            console.log(data);
+                        })
                 }
             }, failedInputCheckLag);
         }
-    }else{
+    } else {
         document.getElementById("check-roms").innerHTML = "";
     }
 }
 async function testRomSearch(query) {
     let response;
     let json;
-    if(!cachedRomsJSON){
+    if (!cachedRomsJSON) {
 
         response = await fetch("https://ccported.github.io/roms/roms.json");
         json = await response.json();
         cachedRomsJSON = json;
-    }else{
+    } else {
         json = cachedRomsJSON;
     }
 
@@ -380,8 +380,8 @@ function compareAlpha(a, b) {
     }
 }
 var sortDirectionText = document.getElementById("order");
-function setSort(state){
-    if(searchInput.value.length > 0){
+function setSort(state) {
+    if (searchInput.value.length > 0) {
         sortDirectionText.innerHTML = "Seach";
         return;
     }
@@ -405,7 +405,7 @@ document.querySelector(".cards").classList.add("loading");
 assignClickToCards().then(() => {
     setSort(0);
     document.querySelector(".cards").classList.remove("loading");
-    cards.forEach(card => { 
+    cards.forEach(card => {
         card.classList.remove("loading");
     });
 });
@@ -415,11 +415,11 @@ const header = document.querySelector('header');
 const scrollThreshold = 0; // Adjust this value as needed
 
 window.addEventListener('scroll', () => {
-  if (window.scrollY > scrollThreshold) {
-    header.classList.add('shadow');
-  } else {
-    header.classList.remove('shadow');
-  }
+    if (window.scrollY > scrollThreshold) {
+        header.classList.add('shadow');
+    } else {
+        header.classList.remove('shadow');
+    }
 });
 // function buildCards(games) {
 //     /**
@@ -481,6 +481,104 @@ window.addEventListener('scroll', () => {
 //             </div>
 //         `;
 //         document.querySelector(".cards").appendChild(card);
-        
-        
+
+
 // }
+
+
+
+
+function shortcut(keys, cb) {
+    var keyMap = {};
+    for (const key of keys) {
+        keyMap[key] = false;
+    }
+    document.addEventListener("keydown", (e) => {
+        if (keyMap[e.which] !== undefined) {
+            keyMap[e.which] = true;
+        }
+        if (check()) {
+            cb();
+        }
+    });
+    document.addEventListener("keyup", (e) => {
+        if (keyMap[e.which] !== undefined) {
+            keyMap[e.which] = false;
+        }
+    });
+    function check() {
+        var allPressed = true;
+        for (const key of keys) {
+            if (!keyMap[key]) {
+                allPressed = false;
+            }
+        }
+        return allPressed;
+    }
+}
+function createPopup(popupData) {
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        max-width: 800px;
+        min-width: 500px;
+        background-color: rgb(37,37,37);
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+        font-family: Arial, sans-serif;
+    `;
+
+    const message = document.createElement('p');
+    message.textContent = popupData.message;
+    message.style.marginBottom = '10px';
+    message.style.color = 'white';
+    let link;
+    if (popupData.cta) {
+        link = document.createElement('a');
+        link.href = popupData.cta.link;
+        link.textContent = popupData.cta.text;
+        link.style.cssText = `
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+    }
+    const closeButton = document.createElement('a');
+    closeButton.href = 'javascript:void(0)';
+    closeButton.textContent = 'Close';
+    closeButton.style.cssText = `
+        display: inline-block;
+        background-color: rgb(248,0,0);
+        color: white;
+        padding: 10px 15px;
+        text-decoration: none;
+        border-radius: 5px;
+    `;
+    closeButton.onclick = () => popup.remove();
+    const linkRow = document.createElement('div');
+    linkRow.style.display = 'flex';
+    linkRow.style.justifyContent = 'space-between';
+    if (popupData.cta) {
+        linkRow.appendChild(link);
+    }
+    linkRow.appendChild(closeButton);
+
+    popup.appendChild(message);
+    popup.appendChild(linkRow);
+
+    document.body.appendChild(popup);
+}
+shortcut([17, 81], () => {
+    createPopup({
+        message: "Hello, Antonio",
+        cta: false
+    })
+})
