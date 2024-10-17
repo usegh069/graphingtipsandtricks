@@ -380,6 +380,20 @@
                 }
             ],
             "tags": ["sports","basketball","twoPlayer"]
+        },
+        {
+            "name":"soccer_heads",
+            "fName":"Soccer Heads",
+            "description":"Play soccer with big heads of 13 world-class teams in this fun and funny game. Choose your favorite club and compete in to score the most goals.",
+            "image":"/assets/images/soccer_heads.png",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/sh"
+                }
+            ],
+            "tags": ["soccer","football","sports","towPlayer"]
         }
     ]
 }
