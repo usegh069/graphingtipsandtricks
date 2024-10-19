@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #fafafa;
+    background-color: #fff;
     color: #000;
     margin: 0;
     padding: 0;
@@ -9,7 +9,7 @@ body {
 .sidebar {
     width: 60px;
     height: 100vh;
-    background-color: #f1f1f1;
+    background-color: #fff;
     transition: width 0.3s ease;
     overflow: hidden;
     position: fixed;
@@ -43,7 +43,7 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.sidebar:hover .sidebar-content {
+.sidebar.expanded .sidebar-content {
     opacity: 1;
 }
 
@@ -79,7 +79,7 @@ body {
 
 .main-content {
     flex-grow: 1;
-    /* margin-left: 60px; */
+    margin-left: 60px;
     /* transition: margin-left 0.3s ease; */
 }
 
@@ -105,7 +105,7 @@ input[type="text"] {
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #275d29;
-    background-color: #fafafa;
+    background-color: #ffffff;
     color: #000;
     box-sizing: border-box;
 }
@@ -134,7 +134,7 @@ a {
     border: 1px solid #275d29;
     padding: 10px;
     margin-bottom: 10px;
-    background-color: #eeeeee;
+    background-color: #ffffff;
 }
 
 .message {
@@ -151,4 +151,56 @@ a {
 
 #logout-btn:hover {
     background-color: #f93939;
+}
+.popup{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    color: white;
+    justify-content: center;
+    align-items: center;
+}
+.popup-content{
+    width: 50%;
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-buttons{
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+    align-items: stretch;
+    margin-top: 10px;
+    width: 100%;
+}
+.popup-buttons button#nvmd{
+    background-color: #d32f2f;
+    margin-right: 5px;
+}
+.popup-buttons button.conf{
+    margin-left: 5px;
+}
+.popup-buttons button#nvmd:hover{
+    background-color: #f93939;
+    transition: 500ms;
+}
+.popup-buttons button{
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 500ms;
+}
+.popup-buttons button:hover{
+    filter: brightness(0.5);
+    transition: 500ms;
 }

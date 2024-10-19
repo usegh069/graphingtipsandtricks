@@ -5,21 +5,22 @@ const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const chatMessages = document.getElementById('chat-messages');
 const logoutBtn = document.getElementById('logout-btn');
-
 const sidebar = document.querySelector(".sidebar");
-sidebar.addEventListener("mouseover",(e)=>{
-    sidebar.classList.add("expanded")
-});
-sidebar.addEventListener("mouseout",(e)=>{
-    sidebar.classList.remove("expanded");
-});
+
+if (!/Mobi|Android/i.test(navigator.userAgent)) {
+    sidebar.addEventListener("mouseover", (e) => {
+        sidebar.classList.add("expanded");
+    });
+    sidebar.addEventListener("mouseout", (e) => {
+        sidebar.classList.remove("expanded");
+    });
+}
 const sArrow = document.querySelector(".sidebar .arrow");
-sArrow.addEventListener("click",()=>{
+sArrow.addEventListener("click", () => {
     sidebar.classList.toggle("expanded")
 })
-const url = new URL(window.location);
-const query = new URLSearchParams(url);
-const channel = query.get("channel") || "1b81d7ae-9035-4280-b667-ad9c8bad9311"; // public channel
+var query = new URLSearchParams(window.location.search);
+var channel = (query.has("channel") ? query.get("channel") : "1b81d7ae-9035-4280-b667-ad9c8bad9311");
 let currentUser;
 let penaltyCount = 0;
 let lastMessageTime = 0;
@@ -32,24 +33,51 @@ async function init() {
         return;
     }
     currentUser = user;
+    const { data: channel, cerror } = await client
+        .rpc("get_channel_info", { channel_id: currentChannel });
+    if (cerror) {
+        console.error('Error getting channel info:', cerror);
+        alert("Error getting channel info");
+    }
     const { data, error } = await client
         .from('u_profiles')
         .update({ 'current_channel': currentChannel })
         .eq('id', user.id)
-        const { data2, error2 } = await client
-            .from('chat_channels')
-            .update({ 'joined_users': supabase.sql`array_append(joined_users,${currentUser.id}` })
-            //.update({ 'joined_users': client.raw('array_append(joined_users, ?)', [currentUser.id]) })
-            .eq('id', currentChannel)
-            .select();
 
-    if (error) alert(JSON.stringify(error));
-    if (error2) alert(JSON.stringify(error2));
+    const channelRef = channel[0];
+    if (!channelRef.joined_users.includes(user.id)) {
+        if (channelRef.is_public) {
+            joinC(channelRef.id, null);
+        } else {
+            const password = prompt("Enter the channel password");
+            if (password) {
+                joinC(channelRef.id, password);
+            } else {
+                window.location.href = "/chat";
+            }
+        }
+    }
     setupRealtime(currentChannel);
     loadMessages();
     loadChannels();
 }
+async function joinC(channel, password) {
+    let data = await client
+        .rpc('append_user_to_channel', {
+            channel_id: channel,
+            new_user_id: currentUser.id,
+            given_password: password
+        })
+    if(data.error){
+        if(data.error.message.includes("[PARSE]")){
+            // chop off [PARSE] from the error message
+            alert(data.error.message.slice(7));
+            // redirect to chat
+            window.location.href = "/chat";
+        }
+    }
 
+}
 function setupRealtime(channelId) {
     client
         .channel('public:chat_messages')
@@ -67,17 +95,15 @@ function setupRealtime(channelId) {
 }
 async function loadChannels() {
     const { data: rows, error } = await client
-        .from('chat_channels')
-        .select('*')
-        .contains('joined_users', [currentUser.id])
+        .rpc('user_in_joined_users', { user_id: currentUser.id });
     if (error) throw error;
     var channelList = document.getElementById('channel-list');
     rows.forEach(channel => {
         var li = document.createElement("li");
         var a = document.createElement("a")
-        a.setAttribute("href", `?channel=${channel.id}`);
+        a.setAttribute("href", `?channel=${channel.channel_id}`);
         a.innerText = channel.friendly_name;
-
+        if (channel.channel_id == currentChannel) a.classList.add("active");
         li.appendChild(a);
         channelList.appendChild(li);
     })
@@ -158,11 +184,131 @@ messageForm.addEventListener('submit', async (e) => {
         console.error('Error sending message:', error);
         alert("Error sending message")
     }
+
 });
 
 logoutBtn.addEventListener('click', async () => {
     await client.auth.signOut();
-    window.location.href = 'login.html';
+    window.location.href = '/login';
 });
 
 init();
+
+const createChannel = document.getElementById('create-channel-btn');
+const joinChannel = document.getElementById('add-channel-btn');
+joinChannel.addEventListener("click", () => {
+    createChannelPopup(false);
+    const sendButton = document.getElementById("createChannelConf");
+    const nvmdButton = document.getElementById("nvmd");
+    const channelInput = document.getElementById("channelInput");
+    const passwordInput = document.getElementById("channelPassword");
+    sendButton.addEventListener("click", async () => {
+        const channelName = channelInput.value;
+        if (!channelName) return;
+        const passwordValue = passwordInput.value;
+        const { data, error } = await client
+            .from('chat_channels')
+            .select('id')
+            .eq('friendly_name', channelName)
+            .eq('password', passwordValue);
+        if (error) {
+            console.error('Error joining channel:', error);
+            alert("Error joining channel")
+        }
+        window.location.href = `?channel=${data[0].id}`;
+    });
+    const popup = document.querySelector(".popup");
+    popup.addEventListener("click", (e) => {
+        if (e.target == popup) {
+            closePopup();
+        }
+    }
+    );
+    nvmdButton.addEventListener("click", () => {
+        closePopup();
+    });
+});
+
+createChannel.addEventListener("click", () => {
+    createChannelPopup();
+    const sendButton = document.getElementById("createChannelConf");
+    const nvmdButton = document.getElementById("nvmd");
+    const channelInput = document.getElementById("channelInput");
+    const passwordInput = document.getElementById("channelPassword");
+    sendButton.addEventListener("click", async () => {
+        const channelName = channelInput.value;
+        if (!channelName) return;
+        const passwordValue = passwordInput.value;
+        const public = (passwordValue.length == 0);
+        const { data, error } = await client
+            .from('chat_channels')
+            .insert([{ friendly_name: channelName, password: passwordValue, is_public: public, owner: currentUser.id, joined_users: [currentUser.id] }])
+            .select('id');
+        if (error) {
+            console.error('Error creating channel:', error);
+            alert("Error creating channel")
+        }
+        const joinHTML = `
+            <p>Channel created successfully!</p>
+            <p>Click <a href="?channel=${data[0].id}">here</a> to join the channel</p>
+            <p>Join code to share with friends: <code>${data[0].id}</code> <button class="copy-button" data-copy="${data[0].id}"><i class="fa-solid fa-copy"></i> <span id = "copy-text">Copy</span></button></p>
+            `
+        
+        popup.querySelector(".popup-content").innerHTML = joinHTML;
+        document.querySelectorAll(".copy-button").forEach(button => {
+            button.addEventListener("click", () => {
+                const copyText = button.getAttribute("data-copy");
+                navigator.clipboard.writeText(copyText);
+                button.querySelector("#copy-text").innerText = "Copied!";
+                setTimeout(() => {
+                    button.querySelector("#copy-text").innerText = "Copy";
+                }, 500);
+            });
+
+        });
+        
+        // window.location.href = `?channel=${data[0].id}`;
+    });
+    const popup = document.querySelector(".popup");
+    popup.addEventListener("click", (e) => {
+        if (e.target == popup) {
+            closePopup();
+        }
+    });
+    nvmdButton.addEventListener("click", () => {
+        closePopup();
+    });
+});
+
+window.createChannelPopupOpen = false;
+function createChannelPopup(create = true) {
+    const popup = document.createElement("div");
+    popup.classList.add("popup");
+    popup.innerHTML = `
+        <div class="popup-content">
+            <h2>${create ? "Create" : "Join"} A Channel</h2>
+            <input type="text" id="channelInput" placeholder="${create ? "Channel Name" : "Channel code"}">
+            <input type="${create ? "text" : "password"}" id="channelPassword" placeholder="Channel Password">
+            <div class = "popup-buttons">
+                <button id = "nvmd">Close</button><button class = "conf" id="createChannelConf">Create</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    window.createChannelPopupOpen = true;
+    return popup;
+}
+
+function closePopup() {
+    document.querySelector(".popup").remove();
+    window.createChannelPopupOpen = false;
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key == "Escape" && window.createChannelPopupOpen) {
+        closePopup();
+    }
+    if (e.key == "Enter" && window.createChannelPopupOpen) {
+        document.getElementById("createChannelConf").click();
+    }
+});

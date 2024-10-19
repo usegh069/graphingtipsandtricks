@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://rawgit.com/leizongmin/js-xss/master/dist/xss.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <div class="sidebar">
@@ -14,17 +15,16 @@
         <div class="sidebar-content">
             <h2>Channels</h2>
             <ul id = "channel-list">
-                <li><a href="?channel=1b81d7ae-9035-4280-b667-ad9c8bad9311" class="active">World</a></li>
             </ul>
             <button id="create-channel-btn">Create Channel</button>
-            <button id="add-channel-btn">Add Channel</button>
+            <button id="add-channel-btn">Join Channel</button>
         </div>
     </div>
     <div class="main-content">
         <div class="container">
             <div id="chat-messages"></div>
             <form id="message-form">
-                <input type="text" id="message-input" placeholder="Type your message..." required>
+                <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
                 <button type="submit">Send</button>
             </form>
             <button id="logout-btn">Logout</button>
