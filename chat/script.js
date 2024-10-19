@@ -288,7 +288,7 @@ function createChannelPopup(create = true) {
         <div class="popup-content">
             <h2>${create ? "Create" : "Join"} A Channel</h2>
             <input type="text" id="channelInput" placeholder="${create ? "Channel Name" : "Channel code"}">
-            <input type="${create ? "text" : "password"}" id="channelPassword" placeholder="Channel Password">
+            <input type="${create ? "text" : "password"}" id="channelPassword" placeholder="Channel Password${create ? " (Leave empty to make public)" : ""}">
             <div class = "popup-buttons">
                 <button id = "nvmd">Close</button><button class = "conf" id="createChannelConf">Create</button>
             </div>
