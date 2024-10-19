@@ -1,0 +1,154 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fafafa;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar {
+    width: 60px;
+    height: 100vh;
+    background-color: #f1f1f1;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar.expanded {
+    width: 250px;
+    box-shadow: 0px 0px 5px #000000;
+}
+
+.arrow {
+    font-size: 24px;
+    margin-top: 20px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar.expanded .arrow {
+    transform: rotate(180deg);
+}
+
+.sidebar-content {
+    width: 200px;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar:hover .sidebar-content {
+    opacity: 1;
+}
+
+.sidebar h2 {
+    color: #275d29;
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.sidebar ul li a {
+    color: #000000;
+    text-decoration: none;
+}
+
+.sidebar ul li a.active {
+    color: #275d29;
+    font-weight: bold;
+}
+
+#create-channel-btn,
+#add-channel-btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.main-content {
+    flex-grow: 1;
+    /* margin-left: 60px; */
+    /* transition: margin-left 0.3s ease; */
+}
+
+/* .sidebar:hover + .main-content {
+    margin-left: 250px;
+} */
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #275d29;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #275d29;
+    background-color: #fafafa;
+    color: #000;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #275d29;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+#chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #275d29;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #eeeeee;
+}
+
+.message {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    color: #000000;
+}
+
+#logout-btn {
+    margin-top: 10px;
+    background-color: #d32f2f;
+}
+
+#logout-btn:hover {
+    background-color: #f93939;
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://rawgit.com/leizongmin/js-xss/master/dist/xss.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="arrow">→</div>
+        <div class="sidebar-content">
+            <h2>Channels</h2>
+            <ul id = "channel-list">
+                <li><a href="?channel=1b81d7ae-9035-4280-b667-ad9c8bad9311" class="active">World</a></li>
+            </ul>
+            <button id="create-channel-btn">Create Channel</button>
+            <button id="add-channel-btn">Add Channel</button>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="container">
+            <div id="chat-messages"></div>
+            <form id="message-form">
+                <input type="text" id="message-input" placeholder="Type your message..." required>
+                <button type="submit">Send</button>
+            </form>
+            <button id="logout-btn">Logout</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
