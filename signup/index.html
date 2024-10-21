@@ -53,6 +53,11 @@
                     if (insertError) throw insertError;
 
                     alert('Signup successful! Please check your email for verification.');
+                    if(localStorage.getItem('redirect')) {
+                        window.location.href = localStorage.getItem('redirect');
+                        localStorage.removeItem('redirect');
+                        return;
+                    }
                     window.location.href = '/login';
                 }
             } catch (error) {

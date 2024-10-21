@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, sans-serif;
     background-color: #fff;
     color: #000;
     margin: 0;
@@ -71,12 +71,16 @@ body {
     font-weight: bold;
 }
 
-#create-channel-btn,
-#add-channel-btn {
+.actionButtons button {
     width: 100%;
     margin-top: 10px;
 }
-
+.arrow{
+    cursor: default;
+}
+.expander{
+    cursor: pointer !important;
+}
 .main-content {
     flex-grow: 1;
     margin-left: 60px;
@@ -152,7 +156,8 @@ a {
 #logout-btn:hover {
     background-color: #f93939;
 }
-.popup{
+
+.popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -165,16 +170,18 @@ a {
     justify-content: center;
     align-items: center;
 }
-.popup-content{
+
+.popup-content {
     width: 50%;
     height: 50%;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.popup-buttons{
+.popup-buttons {
     display: flex;
     flex-direction: row;
     justify-content: stretch;
@@ -182,25 +189,93 @@ a {
     margin-top: 10px;
     width: 100%;
 }
-.popup-buttons button#nvmd{
+
+.popup-buttons button#nvmd {
     background-color: #d32f2f;
     margin-right: 5px;
 }
-.popup-buttons button.conf{
+
+.popup-buttons button.conf {
     margin-left: 5px;
 }
-.popup-buttons button#nvmd:hover{
+
+.popup-buttons button#nvmd:hover {
     background-color: #f93939;
     transition: 500ms;
 }
-.popup-buttons button{
+
+.popup-buttons button {
     border: none;
     color: #fff;
     font-size: 16px;
     cursor: pointer;
     transition: 500ms;
 }
-.popup-buttons button:hover{
+
+.popup-buttons button:hover {
     filter: brightness(0.5);
     transition: 500ms;
+}
+
+.invite-emailInputContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-around;
+    margin-top: 5px;
+}
+
+input.invite-emailInput,
+.invite-emailInputFaux {
+    width: 100%;
+    border: 1px solid #275d29;
+    box-sizing: border-box;
+    padding: 5px;
+    font-size: 14px;
+    height: 36px;
+    margin: 0px;
+}
+.invite-emailInputFaux {
+    border: 1px solid transparent;
+}
+.invite-emails {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+}
+
+.invite-remove {
+    margin-left: 5px;
+    cursor: pointer;
+    width: 50px;
+    background-color: #d32f2f;
+}
+
+.invite-remove:hover {
+    background-color: #f93939;
+}
+
+.invite-add {
+    width: 50px;
+    align-self: flex-end;
+    background-color: #1a6bbc;
+    /* Dodger Blue */
+}
+
+.invite-add:hover {
+    background-color: #1e90ff;
+}
+
+.invite-box button.invite-send {
+    margin-top: 5px;
+    background-color: #275d29;
+}
+
+.invite-box button.invite-send:hover {
+    background-color: #45a049;
+}
+
+input:focus {
+    outline: none;
 }

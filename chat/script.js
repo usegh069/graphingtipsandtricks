@@ -17,19 +17,28 @@ if (!/Mobi|Android/i.test(navigator.userAgent)) {
 }
 const sArrow = document.querySelector(".sidebar .arrow");
 sArrow.addEventListener("click", () => {
-    sidebar.classList.toggle("expanded")
-})
+    if (navigator.userAgent.includes("Mobi")) {
+        sidebar.classList.toggle("expanded")
+    }
+});
+if(navigator.userAgent.includes("Mobi")) {
+    sArrow.classList.add("expander");
+}
 var query = new URLSearchParams(window.location.search);
 var channel = (query.has("channel") ? query.get("channel") : "1b81d7ae-9035-4280-b667-ad9c8bad9311");
+var password = (query.has("password") ? query.get("password") : "");
 let currentUser;
 let penaltyCount = 0;
 let lastMessageTime = 0;
 let currentChannel = channel;
+let channelRef = null;
+
 
 async function init() {
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
-        window.location.href = '/login';
+        localStorage.setItem("redirect", window.location.href);
+        window.location.href = `/login`;
         return;
     }
     currentUser = user;
@@ -44,12 +53,18 @@ async function init() {
         .update({ 'current_channel': currentChannel })
         .eq('id', user.id)
 
-    const channelRef = channel[0];
+    channelRef = channel[0];
+    console.log(channelRef.joined_users);
+    console.log(channelRef.joined_users.includes(user.id));
+    console.log(channelRef.is_public);
     if (!channelRef.joined_users.includes(user.id)) {
         if (channelRef.is_public) {
+            console.log("Joining w/o password")
             joinC(channelRef.id, null);
         } else {
-            const password = prompt("Enter the channel password");
+            if (!password || password.length == 0) {
+                password = prompt("Enter the channel password");
+            }
             if (password) {
                 joinC(channelRef.id, password);
             } else {
@@ -60,16 +75,28 @@ async function init() {
     setupRealtime(currentChannel);
     loadMessages();
     loadChannels();
+    loadInviteButton();
 }
-async function joinC(channel, password) {
+function loadInviteButton() {
+    if (channelRef && channelRef.owner == currentUser.id) {
+        const inviteButton = document.createElement("button");
+        inviteButton.innerHTML = `<i class="fa-solid fa-share"></i> Invite Friends`;
+        inviteButton.addEventListener("click", () => {
+            createInvitePopup();
+        });
+        document.querySelector(".sidebar-content .actionButtons").appendChild(inviteButton);
+    }
+}
+async function joinC(channel, password = null) {
+    console.log("Joineing channel")
     let data = await client
         .rpc('append_user_to_channel', {
             channel_id: channel,
             new_user_id: currentUser.id,
             given_password: password
         })
-    if(data.error){
-        if(data.error.message.includes("[PARSE]")){
+    if (data.error) {
+        if (data.error.message.includes("[PARSE]")) {
             // chop off [PARSE] from the error message
             alert(data.error.message.slice(7));
             // redirect to chat
@@ -126,6 +153,7 @@ async function loadMessages() {
 }
 
 function handleNewMessage(payload) {
+    console.log("hello, message")
     appendMessage(payload.new);
 }
 
@@ -242,7 +270,7 @@ createChannel.addEventListener("click", () => {
         const public = (passwordValue.length == 0);
         const { data, error } = await client
             .from('chat_channels')
-            .insert([{ friendly_name: channelName, password: passwordValue, is_public: public, owner: currentUser.id, joined_users: [currentUser.id] }])
+            .insert([{ friendly_name: channelName, password: (passwordValue.length > 0) ? passwordValue : null, is_public: public, owner: currentUser.id, joined_users: [currentUser.id] }])
             .select('id');
         if (error) {
             console.error('Error creating channel:', error);
@@ -253,7 +281,7 @@ createChannel.addEventListener("click", () => {
             <p>Click <a href="?channel=${data[0].id}">here</a> to join the channel</p>
             <p>Join code to share with friends: <code>${data[0].id}</code> <button class="copy-button" data-copy="${data[0].id}"><i class="fa-solid fa-copy"></i> <span id = "copy-text">Copy</span></button></p>
             `
-        
+
         popup.querySelector(".popup-content").innerHTML = joinHTML;
         document.querySelectorAll(".copy-button").forEach(button => {
             button.addEventListener("click", () => {
@@ -266,7 +294,7 @@ createChannel.addEventListener("click", () => {
             });
 
         });
-        
+
         // window.location.href = `?channel=${data[0].id}`;
     });
     const popup = document.querySelector(".popup");
@@ -280,6 +308,87 @@ createChannel.addEventListener("click", () => {
     });
 });
 
+function createInvitePopup() {
+    const popup = document.createElement("div");
+    popup.classList.add("popup");
+    popup.innerHTML = `
+        <div class="popup-content invite-box">
+            <h2>Invite Friends</h2>
+            <p>Add your friends email addresses</p>
+            <div class="invite-emails adder">
+                <div class = "invite-emailInputContainer">
+                    <input type="text" class="invite-emailInput" placeholder="Email Address" autofocus>
+                </div>
+            </div>
+            <div class = "invite-emails">
+                <div class = "invite-emailInputContainer">
+                    <div class = "invite-emailInputFaux">&nbsp;</div><button class="invite-add">+</button>
+                </div>
+            </div>
+            <button class="invite-send">Send</button>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    document.querySelector(".invite-send").addEventListener("click", async () => {
+        const emails = Array.from(document.querySelectorAll(".invite-emailInput")).map(input => {
+            if (input.value && input.value.length > 0) {
+                return input.value;
+            } else {
+                return null;
+            }
+        }).filter(email => email);
+        if (emails.length == 0) {
+            alert("Please enter at least one email address");
+            return;
+        }
+        const body = {
+            emails,
+            channelID: currentChannel,
+            location: window.location.origin + window.location.pathname
+        }
+        const res = await client.functions.invoke("send_email_invite", {
+            body
+        });
+        if (res.data && res.data.success) {
+            closePopup();
+        }
+        if (res.error) {
+            alert("Error sending invites");
+            console.log(res.error);
+            closePopup();
+        }
+    });
+    document.querySelector(".invite-add").addEventListener("click", () => {
+        const container = document.createElement("div");
+        container.classList.add("invite-emailInputContainer");
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.classList.add("invite-emailInput");
+        input.placeholder = "Email Address";
+
+        const button = document.createElement("button");
+        button.classList.add("invite-remove");
+        button.setAttribute("data-remove", document.querySelectorAll(".invite-emailInput").length);
+        button.innerText = "X";
+        button.addEventListener("click", () => {
+            input.remove();
+            button.remove();
+            container.remove();
+        });
+        container.appendChild(input);
+        container.appendChild(button);
+
+        document.querySelector(".invite-emails.adder").appendChild(container);
+        input.focus();
+    });
+    popup.addEventListener("click", (e) => {
+        if (e.target == popup) {
+            closePopup();
+        }
+    });
+    return popup;
+}
 window.createChannelPopupOpen = false;
 function createChannelPopup(create = true) {
     const popup = document.createElement("div");
