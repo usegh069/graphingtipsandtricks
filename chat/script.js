@@ -6,7 +6,6 @@ const messageInput = document.getElementById('message-input');
 const chatMessages = document.getElementById('chat-messages');
 const logoutBtn = document.getElementById('logout-btn');
 const sidebar = document.querySelector(".sidebar");
-
 if (!/Mobi|Android/i.test(navigator.userAgent)) {
     sidebar.addEventListener("mouseover", (e) => {
         sidebar.classList.add("expanded");
@@ -54,9 +53,7 @@ async function init() {
         .eq('id', user.id)
 
     channelRef = channel[0];
-    console.log(channelRef.joined_users);
-    console.log(channelRef.joined_users.includes(user.id));
-    console.log(channelRef.is_public);
+    document.getElementById("chat_name").textContent = channelRef.friendly_name;
     if (!channelRef.joined_users.includes(user.id)) {
         if (channelRef.is_public) {
             console.log("Joining w/o password")
@@ -72,6 +69,7 @@ async function init() {
             }
         }
     }
+
     setupRealtime(currentChannel);
     loadMessages();
     loadChannels();
@@ -140,7 +138,7 @@ async function loadMessages() {
         .from('chat_messages')
         .select('*')
         .eq('channel_id', currentChannel)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
 
     if (error) {
         console.error('Error loading messages:', error);
@@ -153,14 +151,13 @@ async function loadMessages() {
 }
 
 function handleNewMessage(payload) {
-    console.log("hello, message")
     appendMessage(payload.new);
 }
 
 function appendMessage(message) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
-    messageElement.textContent = `${message.display_name}: ${message.content}`;
+    messageElement.textContent = filterXSS(`${message.display_name}: ${message.content}`);
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -204,7 +201,7 @@ messageForm.addEventListener('submit', async (e) => {
     try {
         const { data, error } = await client
             .from('chat_messages')
-            .insert([{ content: message, user_id: currentUser.id, display_name: currentUser.user_metadata.display_name, channel_id: currentChannel }]);
+            .insert([{ content: message, user_id: currentUser.id, display_name: currentUser.user_metadata.display_name, channel_id: currentChannel, channel_name: channelRef.friendly_name }]);
 
         if (error) throw error;
         messageInput.value = '';

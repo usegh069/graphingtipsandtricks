@@ -39,6 +39,10 @@ body {
 .sidebar-content {
     width: 200px;
     padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -278,4 +282,11 @@ input.invite-emailInput,
 
 input:focus {
     outline: none;
+}
+.bottomActions{
+    display: flex;
+    flex-direction: row;
+}
+.bottomActions button{
+    margin: 2px !important;
 }

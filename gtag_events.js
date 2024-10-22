@@ -1,6 +1,34 @@
+const link = document.createElement("link");
+link.href = "/assets/styles/master.css";
+link.setAttribute("rel","stylesheet");
+document.head.appendChild(link);
+const stlyeLoadPromise = new Promise((r, rr)=>{
+    link.onload = ()=>{
+        r();
+    }
+});
+let cachedChannels = null;
+function installSupascript(){
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@supabase/supabase-js@2";
+    document.head.appendChild(script);
+    const loadPromise = new Promise((r,rr)=>{
+        script.onload = ()=>{
+            const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
+            window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            r();
+        }
+    });
+
+    return loadPromise;
+}
+
+
+
+
 const script = document.currentScript;
 var gameID = script.getAttribute("data-gameID");
-
 function emit() {
     gtag("event", "play_game", {
         gameID,
@@ -11,7 +39,7 @@ function emit() {
 
 
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
-function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!") {
+function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!", opts) {
     const popup = document.createElement('div');
     popup.style.cssText = `
         position: fixed;
@@ -113,4 +141,261 @@ function hasSeenGame(gameID) {
 }
 function markGameSeen(gameID) {
     localStorage.setItem(`seen-${gameID}`, "yes");
+}
+
+
+
+
+async function setupRealtime(channelId) {
+    await installSupascript();
+    try{
+    client
+        .channel('public:chat_messages')
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'chat_messages',
+            },
+            handleNewMessage
+        )
+        .subscribe();
+    }catch(err){
+        alert(err)
+    }
+}
+
+function createNotif(popupData) {
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        max-width: 800px;
+        min-width: 500px;
+        background-color: rgb(37,37,37);
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+        font-family: Arial, sans-serif;
+    `;
+    if(popupData.autoClose){
+        const meter = document.createElement("div");
+        meter.classList.add("meter");
+        meter.style.cssText = `
+            margin: 0;
+            width: 100%;
+            height: 10px;
+            background-color: rgba(0,0,255,1);
+            display: block;
+            position: absolute;
+            border-radius: 10px;
+            z-index: 9;
+            top: 0;
+            left: 0;
+            animation: meter-animation ${popupData.autoClose}s linear forwards;
+        `;
+        popup.appendChild(meter);
+        
+        setTimeout(()=>{
+            popup.style.animation = `fade 0.5s`;
+            setTimeout(()=>{
+                popup.remove()
+            },500);
+        }, popupData.autoClose * 1000)
+    }
+    const popupContent = document.createElement("div");
+    const message = document.createElement('p');
+    message.textContent = popupData.message;
+    message.style.marginBottom = '10px';
+    message.style.color = 'white';
+    let link;
+    if (popupData.cta) {
+        link = document.createElement('a');
+        link.href = popupData.cta.link;
+        link.textContent = popupData.cta.text;
+        link.style.cssText = `
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+    }
+    if(!popupData.autoClose){
+        const closeButton = document.createElement('a');
+        closeButton.href = 'javascript:void(0)';
+        closeButton.textContent = 'Close';
+        closeButton.style.cssText = `
+            display: inline-block;
+            background-color: rgb(248,0,0);
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+        closeButton.onclick = () => popup.remove();
+    }
+    const linkRow = document.createElement('div');
+    linkRow.style.display = 'flex';
+    linkRow.style.justifyContent = 'space-between';
+    const actionContainer = document.createElement("div");
+    for(const action of popupData.actions){
+        const [actionName, actionFunc, color] = action;
+        let button = document.createElement("button");
+        button.style.cssText = `
+            display: inline-block;
+            background-color: ${(color) ? color : '#4CAF50'};
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid ${(color) ? color : '#4CAF50'};
+            margin: 5px;
+            cursor: pointer;
+        `;
+        button.onclick = ()=>{
+            popup.remove();
+            actionFunc();
+        };
+        button.innerText = actionName;
+        actionContainer.appendChild(button);
+    }
+    if(popupData.actions && popupData.actions.length > 0){
+        linkRow.appendChild(actionContainer);
+    }
+    if (popupData.cta) {
+        linkRow.appendChild(link);
+    }
+    if(!popupData.autoClose){
+        linkRow.appendChild(closeButton);
+    }
+    if(popupData.fullLink){
+        popup.style.cursor = "pointer";
+        popup.addEventListener("click",()=>{
+            window.location.assign(popupData.fullLink);
+        })
+    }
+
+    popupContent.appendChild(message);
+    popupContent.appendChild(linkRow);
+    popup.appendChild(popupContent);
+    document.body.appendChild(popup);
+}
+localStorage.removeItem(`chat-convo-all-muted`)
+function handleNewMessage(payload){
+    const { new: message } = payload;
+    if(localStorage.getItem(`chat-convo-all-muted`) == 1 || localStorage.getItem(`channel-muted-${message.channel_id}`) == 1) return;
+    if(message.content.length > 50){
+        message.content = message.content.slice(0,50);
+        message.content += "...";
+    }
+    createNotif({
+        message: `(${message.channel_name}) ${message.display_name}: ${message.content}`,
+        cta: false,
+        autoClose: 3,
+        actions: [
+            ["Respond",()=>{
+                window.location.assign(`/chat?channel=${message.channel_id}`)
+            }],
+            ["Mute",()=>{
+                muteManager();
+            },"rgb(248,0,0)"]
+        ]
+
+    });
+}
+if(localStorage.getItem("chat-convo-all-muted") !== 1){
+    setupRealtime();
+}
+
+shortcut([
+    "Control", "m"
+], ()=>{
+    if(!window.muteManagerPopupOpen){
+        muteManager()
+    }
+});
+
+async function muteManager(){
+    const popup = await muteManagerPopup();
+    document.addEventListener("keydown",(e)=>{
+        if(e.key == "Escape"){
+            popup.remove();
+        }
+    });
+    popup.querySelector("#nvmd").addEventListener("click",()=>{
+        popup.remove();
+        window.muteManagerPopupOpen = false;
+    });
+}
+
+async function muteManagerPopup() {
+    const popup = document.createElement("div");
+    popup.classList.add("cc");
+    popup.classList.add("popup");
+    let rows = []
+    if(cachedChannels){
+        rows = cachedChannels;
+    }else{
+        const { data: { user } } = await client.auth.getUser();
+        const { data, error } = await client
+            .rpc('user_in_joined_users', { user_id:  user.id});
+        rows = data;
+        if(error) alert(error);
+    }
+    popup.innerHTML = `
+        <div class="cc popup-content">
+            <h2>Manage Notifications</h2>
+            <div class = "cc channels-list-mute">
+                ${
+                    rows.map((channel)=>{
+                        return `<div class = "cc channel-row">
+                            <p class = "cc channel-name">${channel.friendly_name}</p>
+                            <p><i class="fa-solid fa-bell-slash"></i></p>
+                        </div>`
+                    }).join("<br>")
+                }
+            </div>
+            <div class = "cc popup-buttons">
+                <button class = "cc" id = "nvmd">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    window.muteManagerPopupOpen = true;
+    return popup;
+}
+window.muteManagerPopupOpen = false;
+function shortcut(keys, cb) {
+    var keyMap = {};
+    for (const key of keys) {
+        keyMap[key] = false;
+    }
+    document.addEventListener("keydown", (e) => {
+        if (keyMap[e.key] !== undefined) {
+            keyMap[e.key] = true;
+        }
+        if (check()) {
+            cb();
+        }
+    });
+    document.addEventListener("keyup", (e) => {
+        if (keyMap[e.key] !== undefined) {
+            keyMap[e.key] = false;
+        }
+    });
+    function check() {
+        var allPressed = true;
+        for (const key of keys) {
+            if (!keyMap[key]) {
+                allPressed = false;
+            }
+        }
+        return allPressed;
+    }
 }

@@ -17,23 +17,30 @@
     <div class="sidebar">
         <div class="arrow">→</div>
         <div class="sidebar-content">
+            <div class = "nonButtons">
             <h2>Channels</h2>
             <ul id="channel-list">
             </ul>
+            </div>
             <div class="actionButtons">
                 <button id="create-channel-btn">Create Channel</button>
                 <button id="add-channel-btn">Join Channel</button>
+            </div>
+            <div class = "bottomActions actionButtons">
+                <button onclick="window.location.assign('/')">Home</button>
+                <button id="logout-btn">Logout</button>
+
             </div>
         </div>
     </div>
     <div class="main-content">
         <div class="container">
+            <h1 id = "chat_name"></h1>
             <div id="chat-messages"></div>
             <form id="message-form">
                 <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
                 <button type="submit">Send</button>
             </form>
-            <button id="logout-btn">Logout</button>
         </div>
     </div>
     <script src="script.js"></script>
