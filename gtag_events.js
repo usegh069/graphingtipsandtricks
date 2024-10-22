@@ -401,6 +401,7 @@ async function muteManagerPopup() {
     popup.innerHTML = `
         <div class="cc popup-content">
             <h2>Manage Notifications</h2>
+            <p>Use <code>CTRL+M</code> to pull this up</p>
             <div class = "cc channels-list-mute">
                 ${
                     rows.map((channel)=>{
