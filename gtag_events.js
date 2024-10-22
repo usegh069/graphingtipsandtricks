@@ -148,6 +148,9 @@ function markGameSeen(gameID) {
 
 async function setupRealtime(channelId) {
     await installSupascript();
+    const { data: { user } } = await client.auth.getUser();
+    if(!user)  return;
+    window.ccPortedUser = user;
     try{
     client
         .channel('public:chat_messages')
@@ -328,13 +331,48 @@ async function muteManager(){
             popup.remove();
         }
     });
-    popup.querySelector("#nvmd").addEventListener("click",()=>{
+    popup.querySelectorAll(".mute-channel").forEach((el)=>{
+        el.addEventListener("click",async (e)=>{
+            const channelID = el.getAttribute("data-channelid");
+            if(localStorage.getItem(`channel-muted-${channelID}`) == 1){
+                localStorage.setItem(`channel-muted-${channelID}`,0);
+            }else{
+                localStorage.setItem(`channel-muted-${channelID}`,1);
+            }
+            el.innerHTML = `<i class="fa-solid fa-bell${isChannelMuted({channel_id: channelID}) ? "-slash" : "" }"></i>`;
+        });
+    });
+    popup.querySelector("#closer").addEventListener("click",()=>{
         popup.remove();
         window.muteManagerPopupOpen = false;
     });
 }
+function loadFontAwesome(){
+    const link = document.createElement("link");
+    link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css";
+    link.setAttribute("rel","stylesheet");
+    link.setAttribute("crossorigin","anonymous");
+    link.setAttribute("referrerpolicy","no-referrer");
+    document.head.appendChild(link);
 
+    return new Promise((r,rr)=>{
+        link.onload = ()=>{
+            window.fontAwesomeLoaded = true;
+            r();
+        }
+    });
+}
 async function muteManagerPopup() {
+    if(!window.ccPortedUser){
+        const { data: { user } } = await client.auth.getUser();
+        window.ccPortedUser = user;
+        if(!user) alert("You must be logged in to use this feature");
+    }
+    if(window.fontAwesomeLoaded !== true){
+        await loadFontAwesome();
+    }
+
+
     const popup = document.createElement("div");
     popup.classList.add("cc");
     popup.classList.add("popup");
@@ -342,10 +380,10 @@ async function muteManagerPopup() {
     if(cachedChannels){
         rows = cachedChannels;
     }else{
-        const { data: { user } } = await client.auth.getUser();
         const { data, error } = await client
-            .rpc('user_in_joined_users', { user_id:  user.id});
+            .rpc('user_in_joined_users', { user_id:  ccPortedUser.id});
         rows = data;
+        cachedChannels = rows;
         if(error) alert(error);
     }
     popup.innerHTML = `
@@ -356,19 +394,22 @@ async function muteManagerPopup() {
                     rows.map((channel)=>{
                         return `<div class = "cc channel-row">
                             <p class = "cc channel-name">${channel.friendly_name}</p>
-                            <p><i class="fa-solid fa-bell-slash"></i></p>
+                            <p  data-channelid = "${channel.channel_id}" class="cc mute-channel"><i class="fa-solid fa-bell${isChannelMuted(channel) ? "-slash" : "" }"></i></p>
                         </div>`
                     }).join("<br>")
                 }
             </div>
             <div class = "cc popup-buttons">
-                <button class = "cc" id = "nvmd">Close</button>
+                <button class = "cc" id="closer">Done</button>
             </div>
         </div>
     `;
     document.body.appendChild(popup);
     window.muteManagerPopupOpen = true;
     return popup;
+}
+function isChannelMuted(channel){
+    return localStorage.getItem(`channel-muted-${channel.channel_id}`) == 1;
 }
 window.muteManagerPopupOpen = false;
 function shortcut(keys, cb) {

@@ -32,7 +32,7 @@
 .cc.popup-content {
     width: 50%;
     height: 50%;
-    max-width: 400px;
+    max-width: 500px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -71,7 +71,6 @@
 }
 
 .cc.popup-buttons button:hover {
-    filter: brightness(0.5);
     transition: 500ms;
 }
 button.cc {
@@ -96,4 +95,21 @@ input[type="text"].cc {
     background-color: #ffffff;
     color: #000;
     box-sizing: border-box;
+}
+
+.cc.channel-row{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #7d7d7d;
+}
+.cc.channels-list-mute{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.cc.mute-channel{
+    cursor: pointer;
 }
