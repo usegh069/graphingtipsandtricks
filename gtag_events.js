@@ -1,3 +1,5 @@
+window.ccPorted = window.ccPorted || {};
+window.ccPorted.muteManagerPopupOpen = false;
 const link = document.createElement("link");
 link.href = "/assets/styles/master.css";
 link.setAttribute("rel","stylesheet");
@@ -16,7 +18,7 @@ function installSupascript(){
         script.onload = ()=>{
             const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
-            window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.ccSupaClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             r();
         }
     });
@@ -148,11 +150,11 @@ function markGameSeen(gameID) {
 
 async function setupRealtime(channelId) {
     await installSupascript();
-    const { data: { user } } = await client.auth.getUser();
+    const { data: { user } } = await window.ccSupaClient.auth.getUser();
     if(!user)  return;
-    window.ccPortedUser = user;
+    window.ccPorted.user = user;
     try{
-    client
+    window.ccSupaClient
         .channel('public:chat_messages')
         .on(
             'postgres_changes',
@@ -165,7 +167,7 @@ async function setupRealtime(channelId) {
         )
         .subscribe();
     }catch(err){
-        alert(err)
+        console.log(error)
     }
 }
 
@@ -319,16 +321,25 @@ if(localStorage.getItem("chat-convo-all-muted") !== 1){
 shortcut([
     "Control", "m"
 ], ()=>{
-    if(!window.muteManagerPopupOpen){
+    if(!window.ccPorted.muteManagerPopupOpen){
         muteManager()
+    }else{
+        closeMuteManager();
     }
 });
-
+function closeMuteManager(){
+    if(window.ccPorted.muteManagerPopupOpen){
+        window.ccPorted.muteManagerPopupRef.remove();;
+        window.ccPorted.muteManagerPopupRef = null;
+        window.ccPorted.muteManagerPopupOpen = false;
+    }
+}
 async function muteManager(){
     const popup = await muteManagerPopup();
+    window.ccPorted.muteManagerPopupRef = popup;
     document.addEventListener("keydown",(e)=>{
         if(e.key == "Escape"){
-            popup.remove();
+            closeMuteManager();
         }
     });
     popup.querySelectorAll(".mute-channel").forEach((el)=>{
@@ -343,8 +354,7 @@ async function muteManager(){
         });
     });
     popup.querySelector("#closer").addEventListener("click",()=>{
-        popup.remove();
-        window.muteManagerPopupOpen = false;
+        closeMuteManager();
     });
 }
 function loadFontAwesome(){
@@ -357,18 +367,19 @@ function loadFontAwesome(){
 
     return new Promise((r,rr)=>{
         link.onload = ()=>{
-            window.fontAwesomeLoaded = true;
+            window.ccPorted.fontAwesomeLoaded = true;
             r();
         }
     });
 }
 async function muteManagerPopup() {
-    if(!window.ccPortedUser){
-        const { data: { user } } = await client.auth.getUser();
-        window.ccPortedUser = user;
+
+    if(!window.ccPorted.user){
+        const { data: { user } } = await window.ccSupaClient.auth.getUser();
+        window.ccPorted.user = user;
         if(!user) alert("You must be logged in to use this feature");
     }
-    if(window.fontAwesomeLoaded !== true){
+    if(window.ccPorted.fontAwesomeLoaded !== true){
         await loadFontAwesome();
     }
 
@@ -380,12 +391,13 @@ async function muteManagerPopup() {
     if(cachedChannels){
         rows = cachedChannels;
     }else{
-        const { data, error } = await client
-            .rpc('user_in_joined_users', { user_id:  ccPortedUser.id});
+        const { data, error } = await window.ccSupaClient
+            .rpc('user_in_joined_users', { user_id:  window.ccPorted.user.id});
         rows = data;
         cachedChannels = rows;
-        if(error) alert(error);
+        if(error) console.log(error)
     }
+
     popup.innerHTML = `
         <div class="cc popup-content">
             <h2>Manage Notifications</h2>
@@ -405,13 +417,12 @@ async function muteManagerPopup() {
         </div>
     `;
     document.body.appendChild(popup);
-    window.muteManagerPopupOpen = true;
+    window.ccPorted.muteManagerPopupOpen = true;
     return popup;
 }
 function isChannelMuted(channel){
     return localStorage.getItem(`channel-muted-${channel.channel_id}`) == 1;
 }
-window.muteManagerPopupOpen = false;
 function shortcut(keys, cb) {
     var keyMap = {};
     for (const key of keys) {

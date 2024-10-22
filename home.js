@@ -10,8 +10,22 @@ var query = new URLSearchParams(window.location.search);
 const cards = document.querySelectorAll('.card');
 const cardsContainer = document.querySelector(".cards");
 const cardsList = Array.from(cards);
-let cachedRomsJSON = null;
+const searchButtonEnable = document.querySelector(".search-enable-button");
+const sParent = document.querySelector(".s-parent");
+searchButtonEnable.addEventListener("click",(e)=>{
+    openSearch();
+});
 
+let cachedRomsJSON = null;
+function openSearch(){
+    searchInput.type = "text";
+    searchButtonEnable.innerHTML = `<i class="fas fa-search"></i>`
+}
+function closeSearch(){
+    searchInput.type = "hidden";
+    searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
+
+}
 var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
 
 cards.forEach((card, i) => {
@@ -45,32 +59,32 @@ function markGameSeen(id) {
 
 if (query.has("q")) {
     searchInput.value = query.get("q");
+    openSearch();
     input();
 }
 searchInput.addEventListener("click", (e) => {
-    if (searchInput.value.length > 0) {
 
-        // only clear if the click is on the "x" button
-        var rect = searchInput.getBoundingClientRect();
-        var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
-        if (e.clientX > x) {
-            searchInput.value = "";
-            input();
-        }
+    // only clear if the click is on the "x" button
+    var rect = searchInput.getBoundingClientRect();
+    var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+    if (e.clientX > x) {
+        searchInput.value = "";
+        setSort(sortState)
+        searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
+        searchInput.type = "hidden";
     }
+ 
 });
 searchInput.addEventListener("mousemove", (e) => {
-    if (searchInput.value.length > 0) {
-
-        // only set if the click is on the "x" button
-        var rect = searchInput.getBoundingClientRect();
-        var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
-        if (e.clientX > x) {
-            searchInput.style.cursor = "pointer";
-        } else {
-            searchInput.style.cursor = "text";
-        }
+    // only set if the click is on the "x" button
+    var rect = searchInput.getBoundingClientRect();
+    var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+    if (e.clientX > x) {
+        searchInput.style.cursor = "pointer";
+    } else {
+        searchInput.style.cursor = "text";
     }
+
 })
 searchInput.addEventListener("input", (e) => {
     input();
@@ -82,11 +96,7 @@ async function input() {
     url.searchParams.set("q", searchInput.value);
     window.history.pushState({}, '', url);
     // if the input has content, add a little "x" button to clear the input
-    if (searchInput.value.length > 0) {
-        searchInput.classList.add("has-content");
-    } else {
-        searchInput.classList.remove("has-content");
-    }
+
     // add click event to clear the input
     var matching = cardsList.map((card) => {
         var score = 0;

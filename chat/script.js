@@ -6,6 +6,11 @@ const messageInput = document.getElementById('message-input');
 const chatMessages = document.getElementById('chat-messages');
 const logoutBtn = document.getElementById('logout-btn');
 const sidebar = document.querySelector(".sidebar");
+
+const filter = new Filter({
+    list: localList
+});
+
 if (!/Mobi|Android/i.test(navigator.userAgent)) {
     sidebar.addEventListener("mouseover", (e) => {
         sidebar.classList.add("expanded");
@@ -20,7 +25,7 @@ sArrow.addEventListener("click", () => {
         sidebar.classList.toggle("expanded")
     }
 });
-if(navigator.userAgent.includes("Mobi")) {
+if (navigator.userAgent.includes("Mobi")) {
     sArrow.classList.add("expander");
 }
 var query = new URLSearchParams(window.location.search);
@@ -133,32 +138,48 @@ async function loadChannels() {
         channelList.appendChild(li);
     })
 }
-async function loadMessages() {
-    const { data, error } = await client
-        .from('chat_messages')
-        .select('*')
-        .eq('channel_id', currentChannel)
-        .order('created_at', { ascending: true })
+async function loadMessages(page = 0, pageSize = 20) {
+    try {
+        const { data, error } = await client
+            .from('chat_messages')
+            .select('*')
+            .eq('channel_id', currentChannel)
+            .order('created_at', { ascending: false })
+            .limit(pageSize)
+            .range(page * (pageSize), (page + 1) * (pageSize + 1));
 
-    if (error) {
-        console.error('Error loading messages:', error);
-        return;
+        if (error) {
+            console.error('Error loading messages:', error);
+            return;
+        }
+        // var sData = (data || []).reverse();
+        data.forEach(message => {
+            appendMessage(message, true);
+        });
+
+        if (data.length !=0 ) {
+            return { hasMore: true, messages: data }
+        } else {
+            return { hasMore: false, messages: data };
+        }
+    } catch (err) {
+        alert(err)
     }
-
-    data.forEach(message => {
-        appendMessage(message);
-    });
 }
 
 function handleNewMessage(payload) {
     appendMessage(payload.new);
 }
 
-function appendMessage(message) {
+function appendMessage(message, before = false) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
-    messageElement.textContent = filterXSS(`${message.display_name}: ${message.content}`);
-    chatMessages.appendChild(messageElement);
+    messageElement.textContent = filter.clean(filterXSS(`${message.display_name}: ${message.content}`));
+    if (!before) {
+        chatMessages.appendChild(messageElement);
+    } else {
+        chatMessages.insertBefore(messageElement, document.querySelectorAll('.message')[0] || document.querySelector(".empty-message"))
+    }
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -168,40 +189,17 @@ function sanitizeMessage(message) {
     return message;
 }
 
-function containsSwearWords(message) {
-    // Add your list of swear words here
-    const swearWords = ['fuck', 'shit', 'ass'];
-    return swearWords.some(word => message.toLowerCase().includes(word));
-}
 
-function calculatePenalty() {
-    const penalties = [5, 25, 60, 180, 360, 720];
-    const penaltyMinutes = penalties[Math.min(penaltyCount, penalties.length - 1)];
-    return penaltyMinutes * 60 * 1000; // Convert to milliseconds
-}
 
 messageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = sanitizeMessage(messageInput.value.trim());
     if (!message) return;
 
-    const now = Date.now();
-    if (now - lastMessageTime < calculatePenalty()) {
-        alert(`You are temporarily blocked from sending messages. Please wait.`);
-        return;
-    }
-
-    if (containsSwearWords(message)) {
-        penaltyCount++;
-        lastMessageTime = now;
-        alert(`Your message contains inappropriate language. You are blocked for ${calculatePenalty() / (60 * 1000)} minutes.`);
-        return;
-    }
-
     try {
         const { data, error } = await client
             .from('chat_messages')
-            .insert([{ content: message, user_id: currentUser.id, display_name: currentUser.user_metadata.display_name, channel_id: currentChannel, channel_name: channelRef.friendly_name }]);
+            .insert([{ content: filter.clean(message), user_id: currentUser.id, display_name: filter.clean(currentUser.user_metadata.display_name), channel_id: currentChannel, channel_name: filter.clean(channelRef.friendly_name) }]);
 
         if (error) throw error;
         messageInput.value = '';
@@ -416,5 +414,46 @@ document.addEventListener("keydown", (e) => {
     }
     if (e.key == "Enter" && window.createChannelPopupOpen) {
         document.getElementById("createChannelConf").click();
+    }
+});
+
+
+let currentPage = 0;
+let isLoading = false;
+let hasMoreMessages = true;
+
+chatMessages.addEventListener("scroll", async () => {
+    // Calculate scroll position
+    const scrollTop = chatMessages.scrollTop;
+    const scrollThreshold = 50; // Pixels from top to trigger load
+    if(scrollTop <= scrollThreshold){
+    }
+    // Check if we're near the top and not currently loading
+    if (scrollTop <= scrollThreshold && !isLoading && hasMoreMessages) {
+        isLoading = true;
+
+        try {
+            // Save current scroll height
+            const previousScrollHeight = chatMessages.scrollHeight;
+
+            // Load next page
+            const result = await loadMessages(currentPage + 1);
+            hasMoreMessages = result.hasMore;
+
+            if (result.messages.length > 0) {
+                currentPage++;
+
+                // Maintain scroll position after new content is loaded
+                requestAnimationFrame(() => {
+                    const newScrollHeight = chatMessages.scrollHeight;
+                    const scrollDiff = newScrollHeight - previousScrollHeight;
+                    chatMessages.scrollTop = scrollDiff;
+                });
+            }
+        } catch (error) {
+            alert(error);
+        } finally {
+            isLoading = false;
+        }
     }
 });

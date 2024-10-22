@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
+    <title>Chat | CCPorted</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/assets/styles/home.css" >
+    <script src="./badWordList.js"></script>
+    <script src="./badFilter.js"></script>
     <script src="https://rawgit.com/leizongmin/js-xss/master/dist/xss.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
@@ -14,6 +17,10 @@
 </head>
 
 <body>
+    <header>
+        <h1>CC Ported Chat | <span id = "chat_name"></span></h1>
+        <!-- <input id="searchBox" placeholder="Search for a game..."> -->
+    </header>
     <div class="sidebar">
         <div class="arrow">→</div>
         <div class="sidebar-content">
@@ -35,8 +42,9 @@
     </div>
     <div class="main-content">
         <div class="container">
-            <h1 id = "chat_name"></h1>
-            <div id="chat-messages"></div>
+            <div id="chat-messages">
+                <div class = "empty-message"></div>
+            </div>
             <form id="message-form">
                 <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
                 <button type="submit">Send</button>
