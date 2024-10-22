@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat | CCPorted</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/assets/styles/home.css" >
+    <script src="./badWordList.js"></script>
+    <script src="./badFilter.js"></script>
+    <script src="https://rawgit.com/leizongmin/js-xss/master/dist/xss.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <header>
+        <h1>CC Ported Chat | <span id = "chat_name"></span></h1>
+        <!-- <input id="searchBox" placeholder="Search for a game..."> -->
+    </header>
+    <div class="sidebar">
+        <div class="arrow">→</div>
+        <div class="sidebar-content">
+            <div class = "nonButtons">
+            <h2>Channels</h2>
+            <ul id="channel-list">
+            </ul>
+            </div>
+            <div class="actionButtons">
+                <button id="create-channel-btn">Create Channel</button>
+                <button id="add-channel-btn">Join Channel</button>
+            </div>
+            <div class = "bottomActions actionButtons">
+                <button onclick="window.location.assign('/')">Home</button>
+                <button id="logout-btn">Logout</button>
+
+            </div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="container">
+            <div id="chat-messages">
+                <div class = "empty-message"></div>
+            </div>
+            <form id="message-form">
+                <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
