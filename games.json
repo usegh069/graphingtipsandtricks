@@ -394,6 +394,20 @@
                 }
             ],
             "tags": ["soccer","football","sports","towPlayer"]
+        },
+        {
+            "name":"flappy_bird",
+            "fName":"Flappy Bird",
+            "description":"Flappy Bird is a simple yet challenging game where you control a bird and try to navigate through pipes without hitting them.",
+            "image":"/assets/images/flappy_bird.webp",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/fb"
+                }
+            ],
+            "tags": ["arcade","casual","skill"]
         }
     ]
 }
