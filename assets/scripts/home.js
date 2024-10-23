@@ -2,32 +2,31 @@
 const supabaseUrl = 'https://dahljrdecyiwfjgklnvz.supabase.co';
 const supabaseKey = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI`
 const client = supabase.createClient(supabaseUrl, supabaseKey);
-var lastInputTime = Date.now();
+const feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
 const failedInputCheckLag = 750;
-var searchInput = document.getElementById("searchBox");
-searchInput.value = "";
-var query = new URLSearchParams(window.location.search);
 const cards = document.querySelectorAll('.card');
 const cardsContainer = document.querySelector(".cards");
-const cardsList = Array.from(cards);
 const searchButtonEnable = document.querySelector(".search-enable-button");
 const sParent = document.querySelector(".s-parent");
-searchButtonEnable.addEventListener("click",(e)=>{
-    openSearch();
-});
+const searchInput = document.getElementById("searchBox");
+const allTags = document.querySelectorAll(".tag");
+const cardsList = Array.from(cards);
+const sortButton = document.getElementById("sort");
 
+
+let lastInputTime = Date.now();
+let query = new URLSearchParams(window.location.search);
 let cachedRomsJSON = null;
-function openSearch(){
-    searchInput.type = "text";
-    searchButtonEnable.innerHTML = `<i class="fas fa-search"></i>`
-}
-function closeSearch(){
-    searchInput.type = "hidden";
-    searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
+let cachedHotOrder = [];
 
-}
-var feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
+searchInput.value = "";
+window.gameRQPopupOpen = false;
 
+if (query.has("q")) {
+    searchInput.value = query.get("q");
+    openSearch();
+    input();
+}
 cards.forEach((card, i) => {
     if (document.querySelector(".cards") == card.parentElement) {
         card.classList.add("loading");
@@ -53,44 +52,43 @@ cards.forEach((card, i) => {
     checkSeenGame(id, card);
     markGameSeen(id);
 });
+allTags.forEach(tag => {
+    tag.addEventListener("click", () => {
+        searchInput.value = tag.innerText;
+        input()
+    })
+})
+
+function openSearch(){
+    log("Search box opened");
+    searchInput.type = "text";
+    searchButtonEnable.innerHTML = `<i class="fas fa-search"></i>`
+}
+function closeSearch(){
+    log("Search box closed");
+    searchInput.type = "hidden";
+    searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
+
+}
 function markGameSeen(id) {
+    log("Marking game as seen", id);
     localStorage.setItem(`seen-${id}`, "yes");
 }
-
-if (query.has("q")) {
-    searchInput.value = query.get("q");
-    openSearch();
-    input();
+function checkSeenGame(id, card) {
+    log(`Checking if game ${id} has been seen`);
+    if (localStorage.getItem(`seen-${id}`) !== "yes") {
+        card.querySelector(".card-content .card-title").textContent += " (New)";
+        card.classList.add("new");
+    }
 }
-searchInput.addEventListener("click", (e) => {
-
-    // only clear if the click is on the "x" button
-    var rect = searchInput.getBoundingClientRect();
-    var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
-    if (e.clientX > x) {
-        searchInput.value = "";
-        setSort(sortState)
-        searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
-        searchInput.type = "hidden";
-    }
- 
-});
-searchInput.addEventListener("mousemove", (e) => {
-    // only set if the click is on the "x" button
-    var rect = searchInput.getBoundingClientRect();
-    var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
-    if (e.clientX > x) {
-        searchInput.style.cursor = "pointer";
-    } else {
-        searchInput.style.cursor = "text";
-    }
-
-})
-searchInput.addEventListener("input", (e) => {
-    input();
-});
-
+function normalize(string) {
+    string = string.toLowerCase();
+    string = string.replace(/[^a-z0-9]/g, "");
+    string = string.replace(/\s/g, "");
+    return string;
+}
 async function input() {
+    log(`Searching for ${searchInput.value}`);
     // update query parameters
     var url = new URL(window.location.href);
     url.searchParams.set("q", searchInput.value);
@@ -145,9 +143,6 @@ async function input() {
                 if (Date.now() - lastInputTime >= failedInputCheckLag) {
                     client.from("failed_search")
                         .insert([{ search_content: searchInput.value }])
-                        .then((data) => {
-                            console.log(data);
-                        })
                 }
             }, failedInputCheckLag);
         }
@@ -156,6 +151,7 @@ async function input() {
     }
 }
 async function testRomSearch(query) {
+    log(`Searching for roms with ${query}`);
     let response;
     let json;
     if (!cachedRomsJSON) {
@@ -181,29 +177,7 @@ async function testRomSearch(query) {
 
     return results;
 }
-function checkSeenGame(id, card) {
-    if (localStorage.getItem(`seen-${id}`) !== "yes") {
-        card.querySelector(".card-content .card-title").textContent += " (New)";
-        card.classList.add("new");
-    }
-}
-function normalize(string) {
-    string = string.toLowerCase();
-    string = string.replace(/[^a-z0-9]/g, "");
-    string = string.replace(/\s/g, "");
-    return string;
-}
-
-var allTags = document.querySelectorAll(".tag");
-allTags.forEach(tag => {
-    tag.addEventListener("click", () => {
-        searchInput.value = tag.innerText;
-        input()
-    })
-})
-
-
-const addGameRequest = async (game_name) => {
+async function addGameRequest(game_name) {
     try {
         const { data, error } = await client
             .from('CCPorted Game RQs')
@@ -218,7 +192,7 @@ const addGameRequest = async (game_name) => {
         throw error;
     }
 };
-window.gameRQPopupOpen = false;
+
 const addGameRequestButton = document.getElementById("addGameRequestButton");
 addGameRequestButton.addEventListener("click", () => {
     createAddGamePopup();
@@ -242,6 +216,7 @@ addGameRequestButton.addEventListener("click", () => {
 
 })
 function createAddGamePopup() {
+    log("Creating game request popup");
     const popup = document.createElement("div");
     popup.classList.add("popup");
     popup.innerHTML = `
@@ -259,6 +234,7 @@ function createAddGamePopup() {
 }
 
 function closePopup() {
+    log("Closing game request popup");
     document.querySelector(".popup").remove();
     window.gameRQPopupOpen = false;
 }
@@ -273,7 +249,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 async function incrementClicks(gameID) {
-
+    log(`Incrementing clicks for game ${gameID}`);
     let { data: game_clicks, error } = await client
         .from('game_clicks')
         .select('clicks')
@@ -289,10 +265,8 @@ async function incrementClicks(gameID) {
         .from('game_clicks')
         .upsert([{ gameID, clicks }]);
 }
-
-
-// sort the games by clicks
 async function getGameClicks(gameID) {
+    log(`Getting clicks for game ${gameID}`);
     let { data: game_clicks, error } = await client
         .from('game_clicks')
         .select('clicks')
@@ -305,6 +279,7 @@ async function getGameClicks(gameID) {
     return (game_clicks[0] || { clicks: 0 }).clicks;
 }
 async function getAllClicks() {
+    log(`Getting all game clicks`);
     let { data: game_clicks, error } = await client
         .from('game_clicks')
         .select('gameID, clicks');
@@ -320,18 +295,15 @@ async function getAllClicks() {
     return obj;
 }
 async function assignClickToCards() {
+    log(`Assigning clicks to cards`);
     let clicks = await getAllClicks();
     cards.forEach(async (card) => {
         const id = card.getAttribute('id');
         card.setAttribute('data-clicks', clicks[id] || 0);
     });
 }
-
-
-var cachedHotOrder = [];
 async function sortCardsByClicks() {
-    if (cachedHotOrder.length == 0) {
-    }
+    log(`Sorting cards by clicks`);
     let cardsArray = Array.from(cards);
     cardsArray.sort((a, b) => {
         return parseInt(b.getAttribute('data-clicks')) - parseInt(a.getAttribute('data-clicks'));
@@ -345,7 +317,6 @@ async function sortCardsByClicks() {
 
 
 
-var sortButton = document.getElementById("sort");
 var sortState = 0;
 var sortStates = [
     [sortCardsByClicks, "Hot"],
@@ -359,6 +330,7 @@ var sortStates = [
 
 
 function sortCardsAlphabetically(direction) {
+    log(`Sorting cards alphabetically`);
     let cardsArray = Array.from(cards);
     cardsArray.sort((a, b) => {
         let aText = a.querySelector(".card-content .card-title").innerText;
@@ -391,6 +363,7 @@ function compareAlpha(a, b) {
 }
 var sortDirectionText = document.getElementById("order");
 function setSort(state) {
+    log(`Setting sort to ${state}`);
     if (searchInput.value.length > 0) {
         sortDirectionText.innerHTML = "Seach";
         return;
@@ -499,6 +472,7 @@ window.addEventListener('scroll', () => {
 
 
 function shortcut(keys, cb) {
+    log(`Creating shortcut for keys ${keys}, calling ${cb.name}`);
     var keyMap = {};
     for (const key of keys) {
         keyMap[key] = false;
@@ -527,6 +501,7 @@ function shortcut(keys, cb) {
     }
 }
 function createPopup(popupData) {
+    log(`Creating popup with message ${popupData.message}`);
     const popup = document.createElement('div');
     popup.style.cssText = `
         position: fixed;
@@ -587,8 +562,39 @@ function createPopup(popupData) {
     document.body.appendChild(popup);
 }
 shortcut([17, 81], () => {
+    log("Shortcut CTRL + M pressed");
     createPopup({
         message: "Hello, Antonio",
         cta: false
     })
 })
+searchButtonEnable.addEventListener("click",(e)=>{
+    openSearch();
+});
+searchInput.addEventListener("click", (e) => {
+
+    // only clear if the click is on the "x" button
+    var rect = searchInput.getBoundingClientRect();
+    var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+    if (e.clientX > x) {
+        searchInput.value = "";
+        setSort(sortState)
+        searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
+        searchInput.type = "hidden";
+    }
+ 
+});
+searchInput.addEventListener("mousemove", (e) => {
+    // only set if the click is on the "x" button
+    var rect = searchInput.getBoundingClientRect();
+    var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+    if (e.clientX > x) {
+        searchInput.style.cursor = "pointer";
+    } else {
+        searchInput.style.cursor = "text";
+    }
+
+})
+searchInput.addEventListener("input", (e) => {
+    input();
+});

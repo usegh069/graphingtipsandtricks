@@ -14,7 +14,9 @@
         opacity: 0;
     }
 }
-
+.cc.link-active {
+    text-decoration: underline;
+}
 .cc.popup {
     position: fixed;
     top: 0;
