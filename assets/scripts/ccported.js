@@ -10,6 +10,5 @@ if(navigation){
     });
 }
 function log(...args){
-    alert(`[CCPORTED]: ` + args.join(" "))
     console.log("[CCPORTED]: ",...args);
 }
