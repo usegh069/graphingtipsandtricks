@@ -13,12 +13,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | CCPorted</title>
-    <link rel="stylesheet" href="/chat/styles.css">
+    <link rel="stylesheet" href="/assets/styles/chat.css">
     <link rel="stylesheet" href="/assets/styles/home.css" >
-
+    <link rel="stylesheet" href="/assets/styles/master.css" >
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="/assets/scripts/helpers.js"></script>
 </head>
 <body>
+    <header>
+        <h1>CC Ported</h1>
+        <div class="r-side-nav">
+            <a href = "/status/">Status</a>
+            <a href = "/chat/">Chat</a>
+            <a href = "/login/">Login</a>
+            <a href = "/signup/">Signup</a>
+    </header>
     <div class="container">
         <h1>Login</h1>
         <form id="login-form">
@@ -29,31 +38,7 @@
         <p>Don't have an account? <a href="/signup">Sign up</a></p>
     </div>
 
-    <script>
-const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
-
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        var query = new URLSearchParams(window.location.search);
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                const { user, error } = await client.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                if(localStorage.getItem('redirect')) {
-                    window.location.href = localStorage.getItem('redirect');
-                    localStorage.removeItem('redirect');
-                    return;
-                }
-                window.location.href = '/chat/index.html';
-            } catch (error) {
-                alert(error.message);
-            }
-        });
-    </script>
+    <script src="/assets/scripts/login.js"></script>
+    <script src="/assets/scripts/ccported.js"></script>
 </body>
 </html>
