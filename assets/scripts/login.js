@@ -1,8 +1,6 @@
-const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
+const client = window.ccSupaClient;
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-var query = new URLSearchParams(window.location.search);
+let query = new URLSearchParams(window.location.search);
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     log(`Form submitted`);

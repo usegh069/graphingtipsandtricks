@@ -10,6 +10,6 @@ if(navigation){
     });
 }
 function log(...args){
-    
-    console.log("[CCPORTED]",...args);
+    alert(`[CCPORTED]: ` + args.join(" "))
+    console.log("[CCPORTED]: ",...args);
 }

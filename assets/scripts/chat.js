@@ -1,4 +1,4 @@
-const client = window.ccPortedSupaClient;
+const client = window.ccSupaClient;
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const chatMessages = document.getElementById('chat-messages');
@@ -31,18 +31,12 @@ if (!/Mobi|Android/i.test(navigator.userAgent)) {
         sidebar.classList.remove("expanded");
     });
 }
-sArrow.addEventListener("click", () => {
-    if (navigator.userAgent.includes("Mobi")) {
-        sidebar.classList.toggle("expanded")
-    }
-});
 if (navigator.userAgent.includes("Mobi")) {
     sArrow.classList.add("expander");
 }
 
-
-
 async function init() {
+    log(`Initializing chat`)
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
         localStorage.setItem("redirect", window.location.href);
@@ -84,50 +78,8 @@ async function init() {
     loadChannels();
     loadInviteButton();
 }
-function loadInviteButton() {
-    if (channelRef && channelRef.owner == currentUser.id) {
-        const inviteButton = document.createElement("button");
-        inviteButton.innerHTML = `<i class="fa-solid fa-share"></i> Invite Friends`;
-        inviteButton.addEventListener("click", () => {
-            createInvitePopup();
-        });
-        document.querySelector(".sidebar-content .actionButtons").appendChild(inviteButton);
-    }
-}
-async function joinC(channel, password = null) {
-    console.log("Joineing channel")
-    let data = await client
-        .rpc('append_user_to_channel', {
-            channel_id: channel,
-            new_user_id: currentUser.id,
-            given_password: password
-        })
-    if (data.error) {
-        if (data.error.message.includes("[PARSE]")) {
-            // chop off [PARSE] from the error message
-            alert(data.error.message.slice(7));
-            // redirect to chat
-            window.location.href = "/chat";
-        }
-    }
-
-}
-function setupRealtime(channelId) {
-    client
-        .channel('public:chat_messages')
-        .on(
-            'postgres_changes',
-            {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'chat_messages',
-                filter: `channel_id=eq.${channelId}`
-            },
-            handleNewMessage
-        )
-        .subscribe();
-}
 async function loadChannels() {
+    log(`Loading channels`)
     const { data: rows, error } = await client
         .rpc('user_in_joined_users', { user_id: currentUser.id });
     if (error) throw error;
@@ -143,6 +95,7 @@ async function loadChannels() {
     })
 }
 async function loadMessages(page = 0, pageSize = 20) {
+    log(`Loading messages from message <${page * pageSize}> to <${(page + 1) * pageSize}>`);
     try {
         const { data, error } = await client
             .from('chat_messages')
@@ -150,7 +103,7 @@ async function loadMessages(page = 0, pageSize = 20) {
             .eq('channel_id', currentChannel)
             .order('created_at', { ascending: false })
             .limit(pageSize)
-            .range(page * (pageSize), (page + 1) * (pageSize + 1));
+            .range(page * (pageSize), (page + 1) * (pageSize));
 
         if (error) {
             console.error('Error loading messages:', error);
@@ -170,10 +123,57 @@ async function loadMessages(page = 0, pageSize = 20) {
         alert(err)
     }
 }
+async function joinC(channel, password = null) {
+    log(`Joining channel <${channel}>`)
+    let data = await client
+        .rpc('append_user_to_channel', {
+            channel_id: channel,
+            new_user_id: currentUser.id,
+            given_password: password
+        })
+    if (data.error) {
+        if (data.error.message.includes("[PARSE]")) {
+            // chop off [PARSE] from the error message
+            alert(data.error.message.slice(7));
+            // redirect to chat
+            window.location.href = "/chat";
+        }
+    }
+
+}
+function loadInviteButton() {
+    log("Loading invite buttons")
+    if (channelRef && channelRef.owner == currentUser.id) {
+        const inviteButton = document.createElement("button");
+        inviteButton.innerHTML = `<i class="fa-solid fa-share"></i> Invite Friends`;
+        inviteButton.addEventListener("click", () => {
+            createInvitePopup();
+        });
+        document.querySelector(".sidebar-content .actionButtons").appendChild(inviteButton);
+    }
+}
+function setupRealtime(channelId) {
+    log(`Setting up realtime on channel <${channelId}>`)
+    client
+        .channel('public:chat_messages')
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'chat_messages',
+                filter: `channel_id=eq.${channelId}`
+            },
+            handleNewMessage
+        )
+        .subscribe();
+}
 function handleNewMessage(payload) {
+    log(`Handling new message`)
     appendMessage(payload.new);
 }
 function appendMessage(message, before = false) {
+    log(`Appending new message (before <${before}>)`)
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.textContent = filter.clean(filterXSS(`${message.display_name}: ${message.content}`));
@@ -185,9 +185,11 @@ function appendMessage(message, before = false) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 function sanitizeMessage(message) {
+    log(`Sanitizing message <${message}>`)
     return filterXSS(message);
 }
 function createChannelPopup(create = true) {
+    log(`Creating create channel popup`)
     const popup = document.createElement("div");
     popup.classList.add("popup");
     popup.innerHTML = `
@@ -205,10 +207,12 @@ function createChannelPopup(create = true) {
     return popup;
 }
 function closePopup() {
+    log(`Close popup`)
     document.querySelector(".popup").remove();
     window.createChannelPopupOpen = false;
 }
 function createInvitePopup() {
+    log(`Creating invite popup`)
     const popup = document.createElement("div");
     popup.classList.add("popup");
     popup.innerHTML = `
@@ -437,7 +441,10 @@ chatMessages.addEventListener("scroll", async () => {
         }
     }
 });
-
-
+sArrow.addEventListener("click", () => {
+    if (navigator.userAgent.includes("Mobi")) {
+        sidebar.classList.toggle("expanded")
+    }
+});
 
 init();

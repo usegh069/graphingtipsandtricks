@@ -1,113 +1,32 @@
 window.ccPorted = window.ccPorted || {};
 window.ccPorted.muteManagerPopupOpen = false;
+
 const link = document.createElement("link");
-link.href = "/assets/styles/master.css";
-link.setAttribute("rel","stylesheet");
-document.head.appendChild(link);
+const script = document.currentScript;
+const gameID = script.getAttribute("data-gameID");
+const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
 const stlyeLoadPromise = new Promise((r, rr)=>{
     link.onload = ()=>{
         r();
     }
 });
+
 let cachedChannels = null;
-function installSupascript(){
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/@supabase/supabase-js@2";
-    document.head.appendChild(script);
-    const loadPromise = new Promise((r,rr)=>{
-        script.onload = ()=>{
-            const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
-            window.ccSupaClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            r();
-        }
-    });
 
-    return loadPromise;
-}
+link.href = "/assets/styles/master.css";
+link.setAttribute("rel","stylesheet");
+document.head.appendChild(link);
+localStorage.removeItem(`chat-convo-all-muted`)
 
-
-
-
-const script = document.currentScript;
-var gameID = script.getAttribute("data-gameID");
-function emit() {
-    gtag("event", "play_game", {
-        gameID,
-        location: window.location.hostname
-    });
-}
-
-
-
-const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
-function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!", opts) {
-    const popup = document.createElement('div');
-    popup.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        max-width: 800px;
-        min-width: 500px;
-        background-color: rgb(37,37,37);
-        border: 2px solid #333;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-    `;
-
-    const message = document.createElement('p');
-    message.textContent = text;
-    message.style.marginBottom = '10px';
-    message.style.color = 'white';
-
-    const link = document.createElement('a');
-    link.href = 'https://ccported.github.io';
-    link.textContent = 'Visit ccported.github.io';
-    link.style.cssText = `
-        display: inline-block;
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 15px;
-        text-decoration: none;
-        border-radius: 5px;
-    `;
-    const closeButton = document.createElement('a');
-    closeButton.href = 'javascript:void(0)';
-    closeButton.textContent = 'Close';
-    closeButton.style.cssText = `
-        display: inline-block;
-        background-color: rgb(248,0,0);
-        color: white;
-        padding: 10px 15px;
-        text-decoration: none;
-        border-radius: 5px;
-    `;
-    closeButton.onclick = () => popup.remove();
-    const linkRow = document.createElement('div');
-    linkRow.style.display = 'flex';
-    linkRow.style.justifyContent = 'space-between';
-    linkRow.appendChild(link);
-    linkRow.appendChild(closeButton);
-
-    popup.appendChild(message);
-    popup.appendChild(linkRow);
-
-    document.body.appendChild(popup);
-    localStorage.setItem("ccported-popup", "yes")
-}
-
-emit();
-setInterval(emit, 1000 * 60 * 10);
-
-// Show popup after 2 minutes (120000 milliseconds)
-if (!seenPopup) {
-    setTimeout(createPopup, 120000);
-}
-
-
+shortcut([
+    "Control", "m"
+], ()=>{
+    if(!window.ccPorted.muteManagerPopupOpen){
+        muteManager()
+    }else{
+        closeMuteManager();
+    }
+});
 importJSON("/games.json").then(games => {
     var { games } = games;
     var unseengames = games.filter(game => !hasSeenGame(game.name));
@@ -121,6 +40,12 @@ importJSON("/games.json").then(games => {
     localStorage.setItem("ccported-popup", "yes")
 
 });
+if(localStorage.getItem("chat-convo-all-muted") !== 1){
+    setupRealtime();
+}
+if (!seenPopup) {
+    setTimeout(createPopup, 120000);
+}
 
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
@@ -136,19 +61,7 @@ async function importJSON(path) {
     });
     return res.json();
 }
-
-
-function hasSeenGame(gameID) {
-    return localStorage.getItem(`seen-${gameID}`) == "yes";
-}
-function markGameSeen(gameID) {
-    localStorage.setItem(`seen-${gameID}`, "yes");
-}
-
-
-
-
-async function setupRealtime(channelId) {
+async function setupRealtime() {
     await installSupascript();
     const { data: { user } } = await window.ccSupaClient.auth.getUser();
     if(!user)  return;
@@ -170,7 +83,158 @@ async function setupRealtime(channelId) {
         console.log(error)
     }
 }
+async function muteManagerPopup() {
 
+    if(!window.ccPorted.user){
+        const { data: { user } } = await window.ccSupaClient.auth.getUser();
+        window.ccPorted.user = user;
+        if(!user) alert("You must be logged in to use this feature");
+    }
+    if(window.ccPorted.fontAwesomeLoaded !== true){
+        await loadFontAwesome();
+    }
+
+
+    const popup = document.createElement("div");
+    popup.classList.add("cc");
+    popup.classList.add("popup");
+    let rows = []
+    if(cachedChannels){
+        rows = cachedChannels;
+    }else{
+        const { data, error } = await window.ccSupaClient
+            .rpc('user_in_joined_users', { user_id:  window.ccPorted.user.id});
+        rows = data;
+        cachedChannels = rows;
+        if(error) console.log(error)
+    }
+
+    popup.innerHTML = `
+        <div class="cc popup-content">
+            <h2>Manage Notifications</h2>
+            <p>Use <code>CTRL+M</code> to pull this up</p>
+            <div class = "cc channels-list-mute">
+                ${
+                    rows.map((channel)=>{
+                        return `<div class = "cc channel-row">
+                            <p class = "cc channel-name">${channel.friendly_name}</p>
+                            <p  data-channelid = "${channel.channel_id}" class="cc mute-channel"><i class="fa-solid fa-bell${isChannelMuted(channel) ? "-slash" : "" }"></i></p>
+                        </div>`
+                    }).join("<br>")
+                }
+            </div>
+            <div class = "cc popup-buttons">
+                <button class = "cc" id="closer">Done</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    window.ccPorted.muteManagerPopupOpen = true;
+    return popup;
+}
+async function muteManager(){
+    const popup = await muteManagerPopup();
+    window.ccPorted.muteManagerPopupRef = popup;
+    document.addEventListener("keydown",(e)=>{
+        if(e.key == "Escape"){
+            closeMuteManager();
+        }
+    });
+    popup.querySelectorAll(".mute-channel").forEach((el)=>{
+        el.addEventListener("click",async (e)=>{
+            const channelID = el.getAttribute("data-channelid");
+            if(localStorage.getItem(`channel-muted-${channelID}`) == 1){
+                localStorage.setItem(`channel-muted-${channelID}`,0);
+            }else{
+                localStorage.setItem(`channel-muted-${channelID}`,1);
+            }
+            el.innerHTML = `<i class="fa-solid fa-bell${isChannelMuted({channel_id: channelID}) ? "-slash" : "" }"></i>`;
+        });
+    });
+    popup.querySelector("#closer").addEventListener("click",()=>{
+        closeMuteManager();
+    });
+}
+function closeMuteManager(){
+    if(window.ccPorted.muteManagerPopupOpen){
+        window.ccPorted.muteManagerPopupRef.remove();;
+        window.ccPorted.muteManagerPopupRef = null;
+        window.ccPorted.muteManagerPopupOpen = false;
+    }
+}
+function loadFontAwesome(){
+    const link = document.createElement("link");
+    link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css";
+    link.setAttribute("rel","stylesheet");
+    link.setAttribute("crossorigin","anonymous");
+    link.setAttribute("referrerpolicy","no-referrer");
+    document.head.appendChild(link);
+
+    return new Promise((r,rr)=>{
+        link.onload = ()=>{
+            window.ccPorted.fontAwesomeLoaded = true;
+            r();
+        }
+    });
+}
+function isChannelMuted(channel){
+    return localStorage.getItem(`channel-muted-${channel.channel_id}`) == 1;
+}
+function shortcut(keys, cb) {
+    var keyMap = {};
+    for (const key of keys) {
+        keyMap[key] = false;
+    }
+    document.addEventListener("keydown", (e) => {
+        if (keyMap[e.key] !== undefined) {
+            keyMap[e.key] = true;
+        }
+        if (check()) {
+            cb();
+        }
+    });
+    document.addEventListener("keyup", (e) => {
+        if (keyMap[e.key] !== undefined) {
+            keyMap[e.key] = false;
+        }
+    });
+    function check() {
+        var allPressed = true;
+        for (const key of keys) {
+            if (!keyMap[key]) {
+                allPressed = false;
+            }
+        }
+        return allPressed;
+    }
+}
+function installSupascript(){
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@supabase/supabase-js@2";
+    document.head.appendChild(script);
+    const loadPromise = new Promise((r,rr)=>{
+        script.onload = ()=>{
+            const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
+            window.ccSupaClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            r();
+        }
+    });
+
+    return loadPromise;
+}
+function emit() {
+    gtag("event", "play_game", {
+        gameID,
+        location: window.location.hostname
+    });
+}
+function hasSeenGame(gameID) {
+    return localStorage.getItem(`seen-${gameID}`) == "yes";
+}
+function markGameSeen(gameID) {
+    localStorage.setItem(`seen-${gameID}`, "yes");
+}
 function createNotif(popupData) {
     const popup = document.createElement('div');
     popup.style.cssText = `
@@ -291,7 +355,6 @@ function createNotif(popupData) {
     popup.appendChild(popupContent);
     document.body.appendChild(popup);
 }
-localStorage.removeItem(`chat-convo-all-muted`)
 function handleNewMessage(payload){
     const { new: message } = payload;
     if(localStorage.getItem(`chat-convo-all-muted`) == 1 || localStorage.getItem(`channel-muted-${message.channel_id}`) == 1) return;
@@ -314,141 +377,63 @@ function handleNewMessage(payload){
 
     });
 }
-if(localStorage.getItem("chat-convo-all-muted") !== 1){
-    setupRealtime();
-}
-
-shortcut([
-    "Control", "m"
-], ()=>{
-    if(!window.ccPorted.muteManagerPopupOpen){
-        muteManager()
-    }else{
-        closeMuteManager();
-    }
-});
-function closeMuteManager(){
-    if(window.ccPorted.muteManagerPopupOpen){
-        window.ccPorted.muteManagerPopupRef.remove();;
-        window.ccPorted.muteManagerPopupRef = null;
-        window.ccPorted.muteManagerPopupOpen = false;
-    }
-}
-async function muteManager(){
-    const popup = await muteManagerPopup();
-    window.ccPorted.muteManagerPopupRef = popup;
-    document.addEventListener("keydown",(e)=>{
-        if(e.key == "Escape"){
-            closeMuteManager();
-        }
-    });
-    popup.querySelectorAll(".mute-channel").forEach((el)=>{
-        el.addEventListener("click",async (e)=>{
-            const channelID = el.getAttribute("data-channelid");
-            if(localStorage.getItem(`channel-muted-${channelID}`) == 1){
-                localStorage.setItem(`channel-muted-${channelID}`,0);
-            }else{
-                localStorage.setItem(`channel-muted-${channelID}`,1);
-            }
-            el.innerHTML = `<i class="fa-solid fa-bell${isChannelMuted({channel_id: channelID}) ? "-slash" : "" }"></i>`;
-        });
-    });
-    popup.querySelector("#closer").addEventListener("click",()=>{
-        closeMuteManager();
-    });
-}
-function loadFontAwesome(){
-    const link = document.createElement("link");
-    link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css";
-    link.setAttribute("rel","stylesheet");
-    link.setAttribute("crossorigin","anonymous");
-    link.setAttribute("referrerpolicy","no-referrer");
-    document.head.appendChild(link);
-
-    return new Promise((r,rr)=>{
-        link.onload = ()=>{
-            window.ccPorted.fontAwesomeLoaded = true;
-            r();
-        }
-    });
-}
-async function muteManagerPopup() {
-
-    if(!window.ccPorted.user){
-        const { data: { user } } = await window.ccSupaClient.auth.getUser();
-        window.ccPorted.user = user;
-        if(!user) alert("You must be logged in to use this feature");
-    }
-    if(window.ccPorted.fontAwesomeLoaded !== true){
-        await loadFontAwesome();
-    }
-
-
-    const popup = document.createElement("div");
-    popup.classList.add("cc");
-    popup.classList.add("popup");
-    let rows = []
-    if(cachedChannels){
-        rows = cachedChannels;
-    }else{
-        const { data, error } = await window.ccSupaClient
-            .rpc('user_in_joined_users', { user_id:  window.ccPorted.user.id});
-        rows = data;
-        cachedChannels = rows;
-        if(error) console.log(error)
-    }
-
-    popup.innerHTML = `
-        <div class="cc popup-content">
-            <h2>Manage Notifications</h2>
-            <p>Use <code>CTRL+M</code> to pull this up</p>
-            <div class = "cc channels-list-mute">
-                ${
-                    rows.map((channel)=>{
-                        return `<div class = "cc channel-row">
-                            <p class = "cc channel-name">${channel.friendly_name}</p>
-                            <p  data-channelid = "${channel.channel_id}" class="cc mute-channel"><i class="fa-solid fa-bell${isChannelMuted(channel) ? "-slash" : "" }"></i></p>
-                        </div>`
-                    }).join("<br>")
-                }
-            </div>
-            <div class = "cc popup-buttons">
-                <button class = "cc" id="closer">Done</button>
-            </div>
-        </div>
+function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!", opts) {
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        max-width: 800px;
+        min-width: 500px;
+        background-color: rgb(37,37,37);
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+        font-family: Arial, sans-serif;
     `;
+
+    const message = document.createElement('p');
+    message.textContent = text;
+    message.style.marginBottom = '10px';
+    message.style.color = 'white';
+
+    const link = document.createElement('a');
+    link.href = 'https://ccported.github.io';
+    link.textContent = 'Visit ccported.github.io';
+    link.style.cssText = `
+        display: inline-block;
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        text-decoration: none;
+        border-radius: 5px;
+    `;
+    const closeButton = document.createElement('a');
+    closeButton.href = 'javascript:void(0)';
+    closeButton.textContent = 'Close';
+    closeButton.style.cssText = `
+        display: inline-block;
+        background-color: rgb(248,0,0);
+        color: white;
+        padding: 10px 15px;
+        text-decoration: none;
+        border-radius: 5px;
+    `;
+    closeButton.onclick = () => popup.remove();
+    const linkRow = document.createElement('div');
+    linkRow.style.display = 'flex';
+    linkRow.style.justifyContent = 'space-between';
+    linkRow.appendChild(link);
+    linkRow.appendChild(closeButton);
+
+    popup.appendChild(message);
+    popup.appendChild(linkRow);
+
     document.body.appendChild(popup);
-    window.ccPorted.muteManagerPopupOpen = true;
-    return popup;
+    localStorage.setItem("ccported-popup", "yes")
 }
-function isChannelMuted(channel){
-    return localStorage.getItem(`channel-muted-${channel.channel_id}`) == 1;
-}
-function shortcut(keys, cb) {
-    var keyMap = {};
-    for (const key of keys) {
-        keyMap[key] = false;
-    }
-    document.addEventListener("keydown", (e) => {
-        if (keyMap[e.key] !== undefined) {
-            keyMap[e.key] = true;
-        }
-        if (check()) {
-            cb();
-        }
-    });
-    document.addEventListener("keyup", (e) => {
-        if (keyMap[e.key] !== undefined) {
-            keyMap[e.key] = false;
-        }
-    });
-    function check() {
-        var allPressed = true;
-        for (const key of keys) {
-            if (!keyMap[key]) {
-                allPressed = false;
-            }
-        }
-        return allPressed;
-    }
-}
+
+emit();
+setInterval(emit, 1000 * 60 * 10);
