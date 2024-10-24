@@ -17,4 +17,21 @@
 }
 .desc{
     font-style: italic;
+    width: 50%;
+    text-align: left;
+
+}
+.left{
+    width: 25%;
+    justify-self: flex-start;
+}
+.right{
+    width: 25%;
+    justify-self: flex-end;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.right .status{
+    width: fit-content;
 }
