@@ -247,6 +247,7 @@ try {
     function openSearch() {
         log("Search box opened");
         searchInput.type = "text";
+        searchInput.focus();
         searchButtonEnable.innerHTML = `<i class="fas fa-search"></i>`
     }
     function closeSearch() {
