@@ -54,3 +54,16 @@ function shortcut(keys, cb) {
         return allPressed;
     }
 }
+function decamelize(string){
+    // string are in camelcase
+    // should end up as "Camel Case"
+    let denormalized = "";
+    for(let i = 0; i < string.length; i++){
+        if(string[i] === string[i].toUpperCase()){
+            denormalized += " " + string[i];
+        }else{
+            denormalized += string[i];
+        }
+    }
+    return denormalized;
+}

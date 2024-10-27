@@ -1,10 +1,12 @@
 const client = window.ccSupaClient;
 const gameRQs = document.querySelector(".gameRQs");
 const gameStatuses = document.querySelector(".gameStatuses");
+const updates = document.querySelector(".updates");
 const gameTagMap = {
     "Game Request": handleGameRequest,
     "Game Status": handleGameStatus,
-    "In progress": handleGameInProgress
+    "In progress": handleGameInProgress,
+    "Update": handleUpdate
 }
 const statusColors = {
     "In Progress": ["#CCAC00", "#FFFFFF"],
@@ -60,6 +62,10 @@ function handleGameInProgress(element, piece) {
     const status = element.querySelector(".right");
     status.appendChild(status("In Progress"));
     gameStatuses.appendChild(element);
+}
+function handleUpdate(element, piece) {
+    element.classList.add("gameUpdate");
+    updates.appendChild(element);
 }
 function status(s) {
     const status = document.createElement("div");

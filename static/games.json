@@ -9,7 +9,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/cc"
+                    "link": "https://ccported.github.io/cc/"
                 }
             ],
             "tags": [
@@ -27,7 +27,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/ci"
+                    "link": "https://ccported.github.io/ci/"
                 }
             ],
             "tags": [
@@ -45,7 +45,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/dh"
+                    "link": "https://ccported.github.io/dh/"
                 }
             ],
             "tags": [
@@ -63,7 +63,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/tf"
+                    "link": "https://ccported.github.io/tf/"
                 }
             ],
             "tags": [
@@ -81,7 +81,8 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/nes/project"
+                    "pre":"NES Games",
+                    "link": "https://ccported.github.io/nes/project/"
                 }
             ],
             "tags": [
@@ -99,7 +100,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/sp/src"
+                    "link": "https://ccported.github.io/sp/src/"
                 }
             ],
             "tags": [
@@ -118,7 +119,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/sl"
+                    "link": "https://ccported.github.io/sl/"
                 }
             ],
             "tags": [
@@ -135,12 +136,14 @@
             "online": true,
             "links": [
                 {
-                    "name": "CCPorted (1.5.2)",
-                    "link": "https://ccported.github.io/mc/1.5.2"
+                    "name": "CCPorted",
+                    "pre":"Minecraft (1.5.2)",
+                    "link": "https://ccported.github.io/mc/1.5.2/"
                 },
                 {
-                    "name": "CCPorted (1.8.8)",
-                    "link": "https://ccported.github.io/mc/1.8"
+                    "name": "CCPorted",
+                    "pre":"Minecraft (1.8.8)",
+                    "link": "https://ccported.github.io/mc/1.8/"
                 }
             ],
             "tags": [
@@ -158,11 +161,12 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/2048/n"
+                    "link": "https://ccported.github.io/2048/n/"
                 },
                 {
-                    "name": "CCPorted (2048 Cupcakes)",
-                    "link": "https://ccported.github.io/2048/c"
+                    "name": "CCPorted",
+                    "pre":"2048 Cupcakes",
+                    "link": "https://ccported.github.io/2048/c/"
                 }
             ],
             "tags": [
@@ -180,7 +184,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/ctr"
+                    "link": "https://ccported.github.io/ctr/"
                 }
             ],
             "tags": [
@@ -198,13 +202,13 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/flash/papas/freezeria"
+                    "link": "https://ccported.github.io/flash/papas/freezeria/"
                 }
             ],
             "tags": [
                 "cooking",
                 "simulation",
-                "papas"
+                "papa's"
             ]
         },
         {
@@ -216,7 +220,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/flash/papas/pizzeria"
+                    "link": "https://ccported.github.io/flash/papas/pizzeria/"
                 }
             ],
             "tags": [
@@ -234,7 +238,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/pm"
+                    "link": "https://ccported.github.io/pm/"
                 }
             ],
             "tags": [
@@ -252,7 +256,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/goi"
+                    "link": "https://ccported.github.io/goi/"
                 }
             ],
             "tags": [
@@ -270,7 +274,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/ting"
+                    "link": "https://ccported.github.io/ting/"
                 }
             ],
             "tags": [
@@ -288,7 +292,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/ib"
+                    "link": "https://ccported.github.io/ib/"
                 }
             ],
             "tags": [
@@ -306,7 +310,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/ovo"
+                    "link": "https://ccported.github.io/ovo/"
                 }
             ],
             "tags":["physics", "indie", "platformer"]
@@ -320,7 +324,7 @@
             "links":[
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/ch"
+                    "link":"https://ccported.github.io/ch/"
                 }
             ],
             "tags":["strategy", "classic"]
@@ -334,7 +338,7 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/dj"
+                    "link": "https://ccported.github.io/dj/"
                 }
             ],
             "tags": ["platformer", "arcade", "casual"]
@@ -348,7 +352,8 @@
             "links": [
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/gp"
+                    "pre":"Gameboy Games",
+                    "link":"https://ccported.github.io/gp/"
                 }
             ],
             "tags": ["retro","emulator","gba"]
@@ -362,7 +367,7 @@
             "links": [
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/rb"
+                    "link":"https://ccported.github.io/rb/"
                 }
             ],
             "tags": ["retro","football","sports"]
@@ -376,7 +381,7 @@
             "links": [
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/br"
+                    "link":"https://ccported.github.io/br/"
                 }
             ],
             "tags": ["sports","basketball","twoPlayer"]
@@ -390,7 +395,7 @@
             "links": [
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/sh"
+                    "link":"https://ccported.github.io/sh/"
                 }
             ],
             "tags": ["soccer","football","sports","towPlayer"]
@@ -404,7 +409,7 @@
             "links": [
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/fb"
+                    "link":"https://ccported.github.io/fb/"
                 }
             ],
             "tags": ["arcade","casual","skill"]
