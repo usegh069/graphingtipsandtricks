@@ -18,6 +18,7 @@ var config = {
 var unblocker = new Unblocker(config);
 
 function injectScript(data) {
+    console.log("INJECTING SCRIPT" + data.url);
     if (data.stream) {
         var injected = false;
         var injectTransform = new Transform({

@@ -3,6 +3,6 @@ const app = express();
 const path = require("path")
 app.use(express.static(path.resolve(__dirname, "../")));
 
-app.listen(3000, ()=>{
+app.listen(8080, ()=>{
     console.log("ON")
 })
