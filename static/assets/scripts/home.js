@@ -421,7 +421,7 @@ try {
             tagElement.setAttribute("data-tag", tag);
             tagElement.textContent = decamelize(tag);
             tagElement.addEventListener("click", () => {
-                searchInput.value = tag.innerText;
+                searchInput.value = tagElement.innerText;
                 input()
             })
             tags.appendChild(tagElement);
@@ -431,7 +431,7 @@ try {
         game.links.forEach(link => {
             const linkElement = document.createElement("a");
             linkElement.href = link.link;
-            linkElement.textContent = `Play ${(link.pre) ? link.pre : game.fName} on ${link.name}`;
+            linkElement.textContent = `${link.action ? link.action : "Play"} ${(link.pre) ? link.pre : game.fName} on ${link.name}`;
             links.appendChild(linkElement);
         });
         contentInner.appendChild(title);

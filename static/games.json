@@ -354,6 +354,12 @@
                     "name":"CCPorted",
                     "pre":"Gameboy Games",
                     "link":"https://ccported.github.io/gp/"
+                },
+                {
+                    "name":"CCPorted ROM Library",
+                    "action":"Find",
+                    "link":"https://ccported.github.io/roms",
+                    "pre":"ROMs"
                 }
             ],
             "tags": ["retro","emulator","gba"]
@@ -413,6 +419,20 @@
                 }
             ],
             "tags": ["arcade","casual","skill"]
+        },
+        {
+            "name":"tetris",
+            "fName":"Tetris",
+            "description":"Tetris is a classic puzzle game where you try to fit different shaped blocks together to create lines and clear the board.",
+            "image":"/assets/images/tetris.jpg",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/t/"
+                }
+            ],
+            "tags": ["puzzle","classic","strategy"]
         }
     ]
 }
