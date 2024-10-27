@@ -4,6 +4,8 @@ var Unblocker = require('unblocker');
 var app = express();
 var fs = require('fs');
 var path = require('path');
+const morgan = require("morgan");
+console.log("STARTING");
 
 // load the client script in memory
 var clientScript = fs.readFileSync(path.join(__dirname, 'client.js'), 'utf8');
@@ -16,6 +18,7 @@ var config = {
 var unblocker = new Unblocker(config);
 
 function injectScript(data) {
+    console.log("INJECTING SCRIPT" + data.url);
     if (data.stream) {
         var injected = false;
         var injectTransform = new Transform({
@@ -41,6 +44,8 @@ function injectScript(data) {
 // this must be one of the first app.use() calls and must not be on a subdirectory to work properly
 app.use(unblocker);
 
-
+app.use(morgan("dev"))
 // the upgrade handler allows unblocker to proxy websockets
-app.listen(process.env.PORT || 8080).on('upgrade', unblocker.onUpgrade);
+app.listen(process.env.PORT || 3000,()=>{
+    console.log("SERVER STARTED ON PORT 3000 (F->80)")
+}).on('upgrade', unblocker.onUpgrade);
