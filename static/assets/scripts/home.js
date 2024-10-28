@@ -44,7 +44,7 @@ try {
     async function init() {
         const gamesRes = await fetch("/games.json");
         const gamesJson = await gamesRes.json();
-        const {games} = gamesJson;
+        const { games } = gamesJson;
         let clicks = await getAllClicks();
         games.forEach(game => {
             const card = buildCard(game);
@@ -503,7 +503,9 @@ try {
         if (e.clientX > x) {
             log("Clearing search input");
             searchInput.value = "";
-            location.search = "";
+            var url = new URL(window.location);
+            url.searchParams.delete("q");
+            window.history.pushState({}, '', url);
             setSort(sortState)
             searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
             searchInput.type = "hidden";
@@ -526,7 +528,7 @@ try {
     });
 
 
-    init().then(()=>{
+    init().then(() => {
         log("Cards all loaded")
     })
 } catch (err) {

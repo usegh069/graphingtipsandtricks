@@ -137,14 +137,15 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "pre":"Minecraft (1.5.2)",
-                    "link": "https://ccported.github.io/mc/1.5.2/"
+                    "pre":"Minecraft (1.8.8)",
+                    "link": "https://ccported.github.io/mc/1.8/"
                 },
                 {
                     "name": "CCPorted",
-                    "pre":"Minecraft (1.8.8)",
-                    "link": "https://ccported.github.io/mc/1.8/"
+                    "pre":"Minecraft (1.5.2)",
+                    "link": "https://ccported.github.io/mc/1.5.2/"
                 }
+
             ],
             "tags": [
                 "sandbox",
@@ -433,6 +434,20 @@
                 }
             ],
             "tags": ["puzzle","classic","strategy"]
+        },
+        {
+            "name":"just_one_boss",
+            "fName":"Just One Boss",
+            "description":"Defeat the boss by collecting glowing tiles without losing all your hearts.",
+            "image":"/assets/images/just_one_boss.png",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/job/"
+                }
+            ],
+            "tags": ["arcade","skill","action"]
         }
     ]
 }
