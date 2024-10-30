@@ -2,6 +2,15 @@
 <html lang="en">
 
 <head>
+        <!-- external (gtag) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-DJDL65P9Y4"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+    
+            gtag('config', 'G-DJDL65P9Y4');
+        </script>    
     <meta name="renderer" content="webkit">
     <meta name="description"
         content="Tetris is a classic puzzle game where you try to fit different shaped blocks together to create lines and clear the board." />
@@ -20,7 +29,7 @@
         </div>
     </div>
     <script type="text/javascript" src="app-1.0.1.js"></script>
-    <script src = "/gtag_events.js" data-gameID = "tetris"></script>
+    <script src = "/gtag_events.js" data-gameid = "tetris"></script>
 </body>
 
 </html>

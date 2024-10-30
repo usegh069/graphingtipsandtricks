@@ -10,4 +10,4 @@
 
 
 
-        <script src="/gtag_events.js" data-gameID="slope"></script>
+        <script src="/gtag_events.js" data-gameid="slope"></script>
