@@ -145,7 +145,8 @@ try {
         var url = new URL(window.location.href);
         url.searchParams.set("q", searchInput.value);
         window.history.pushState({}, '', url);
-        // if the input has content, add a little "x" button to clear the input
+        // if the input has content, add open it
+        openSearch();
 
         // add click event to clear the input
         var matching = cardsCache.map((card) => {
@@ -422,7 +423,7 @@ try {
             tagElement.textContent = decamelize(tag);
             tagElement.addEventListener("click", () => {
                 searchInput.value = tagElement.innerText;
-                input()
+                input();
             })
             tags.appendChild(tagElement);
         });
