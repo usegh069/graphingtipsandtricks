@@ -114,7 +114,14 @@ async function muteManagerPopup() {
     if (!window.ccPorted.user) {
         const { data: { user } } = await window.ccSupaClient.auth.getUser();
         window.ccPorted.user = user;
-        if (!user) alert("You must be logged in to use this feature");
+        if (!user) {
+            createNotif({
+                message: `You must be logged in to use this feature`,
+                cta: false,
+                autoClose: 1,
+                actions: []
+            });
+        }
     }
     if (window.ccPorted.fontAwesomeLoaded !== true) {
         await loadFontAwesome();
