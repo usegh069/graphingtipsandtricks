@@ -3,7 +3,7 @@ window.ccPorted.muteManagerPopupOpen = false;
 
 const link = document.createElement("link");
 const script = document.currentScript;
-const gameID = script.getAttribute("data-gameID");
+const gameID = script.getAttribute("data-gameid");
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
 const stlyeLoadPromise = new Promise((r, rr) => {
     link.onload = () => {
