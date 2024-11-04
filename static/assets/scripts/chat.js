@@ -40,7 +40,7 @@ async function init() {
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
         localStorage.setItem("redirect", window.location.href);
-        window.location.href = `/login`;
+        window.location.href = `/login/`;
         return;
     }
     currentUser = user;
@@ -310,11 +310,10 @@ messageForm.addEventListener('submit', async (e) => {
         console.error('Error sending message:', error);
         alert("Error sending message")
     }
-
 });
 logoutBtn.addEventListener('click', async () => {
     await client.auth.signOut();
-    window.location.href = '/login';
+    window.location.href = '/login/';
 });
 joinChannel.addEventListener("click", () => {
     createChannelPopup(false);

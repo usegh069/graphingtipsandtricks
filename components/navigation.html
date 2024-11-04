@@ -1,0 +1,18 @@
+<header>
+    <h1>CC Ported</h1>
+    <div class="r-side-nav">
+        <a href="/status/">Status</a>
+        <a href="/chat/">Chat</a>
+        <div id="loggedInReplacable">
+            <a href="/login/">Login</a>
+            <a href="/signup/">Signup</a>
+        </div>
+        {% if (searchBox == "true") %}
+        <input id="searchBox" class="has-content" type="hidden" placeholder="Search for a game...">
+
+        <div class="s-parent">
+            <a href="javascript:void(0)" class="search-enable-button"><i class="fas fa-search"></i> Search</a>
+        </div>
+        {% endif %}
+    </div>
+</header>
