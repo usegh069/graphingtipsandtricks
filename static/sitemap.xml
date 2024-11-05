@@ -1,117 +1,212 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset
       xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
 
 <url>
-  <loc>https://ccported.github.io/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/cc/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/mc/1.8/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/mc/1.5.2/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/dh/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/tf/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/nes/project/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/sp/src/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/sl/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/2048/n/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/2048/c/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/ctr/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/flash/papas/freezeria/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/flash/papas/pizzeria/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/ting/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/ib/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/ovo/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/pm/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/goi/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/ch/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://ccported.github.io/ci/</loc>
-  <lastmod>2024-10-09T04:10:30+00:00</lastmod>
-  <priority>0.80</priority>
+    <loc>https://ccported.github.io/signup/</loc>
+    <lastmod>2024-11-02T20:37:49.959Z</lastmod>
+    <priority>1</priority>
 </url>
 
+<url>
+    <loc>https://ccported.github.io/login/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>1</priority>
+</url>
 
+<url>
+    <loc>https://ccported.github.io/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>1</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/chat/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>1</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/cc/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/ci/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/dh/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/tf/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/nes/project/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/sp/src/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/sl/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/mc/1.8/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/mc/1.5.2/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/2048/n/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/2048/c/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/ctr/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/flash/papas/freezeria/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/flash/papas/pizzeria/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/pm/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/goi/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/ting/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/ib/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/ovo/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/ch/</loc>
+    <lastmod>2024-10-09T04:10:30+00:00</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/dj/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/gp/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/roms</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/rb/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/br/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/sh/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/fb/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/t/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/job/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
+
+<url>
+    <loc>https://ccported.github.io/sg/</loc>
+    <lastmod>2024-11-02T20:37:49.960Z</lastmod>
+    <priority>0.8</priority>
+</url>
 </urlset>
