@@ -40,6 +40,9 @@ jobs:
       - name: Install htmlc globally
         run: npm install -g @sojs_coder/htmlc
         
+      - name: Build Sitemap
+        run: node generate_sitemap.js
+
       - name: Build static site
         run: htmlc static --out=build
         

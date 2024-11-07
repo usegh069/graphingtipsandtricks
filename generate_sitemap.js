@@ -91,8 +91,7 @@ function main() {
     const existing = linkExtractor(fs.readFileSync("static/sitemap.xml", "utf8"));
     const links = Array.from(getLinks(existing, toModify));
     const xmls = links.map(xml);
-    const xmlString = `
-<?xml version="1.0" encoding="UTF-8"?>
+    const xmlString = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
       xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -100,6 +99,6 @@ function main() {
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 ${xmls.join("\n")}
 </urlset>`;
-    fs.writeFileSync("static/sitemap1.xml", xmlString);
+    fs.writeFileSync("static/sitemap.xml", xmlString);
 }
 main();
