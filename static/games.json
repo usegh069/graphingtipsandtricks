@@ -462,6 +462,20 @@
                 }
             ],
             "tags": ["puzzle","fruit"]
+        },
+        {
+            "name":"sand_boxels",
+            "fName":"Sandboxels",
+            "description":"A falling sand simulation game, with heat transfer, electricity, density, fire, explosions, and more.",
+            "image":"/assets/images/sand_boxels.png",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/sb/"
+                }
+            ],
+            "tags": ["simulation","idle","zen"]
         }
     ]
 }
