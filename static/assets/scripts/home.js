@@ -40,10 +40,22 @@ try {
             cta: false
         })
     });
-
+    async function importJSON(path) {
+        const url = new URL(path, window.location.origin);
+        url.searchParams.append('_', Date.now());
+    
+        const res = await fetch(path, {
+            method: "GET",
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+        return res.json();
+    }
     async function init() {
-        const gamesRes = await fetch("/games.json");
-        const gamesJson = await gamesRes.json();
+        const gamesJson = await importJSON("/games.json")
         const { games } = gamesJson;
         let clicks = await getAllClicks();
         games.forEach(game => {
