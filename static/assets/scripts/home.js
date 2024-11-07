@@ -41,7 +41,12 @@ try {
         })
     });
     async function importJSON(path) {
-        const url = new URL(path, window.location.origin);
+        let url;
+        if(path.startsWith("/") && !path.startsWith("//")){
+            url = new URL(path, window.location.origin);
+        }else{
+            url = new URL(path);
+        }
         url.searchParams.append('_', Date.now());
     
         const res = await fetch(path, {
@@ -55,7 +60,7 @@ try {
         return res.json();
     }
     async function init() {
-        const gamesJson = await importJSON("/games.json")
+        const gamesJson = await importJSON("/games.json");
         const { games } = gamesJson;
         let clicks = await getAllClicks();
         games.forEach(game => {
@@ -86,6 +91,23 @@ try {
         });
         setSort(0);
         document.querySelector(".cards").classList.remove("loading");
+        let romsJSON = await importJSON("/roms/roms.json");
+        let unseenRoms = []
+        Object.keys(romsJSON).forEach(key=>{
+            const romsList = romsJSON[key];
+            romsList.forEach(([romLink, romID])=>{
+                const name = `${key}-${normalize(romID)}`;
+                if (!checkRomSeen(name)) unseenRoms.push([key,romID]);
+                markGameSeen(name);
+            })
+        })
+        if(unseenRoms.length > 0){
+            if(unseenRoms.length == 1){
+                document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`
+            }else{
+                document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`
+            }
+        }
         if (query.has("q")) {
             log(`Search query exists: <${query.get('q')}>`)
             searchInput.value = query.get("q");
@@ -270,7 +292,7 @@ try {
 
     }
     function markGameSeen(id) {
-        log("Marking game as seen", id);
+        log("Marking object as seen", id);
         localStorage.setItem(`seen-${id}`, "yes");
     }
     function checkSeenGame(id, card) {
@@ -279,6 +301,10 @@ try {
             card.querySelector(".card-content .card-title").textContent += " (New)";
             card.classList.add("new");
         }
+    }
+    function checkRomSeen(id){
+        log(`Checking if rom ${id} seen`);
+        return localStorage.getItem(`seen-${id}`) == "yes";
     }
     function normalize(string) {
         string = string.toLowerCase();
