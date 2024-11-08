@@ -176,7 +176,7 @@ function appendMessage(message, before = false) {
     log(`Appending new message (before <${before}>)`)
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
-    messageElement.textContent = filter.clean(filterXSS(`${message.display_name}: ${message.content}`));
+    messageElement.innerHTML = filter.clean(filterXSS(`${message.display_name}: ${message.content}`));
     if (!before) {
         chatMessages.appendChild(messageElement);
     } else {
