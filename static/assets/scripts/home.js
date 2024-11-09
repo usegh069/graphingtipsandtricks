@@ -3,8 +3,6 @@ try {
     const feilds = [".card-content .card-title", ".card-content .card-description", ".card-content .card-tags .tag"];
     const failedInputCheckLag = 750;
     const cardsContainer = document.querySelector(".cards");
-    const searchButtonEnable = document.querySelector(".search-enable-button");
-    const sParent = document.querySelector(".s-parent");
     const searchInput = document.getElementById("searchBox");
     const allTags = document.querySelectorAll(".tag");
     const sortButton = document.getElementById("sort");
@@ -283,13 +281,6 @@ try {
         log("Search box opened");
         searchInput.type = "text";
         searchInput.focus();
-        searchButtonEnable.innerHTML = `<i class="fas fa-search"></i>`
-    }
-    function closeSearch() {
-        log("Search box closed");
-        searchInput.type = "hidden";
-        searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
-
     }
     function markGameSeen(id) {
         log("Marking object as seen", id);
@@ -531,9 +522,6 @@ try {
             header.classList.remove('shadow');
         }
     });
-    searchButtonEnable.addEventListener("click", (e) => {
-        openSearch();
-    });
     searchInput.addEventListener("click", (e) => {
 
         // only clear if the click is on the "x" button
@@ -546,7 +534,6 @@ try {
             url.searchParams.delete("q");
             window.history.pushState({}, '', url);
             setSort(sortState)
-            searchButtonEnable.innerHTML = `<i class="fas fa-search"></i> Search`;
             searchInput.type = "hidden";
         }
 

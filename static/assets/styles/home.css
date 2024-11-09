@@ -52,9 +52,9 @@ header.shadow{
 .search{
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    max-width: 75%;
+    align-items: stretch;
+    justify-content: space-around;
+    max-width: 100%;
 }
 .cards {
     display: flex;
@@ -247,13 +247,6 @@ a:visited{
     }
 }
 
-/* input.has_content added to show small "x" to clear input */
-input.has-content {
-    background-image: url('../images/close.png');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 15px;
-}
 .highlight {
     box-shadow: inset 0px 0px 5px 4px var(--glow-color);
     box-sizing: border-box;
@@ -270,7 +263,6 @@ button#sort{
     font-size: 16px;
     border: 1px solid #f3f3f3;
     background-color: #f3f3f3;
-    align-self: flex-end;
 }
 
 .r-side-nav{
