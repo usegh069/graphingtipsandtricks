@@ -1,18 +1,49 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <chead title="Proflie | CCPorted"/>
+    <chead title="Profile | CCPorted"/>
+    <link rel="stylesheet" href="/assets/styles/profile.css">
 </head>
 <body>
     <navigation />
-    <main class = "container">
-        <h1 style="text-align:center">Coming Soon!</h1>
+    <main class="container">
+        <div class="profile-section">
+            <div class="profile-header">
+                <label class="profile-picture-container" for="profile-picture-upload">
+                    <img src="/assets/images/profile-pic.png" id="profilePicture">
+                    <div class="upload-overlay">
+                        <span>Click or drag to upload</span>
+                    </div>
+                </label>
+                <input type = "file" id = "profile-picture-upload" accept="image/*"/>
+                <div class="profile-info">
+                    <div class="info-group">
+                        <label for="displayName">Display Name</label>
+                        <input type="text" id="displayName" placeholder="Enter display name">
+                    </div>
+                    <div class="info-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="info-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password">
+                    </div>
+                    <button id="saveChanges">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <h2>Achievements</h2>
+            <div class="achievements-grid" id="achievementsContainer">
+                <!-- Achievements will be populated by JavaScript -->
+            </div>
+        </div>
     </main>
-    <!-- <div class = "container">
-        <img src = "/assets/images/profile_pic.png" class = "pfp/>
-    </div>
-    <h1>Welcome, {{ display_name }}</h1> -->
     <scripts />
+    <script src="/assets/scripts/profile.js"></script>
 </body>
 </html>
