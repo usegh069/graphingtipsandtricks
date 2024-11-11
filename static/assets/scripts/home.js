@@ -540,6 +540,11 @@ try {
             const adCard = document.createElement("div");
             adCard.classList.add("tad");
             adCard.innerHTML = adHTML;
+            adCard.style.backgroundImage = `url('/assets/images/loading.gif')`;
+            adCard.style.backgroundSize = "fit";
+            adCard.style.backgroundRepeat = "no-repeat";
+            adCard.style.backgroundPosition = "center";
+
             var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
             document.querySelector(".cards").insertBefore(adCard, randomCard);
         }
@@ -606,6 +611,7 @@ try {
                     // check if ad loaded (will have Iframe)
                     if (ad.querySelector("iframe")) {
                         ad.setAttribute("data-loaded-check", "true");
+                        ad.style.backgroundImage = "none";
                     } else {
                         ad.remove();
                     }
