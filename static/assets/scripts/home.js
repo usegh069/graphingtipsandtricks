@@ -19,7 +19,8 @@ try {
             sortCardsAlphabetically(-1);
         }, "Z-A"]
     ]
-
+    let showingAds = true;
+    let needToLoadAds = false;
     let lastInputTime = Date.now();
     let query = new URLSearchParams(window.location.search);
     let cachedRomsJSON = null;
@@ -40,13 +41,13 @@ try {
     });
     async function importJSON(path) {
         let url;
-        if(path.startsWith("/") && !path.startsWith("//")){
+        if (path.startsWith("/") && !path.startsWith("//")) {
             url = new URL(path, window.location.origin);
-        }else{
+        } else {
             url = new URL(path);
         }
         url.searchParams.append('_', Date.now());
-    
+
         const res = await fetch(path, {
             method: "GET",
             headers: {
@@ -55,7 +56,10 @@ try {
                 'Expires': '0'
             }
         });
-        return res.json();
+        if (!res.ok) {
+            return {};
+        }
+        return res.json() || {};
     }
     async function init() {
         const gamesJson = await importJSON("/games.json");
@@ -91,27 +95,37 @@ try {
         document.querySelector(".cards").classList.remove("loading");
         let romsJSON = await importJSON("/roms/roms.json");
         let unseenRoms = []
-        Object.keys(romsJSON).forEach(key=>{
+        Object.keys(romsJSON).forEach(key => {
             const romsList = romsJSON[key];
-            romsList.forEach(([romLink, romID])=>{
+            romsList.forEach(([romLink, romID]) => {
                 const name = `${key}-${normalize(romID)}`;
-                if (!checkRomSeen(name)) unseenRoms.push([key,romID]);
+                if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
                 markGameSeen(name);
             })
         })
-        if(unseenRoms.length > 0){
-            if(unseenRoms.length == 1){
+        if (unseenRoms.length > 0) {
+            if (unseenRoms.length == 1) {
                 document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`
-            }else{
+            } else {
                 document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`
             }
         }
         if (query.has("q")) {
-            log(`Search query exists: <${query.get('q')}>`)
-            searchInput.value = query.get("q");
-            openSearch();
-            input();
+            if (query.get("q").length > 0) {
+                log(`Search query exists: <${query.get('q')}>`)
+                searchInput.value = query.get("q");
+                openSearch();
+                input();
+            } else {
+                log(`Search query exists but is empty`)
+                query.delete("q");
+                var url = new URL(window.location.href);
+                url.search = query.toString();
+                window.history.pushState({}, '', url);
+            }
         }
+        log("Home page loaded");
+        loadAds();
     }
     async function incrementClicks(gameID) {
         log(`Incrementing clicks for game ${gameID}`);
@@ -166,7 +180,7 @@ try {
             return parseInt(b.getAttribute('data-clicks')) - parseInt(a.getAttribute('data-clicks'));
         });
         let cardsContainer = document.querySelector(".cards");
-        cardsContainer.innerHTML = "";
+        removeCards();
         cardsArray.forEach(card => {
             cardsContainer.appendChild(card);
         });
@@ -197,14 +211,17 @@ try {
         matching = matching.sort((a, b) => {
             return b[0] - a[0]
         });
-        cardsContainer.innerHTML = "";
+        removeCards();
         matching = matching.filter((card) => {
             if (card[0] == 0) return false;
             cardsContainer.appendChild(card[1]);
             return true;
         });
+        shuffleAds();
         lastInputTime = Date.now();
         if (matching.length == 0) {
+            removeCards();
+            hideAds();
             var results = await testRomSearch(searchInput.value);
             if (results.length > 0) {
                 var h3 = document.createElement("h3");
@@ -232,6 +249,7 @@ try {
                 }, failedInputCheckLag);
             }
         } else {
+            showAds();
             document.getElementById("check-roms").innerHTML = "";
         }
     }
@@ -277,6 +295,26 @@ try {
             throw error;
         }
     };
+    function showAds() {
+        log("Showing ads");
+        showingAds = true;
+        if (needToLoadAds) {
+            loadAds();
+        } else {
+            const ads = document.querySelectorAll(".tad");
+            ads.forEach(ad => {
+                ad.style.display = "flex";
+            });
+        }
+    }
+    function hideAds() {
+        log("Hiding ads");
+        showingAds = false;
+        const ads = document.querySelectorAll(".tad");
+        ads.forEach(ad => {
+            ad.style.display = "none";
+        });
+    }
     function openSearch() {
         log("Search box opened");
         searchInput.type = "text";
@@ -293,7 +331,7 @@ try {
             card.classList.add("new");
         }
     }
-    function checkRomSeen(id){
+    function checkRomSeen(id) {
         log(`Checking if rom ${id} seen`);
         return localStorage.getItem(`seen-${id}`) == "yes";
     }
@@ -334,7 +372,7 @@ try {
             return compareAlpha(aText, bText) * direction;
         });
         let cardsContainer = document.querySelector(".cards");
-        cardsContainer.innerHTML = "";
+        removeCards();
         cardsArray.forEach(card => {
             cardsContainer.appendChild(card);
         });
@@ -364,7 +402,16 @@ try {
         }
         sortState = state;
         sortStates[sortState][0]();
+        shuffleAds();
         sortDirectionText.innerHTML = sortStates[sortState][1];
+    }
+    function shuffleAds() {
+        const ads = document.querySelectorAll(".tad");
+        ads.forEach(ad => {
+            ad.remove();
+            var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
+            document.querySelector(".cards").insertBefore(ad, randomCard);
+        });
     }
     function createPopup(popupData) {
         log(`Creating popup with message ${popupData.message}`);
@@ -427,6 +474,12 @@ try {
 
         document.body.appendChild(popup);
     }
+    function removeCards() {
+        log("Removing all cards");
+        cardsContainer.querySelectorAll(".card").forEach(card => {
+            card.remove();
+        });
+    }
     function buildCard(game) {
         const card = document.createElement("div");
         card.classList.add("card");
@@ -474,7 +527,29 @@ try {
 
         return card;
     }
-
+    function loadAds(num = 3) {
+        log(`Loading ${num} ads`);
+        if (!showingAds) {
+            log("Ads not shown, not loading");
+            needToLoadAds = true;
+            return;
+        };
+        needToLoadAds = false;
+        for (let i = 0; i < num; i++) {
+            const adHTML = `<div data-mndbanid="c5cf29fe-386b-45f3-a462-bc8326f5a713"></div>`;
+            const adCard = document.createElement("div");
+            adCard.classList.add("tad");
+            adCard.innerHTML = adHTML;
+            var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
+            document.querySelector(".cards").insertBefore(adCard, randomCard);
+        }
+        const script = document.createElement("script");
+        script.src = "https://ss.mrmnd.com/banner.js";
+        document.body.appendChild(script);
+        script.onload = () => {
+            log("Ads loaded");
+        }
+    }
 
 
     document.addEventListener("keydown", (e) => {
@@ -521,6 +596,22 @@ try {
         } else {
             header.classList.remove('shadow');
         }
+        // check if ad is visible
+        const ads = document.querySelectorAll(".tad");
+        ads.forEach(ad => {
+            if(ad.getAttribute("data-loaded-check") == "true") return;
+            if (ad.getBoundingClientRect().top < window.innerHeight) {
+                // allow a 5s loading grace period
+                setTimeout(() =>{
+                    // check if ad loaded (will have Iframe)
+                    if (ad.querySelector("iframe")) {
+                        ad.setAttribute("data-loaded-check", "true");
+                    } else {
+                        ad.remove();
+                    }
+                },5000)
+            }
+        });
     });
     searchInput.addEventListener("click", (e) => {
 
@@ -554,9 +645,8 @@ try {
     });
 
 
-    init().then(() => {
-        log("Cards all loaded")
-    })
+    init()
 } catch (err) {
     log(err)
 }
+
