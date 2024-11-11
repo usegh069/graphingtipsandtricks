@@ -40,12 +40,7 @@ importJSON("/games.json").then(games => {
     localStorage.setItem("ccported-popup", "yes")
 
 });
-if (localStorage.getItem("chat-convo-all-muted") !== 1) {
-    setupRealtime();
-}
-if (!seenPopup) {
-    setTimeout(createPopup, 120000);
-}
+
 
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
@@ -87,11 +82,141 @@ async function installGTAG() {
     }
 
 }
-async function setupRealtime() {
+// Global tracking state
+let trackingInterval = null;
+let lastUpdate = Date.now();
+
+// Helper function to deep set object values using dot notation
+function setDeepValue(obj, path, value) {
+    const parts = path.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (!(parts[i] in current)) {
+            current[parts[i]] = {};
+        }
+        current = current[parts[i]];
+    }
+    
+    current[parts[parts.length - 1]] = value;
+    return obj;
+}
+
+// Helper function to deep get object values using dot notation
+function getDeepValue(obj, path) {
+    return path.split('.').reduce((curr, part) => curr && curr[part], obj);
+}
+
+// Update tracking data in database
+async function saveTrackingData() {
+    try {
+        const { error } = await window.ccSupaClient
+            .from('u_profiles')
+            .update({ tracking_data: window.ccPortedTrackingData })
+            .eq('user_id', window.ccPorted.user.id);
+            
+        if (error) {
+            console.error('Error saving tracking data:', error);
+        }
+    } catch (err) {
+        console.error('Failed to save tracking data:', err);
+    }
+}
+
+// Function to update specific tracking attributes
+async function updateTracking(attrPath, value) {
+    if (!window.ccPortedTrackingData) {
+        window.ccPortedTrackingData = { games: {}, total_playtime: 0 };
+    }
+    
+    setDeepValue(window.ccPortedTrackingData, attrPath, value);
+    await saveTrackingData();
+}
+
+// Function to handle periodic tracking updates
+function trackingTick() {
+    const now = Date.now();
+    const timeDiff = now - lastUpdate;
+    lastUpdate = now;
+    
+    // Convert ms to minutes
+    const minutesElapsed = Math.floor(timeDiff / 60000);
+    
+    if (minutesElapsed > 0 && window.gameID) {
+        if (!window.ccPortedTrackingData.games[window.gameID]) {
+            window.ccPortedTrackingData.games[window.gameID] = { playtime: 0 };
+        }
+        
+        // Update game-specific playtime
+        const currentPlaytime = getDeepValue(window.ccPortedTrackingData, `games.${window.gameID}.playtime`) || 0;
+        updateTracking(`games.${window.gameID}.playtime`, currentPlaytime + minutesElapsed);
+        
+        // Update total playtime
+        const totalPlaytime = window.ccPortedTrackingData.total_playtime || 0;
+        updateTracking('total_playtime', totalPlaytime + minutesElapsed);
+    }
+}
+
+// Setup tracking interval
+function setupTracking() {
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+    }
+    
+    lastUpdate = Date.now();
+    trackingInterval = setInterval(trackingTick, 5 * 60 * 1000); // 5 minutes
+}
+
+// Modified init function
+async function init() {
     await installSupascript();
     const { data: { user } } = await window.ccSupaClient.auth.getUser();
-    if (!user) return;
     window.ccPorted.user = user;
+    
+    // Fetch tracking data if user exists
+    if (user) {
+        const { data, error } = await window.ccSupaClient
+            .from('u_profiles')
+            .select('tracking_data')
+            .eq('user_id', user.id)
+            .single();
+            
+        if (data && data.tracking_data) {
+            window.ccPortedTrackingData = data.tracking_data;
+        } else {
+            window.ccPortedTrackingData = { games: {}, total_playtime: 0, chat_messages_sent: 0 };
+        }
+        
+        // Setup tracking interval
+        setupTracking();
+    }
+    
+    if (localStorage.getItem("chat-convo-all-muted") !== 1 && user) {
+        setupRealtime();
+    }
+    
+    if (!seenPopup) {
+        setTimeout(createPopup, 120000);
+    }
+}
+
+// Cleanup function (call this when user logs out or page unloads)
+function cleanupTracking() {
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+        trackingInterval = null;
+    }
+    
+    // Save final tracking update
+    if (window.ccPortedTrackingData) {
+        trackingTick();
+        saveTrackingData();
+    }
+}
+
+// Add cleanup listener
+window.addEventListener('beforeunload', cleanupTracking);
+async function setupRealtime() {
     try {
         window.ccSupaClient
             .channel('public:chat_messages')
@@ -106,7 +231,7 @@ async function setupRealtime() {
             )
             .subscribe();
     } catch (err) {
-        console.log(error)
+        console.log(err);
     }
 }
 async function muteManagerPopup() {
