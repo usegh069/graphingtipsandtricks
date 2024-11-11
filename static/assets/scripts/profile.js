@@ -8,45 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const achievementsContainer = document.getElementById('achievementsContainer');
     const profilePictureInput = document.getElementById("profile-picture-upload");
 
-    // Achievement data
-    const achievements = [
-        {
-            name: "Early Adopter",
-            description: "Joined during the beta phase",
-            color: "#FF6B6B",
-            icon: "🌟"
-        },
-        {
-            name: "Social Butterfly",
-            description: "Connected with 10 other users",
-            color: "#4ECDC4",
-            icon: "🦋"
-        },
-        {
-            name: "Code Master",
-            description: "Successfully ported 5 games",
-            color: "#45B7D1",
-            icon: "💻"
-        },
-        {
-            name: "Bug Hunter",
-            description: "Reported 3 critical bugs",
-            color: "#96CEB4",
-            icon: "🐛"
-        },
-        {
-            name: "Contributor",
-            description: "Made 10 meaningful contributions",
-            color: "#FFEEAD",
-            icon: "🎮"
-        }
-    ];
+    setProfilePictureLoading();
 
     // Load user data
     async function loadUserData() {
         try {
             const { data: { user } } = await window.ccSupaClient.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                window.location.href = '/login/';
+                return;
+            };
 
             const { data: profile } = await window.ccSupaClient
                 .from('u_profiles')
@@ -59,12 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (profile.avatar_url) {
                     profilePicture.src = profile.avatar_url;
                 }
+                let {data: achievements, error } = await window.ccSupaClient
+                    .from('achievements')
+                    .select('*')
+                    .in('id', profile.achievements);
+                if (error) throw error;
+                renderAchievements(achievements);
             }
         } catch (error) {
             console.error('Error loading user data:', error);
         }
     }
-
+    // Set profile picture loading state
+    function setProfilePictureLoading() {
+        profilePicture.src = '/assets/images/loading.gif';
+    }
     // Handle profile picture upload
     async function handleFileUpload(file) {
         if (!file || !file.type.startsWith('image/')) return;
@@ -130,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render achievements
-    function renderAchievements() {
+    function renderAchievements(achievements) {
         achievementsContainer.innerHTML = achievements.map(achievement => `
             <div class="achievement-card" style="border-color: ${achievement.color}">
                 <div class="achievement-icon" style="background-color: ${achievement.color}">
@@ -166,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         pictureContainer.classList.remove('drag-over');
         const file = e.dataTransfer.files[0];
+        setProfilePictureLoading();
         handleFileUpload(file);
     });
 
@@ -173,5 +154,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     loadUserData();
-    renderAchievements();
 });

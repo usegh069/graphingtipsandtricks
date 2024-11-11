@@ -28,7 +28,6 @@ window.ccSupaClient.auth.getUser().then(({data})=>{
     const {user} = data;
     window.user = user;
     if(user){
-        console.log(user)
         document.getElementById("loggedInReplacable").innerHTML = `<a href="/profile/" class="cc">${user.user_metadata.display_name}</a>`;
     }
 });

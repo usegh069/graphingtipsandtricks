@@ -467,4 +467,4 @@ function createPopup(text = "Check out more awesome games like Spelunky, Minecra
     localStorage.setItem("ccported-popup", "yes")
 }
 
-installGTAG()
+installGTAG();
