@@ -65,5 +65,7 @@ function decamelize(string){
             denormalized += string[i];
         }
     }
+    // capitalize first character
+    denormalized = denormalized[0].toUpperCase() + denormalized.slice(1);
     return denormalized;
 }

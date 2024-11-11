@@ -470,6 +470,20 @@
                 }
             ],
             "tags": ["simulation","idle","zen"]
+        },
+        {
+            "name":"bloons_td_4",
+            "fName":"Bloons Tower Defense 4",
+            "description":"Bloons Tower Defense 4 is a popular tower defense game where you pop balloons using various towers and upgrades.",
+            "image":"/assets/images/bloons_td_4.png",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/btd/4/"
+                }
+            ],
+            "tags": ["towerDefense","strategy","bloons"]
         }
     ]
 }
