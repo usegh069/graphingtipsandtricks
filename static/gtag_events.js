@@ -25,16 +25,26 @@ localStorage.removeItem(`chat-convo-all-muted`)
 async function init() {
     importJSON("/games.json").then(games => {
         var { games } = games;
-        var unseengames = games.filter(game => !hasSeenGame(game.name));
+        var unseengames = games.filter(game => {
+            var hasSeen = !hasSeenGame(game.name);
+            markGameSeen(game.name);
+            return hasSeen;
+        });
         if (unseengames.length == 0) return;
+        var tail = "";
+        if (unseengames.length > 5) {
+            tail = " and more";
+        }
+        unseengames = unseengames.splice(0, 5);
+
         var string = "New games to play: ";
         unseengames.forEach((game, i) => {
-            markGameSeen(game.name);
+
             string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
         });
-        createPopup(string);
+        createPopup(string + tail);
         localStorage.setItem("ccported-popup", "yes")
-    
+
     });
     if (localStorage.getItem("chat-convo-all-muted") !== 1) {
         setupRealtime();
@@ -52,19 +62,6 @@ async function init() {
         }
     });
     installGTAG();
-    installMondiadPopup();
-}
-async function installMondiadPopup() {
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = "https://ss.mrmnd.com/interstitial.js";
-    script.setAttribute("data-mndintid", "26d09c2c-6d2a-4c22-bd80-4f36b8ed40a6");
-    document.head.appendChild(script);
-    return new Promise((r, rr) => {
-        script.onload = () => {
-            r();
-        }
-    });
 }
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
