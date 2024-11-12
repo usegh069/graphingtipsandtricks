@@ -18,35 +18,54 @@ link.setAttribute("rel", "stylesheet");
 document.head.appendChild(link);
 localStorage.removeItem(`chat-convo-all-muted`)
 
-shortcut([
-    "Control", "m"
-], () => {
-    if (!window.ccPorted.muteManagerPopupOpen) {
-        muteManager()
-    } else {
-        closeMuteManager();
-    }
-});
-importJSON("/games.json").then(games => {
-    var { games } = games;
-    var unseengames = games.filter(game => !hasSeenGame(game.name));
-    if (unseengames.length == 0) return;
-    var string = "New games to play: ";
-    unseengames.forEach((game, i) => {
-        markGameSeen(game.name);
-        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+
+
+
+
+async function init() {
+    importJSON("/games.json").then(games => {
+        var { games } = games;
+        var unseengames = games.filter(game => !hasSeenGame(game.name));
+        if (unseengames.length == 0) return;
+        var string = "New games to play: ";
+        unseengames.forEach((game, i) => {
+            markGameSeen(game.name);
+            string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+        });
+        createPopup(string);
+        localStorage.setItem("ccported-popup", "yes")
+    
     });
-    createPopup(string);
-    localStorage.setItem("ccported-popup", "yes")
-
-});
-if (localStorage.getItem("chat-convo-all-muted") !== 1) {
-    setupRealtime();
+    if (localStorage.getItem("chat-convo-all-muted") !== 1) {
+        setupRealtime();
+    }
+    if (!seenPopup) {
+        setTimeout(createPopup, 120000);
+    }
+    shortcut([
+        "Control", "m"
+    ], () => {
+        if (!window.ccPorted.muteManagerPopupOpen) {
+            muteManager()
+        } else {
+            closeMuteManager();
+        }
+    });
+    installGTAG();
+    installMondiadPopup();
 }
-if (!seenPopup) {
-    setTimeout(createPopup, 120000);
+async function installMondiadPopup() {
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://ss.mrmnd.com/interstitial.js";
+    script.setAttribute("data-mndintid", "26d09c2c-6d2a-4c22-bd80-4f36b8ed40a6");
+    document.head.appendChild(script);
+    return new Promise((r, rr) => {
+        script.onload = () => {
+            r();
+        }
+    });
 }
-
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
     url.searchParams.append('_', Date.now());
@@ -467,4 +486,4 @@ function createPopup(text = "Check out more awesome games like Spelunky, Minecra
     localStorage.setItem("ccported-popup", "yes")
 }
 
-installGTAG()
+init();
