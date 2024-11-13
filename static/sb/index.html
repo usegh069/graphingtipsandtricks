@@ -83,7 +83,7 @@
           "copyrightYear": 2022
     }</script>
 
-    <script src="https://R74n.com/load.js"></script>
+    <script src="load.js"></script>
     <script>
         // replaceAll polyfill
         if (!String.prototype.replaceAll) { String.prototype.replaceAll = function (str, newStr) { if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') { return this.replace(str, newStr); } return this.replace(new RegExp(str, 'g'), newStr); }; }
@@ -91,36 +91,14 @@
         function requestFullScreen(element) { /* Supports most browsers and their versions.*/ var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen; if (requestMethod) { /*Native full screen.*/ requestMethod.call(element); } else if (typeof window.ActiveXObject !== "undefined") { /*Older IE.*/ var wscript = new ActiveXObject("WScript.Shell"); if (wscript !== null) { wscript.SendKeys("{F11}"); } } }
     </script>
 
-    <script> // Mod Loader
-        runAfterLoadList = [];
-        // runAfterLoad() takes a function and adds it to the runAfterLoadList.
-        function runAfterLoad(func) {
-            runAfterLoadList.push(func);
-
-        }
-        // If the localStorage key "enabledMods" exists, load it as an array.
-        // If it doesn't exist, create an empty array.
-        enabledMods = localStorage.getItem("enabledMods") ? JSON.parse(localStorage.getItem("enabledMods")) : [];
-        // Run all scripts in the enabledMods array, if it fails print to console
-        for (var i = 0; i < enabledMods.length; i++) {
-            try {
-                var script = document.createElement('script');
-
-                script.src = src;
-                document.head.appendChild(script);
-            } catch (e) {
-                console.log("Error in mod: " + enabledMods[i]);
-                console.log(e);
-            }
-        }
-    </script>
+    <script src = "modloader.js"></script>
 
     <script> // PWA things
         // add service worker service-worker.js
         if (typeof navigator !== 'undefined') {
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function () {
-                    navigator.serviceWorker.register('/service-worker.js');
+                    navigator.serviceWorker.register('service-worker.js');
                 });
             }
         }
