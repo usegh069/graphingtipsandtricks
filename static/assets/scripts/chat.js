@@ -7,7 +7,7 @@ const sidebar = document.querySelector(".sidebar");
 const createChannel = document.getElementById('create-channel-btn');
 const joinChannel = document.getElementById('add-channel-btn');
 const sArrow = document.querySelector(".sidebar .arrow");
-const filter = new Filter({list: localList});
+const filter = new Filter({ list: localList });
 
 let query = new URLSearchParams(window.location.search);
 let channel = (query.has("channel") ? query.get("channel") : "1b81d7ae-9035-4280-b667-ad9c8bad9311");
@@ -20,9 +20,10 @@ let channelRef = null;
 let currentPage = 0;
 let isLoading = false;
 let hasMoreMessages = true;
+let profilePictureCache = new Map();
+let messagesSent = 0;
 
 window.createChannelPopupOpen = false;
-
 if (!/Mobi|Android/i.test(navigator.userAgent)) {
     sidebar.addEventListener("mouseover", (e) => {
         sidebar.classList.add("expanded");
@@ -109,18 +110,18 @@ async function loadMessages(page = 0, pageSize = 20) {
             console.error('Error loading messages:', error);
             return;
         }
-        // var sData = (data || []).reverse();
-        data.forEach(message => {
-            appendMessage(message, true);
-        });
+        for (const message of data) {
+            await appendMessage(message, true);
+        }
 
-        if (data.length !=0 ) {
+        if (data.length != 0) {
             return { hasMore: true, messages: data }
         } else {
             return { hasMore: false, messages: data };
         }
     } catch (err) {
-        alert(err)
+        console.error('Error loading messages:', err);
+        return { hasMore: false, messages: [] };
     }
 }
 async function joinC(channel, password = null) {
@@ -140,6 +141,70 @@ async function joinC(channel, password = null) {
         }
     }
 
+}
+async function loadPFP(user_id) {
+    log(`Loading profile picture for user <${user_id}>`);
+    if (profilePictureCache.has(user_id)) {
+        return profilePictureCache.get(user_id);
+    }
+    const { data, error } = await client
+        .from('u_profiles')
+        .select('avatar_url')
+        .eq('id', user_id);
+    if (error) {
+        console.error('Error loading profile picture:', error);
+        return;
+    }
+    profilePictureCache.set(user_id, data[0].avatar_url || '/assets/images/profile_pic.png');
+    return profilePictureCache.get(user_id);
+}
+
+async function handleNewMessage(payload) {
+    log(`Handling new message`)
+    await appendMessage(payload.new);
+}
+async function appendMessage(message, before = false) {
+    log(`Appending new message (before <${before}>)`)
+    const messageElement = document.createElement('div');
+    if (message.user_id == currentUser.id) {
+        messageElement.classList.add('message', 'self');
+    }
+    const pfp = await loadPFP(message.user_id);
+    messageElement.classList.add('message');
+    const img = document.createElement("img");
+    img.src = pfp;
+    img.classList.add("profile-picture");
+    const messageContent = document.createElement('div');
+    messageContent.classList.add('message-content');
+    const messageHeader = document.createElement('div');
+    messageHeader.classList.add('message-header');
+    messageHeader.appendChild(img);
+    const authorTime = document.createElement('div');
+    authorTime.classList.add('author-time');
+    const messageAuthor = document.createElement('span');
+    messageAuthor.classList.add('message-author');
+    messageAuthor.textContent = message.display_name;
+    authorTime.appendChild(messageAuthor);
+    const messageTime = document.createElement('span');
+    messageTime.classList.add('message-time');
+    const messageDate = new Date(message.created_at);
+    messageTime.textContent = `${messageDate.toLocaleDateString()} ${messageDate.toLocaleTimeString()}`;
+    authorTime.appendChild(messageTime);
+    messageHeader.appendChild(authorTime);
+    messageContent.appendChild(messageHeader);
+    const messageText = document.createElement('p');
+    messageText.classList.add('message-text');
+    messageText.textContent = message.content;
+    messageContent.appendChild(messageText);
+    messageElement.appendChild(messageContent);
+
+
+    if (!before) {
+        chatMessages.appendChild(messageElement);
+    } else {
+        chatMessages.insertBefore(messageElement, document.querySelectorAll('.message')[0] || document.querySelector(".empty-message"))
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 function loadInviteButton() {
     log("Loading invite buttons")
@@ -167,22 +232,6 @@ function setupRealtime(channelId) {
             handleNewMessage
         )
         .subscribe();
-}
-function handleNewMessage(payload) {
-    log(`Handling new message`)
-    appendMessage(payload.new);
-}
-function appendMessage(message, before = false) {
-    log(`Appending new message (before <${before}>)`)
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    messageElement.innerHTML = filter.clean(filterXSS(`${message.display_name}: ${message.content}`));
-    if (!before) {
-        chatMessages.appendChild(messageElement);
-    } else {
-        chatMessages.insertBefore(messageElement, document.querySelectorAll('.message')[0] || document.querySelector(".empty-message"))
-    }
-    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 function sanitizeMessage(message) {
     log(`Sanitizing message <${message}>`)
@@ -306,6 +355,7 @@ messageForm.addEventListener('submit', async (e) => {
 
         if (error) throw error;
         messageInput.value = '';
+        updateTracking('chat_messages_sent', getDeepValue(window.ccPortedTrackingData, 'chat_messages_sent') + 1);
     } catch (error) {
         console.error('Error sending message:', error);
         alert("Error sending message")
@@ -409,7 +459,7 @@ chatMessages.addEventListener("scroll", async () => {
     // Calculate scroll position
     const scrollTop = chatMessages.scrollTop;
     const scrollThreshold = 50; // Pixels from top to trigger load
-    if(scrollTop <= scrollThreshold){
+    if (scrollTop <= scrollThreshold) {
     }
     // Check if we're near the top and not currently loading
     if (scrollTop <= scrollThreshold && !isLoading && hasMoreMessages) {
@@ -434,7 +484,8 @@ chatMessages.addEventListener("scroll", async () => {
                 });
             }
         } catch (error) {
-            alert(error);
+            console.error('Error loading messages:', error);
+            isLoading = false;
         } finally {
             isLoading = false;
         }
@@ -445,5 +496,7 @@ sArrow.addEventListener("click", () => {
         sidebar.classList.toggle("expanded")
     }
 });
-
+window.addEventListener('beforeunload', () => {
+    trackingTick();
+});
 init();

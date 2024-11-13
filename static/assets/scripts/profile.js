@@ -30,12 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (profile.avatar_url) {
                     profilePicture.src = profile.avatar_url;
                 }
-                let {data: achievements, error } = await window.ccSupaClient
+                var newAchievements = await checkForNewAchievements(profile);
+                let { data: achievements, error } = await window.ccSupaClient
                     .from('achievements')
                     .select('*')
                     .in('id', profile.achievements);
                 if (error) throw error;
-                renderAchievements(achievements);
+                renderAchievements([...achievements, ...newAchievements]);
+                // add new achievements to profile
+                if (newAchievements.length > 0) {
+                    const newAchievementIds = newAchievements.map(achievement => achievement.id);
+                    await window.ccSupaClient
+                        .from('u_profiles')
+                        .update({ achievements: [...profile.achievements, ...newAchievementIds] })
+                        .eq('id', user.id);
+                }
             }
         } catch (error) {
             console.error('Error loading user data:', error);
@@ -77,7 +86,75 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Failed to upload image. Please try again.');
         }
     }
+    // Check for new achievements
+    async function checkForNewAchievements(profile) {
+        // get all non-achieved achievements
+        let { data: achievements, error } = await window.ccSupaClient
+            .from('achievements')
+            .select('*')
+            .not('id', 'in', `(${profile.achievements.join(",")})`);
+        if (error) throw error;
+        const achieved = [];
+        for (const achievement of achievements) {
 
+            const isAchieved = await checkAchievement(achievement, profile);
+            console.log(`Checking achievement ${achievement.name}: ${isAchieved}`);
+
+            if (isAchieved) {
+                achieved.push(achievement);
+            }
+        }
+        return achieved;
+    }
+    // Utility function to create a sandboxed context
+    function createSandbox(allowedFunctions) {
+        // Create a proxy to restrict access to only allowed functions
+        return new Proxy({}, {
+            get: (target, prop) => {
+                if (prop in allowedFunctions) {
+                    return allowedFunctions[prop];
+                }
+                throw new Error(`Access to '${prop}' is not allowed in achievement criteria`);
+            }
+        });
+    }
+
+    // Achievement checker function
+    async function checkAchievement(achievement, profile) {
+        const { criteria } = achievement;
+        const { tracking_data: trackingData } = profile;
+        // Create a sandbox with only allowed functions
+        const sandbox = createSandbox({
+            getEveryGame,
+            // Add other allowed functions here
+            getCurrentTimestamp: () => Date.now(),
+            calculateTotal: (arr) => arr.reduce((sum, val) => sum + val, 0)
+        });
+
+        try {
+            // Wrap the criteria in a proper function scope
+            const criteriaFunction = new Function(
+                'tracking_data',
+                'sandbox',
+                `"use strict";
+            return (${criteria})(tracking_data, sandbox);`
+            );
+            // Execute the criteria function with sandbox
+            const will = criteriaFunction(trackingData, sandbox);
+            if (will instanceof Promise) {
+                return await will;
+            } else {
+                return will;
+            }
+        } catch (error) {
+            console.error('Error executing achievement criteria:', error);
+            return false;
+        }
+    }
+    async function getEveryGame() {
+        const gamesJSON = await importJSON('/games.json');
+        return gamesJSON.games.map(game => game.name);
+    }
     // Save profile changes
     async function saveChanges() {
         try {
@@ -97,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (error) throw error;
-                
+
                 currentPassword.value = '';
                 newPassword.value = '';
             }
