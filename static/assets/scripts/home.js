@@ -529,6 +529,7 @@ try {
     }
     function loadAds(num = 3) {
         log(`Loading ${num} ads`);
+        if(!window.adsEnabled) return;
         if (!showingAds) {
             log("Ads not shown, not loading");
             needToLoadAds = true;
