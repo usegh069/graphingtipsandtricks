@@ -18,35 +18,51 @@ link.setAttribute("rel", "stylesheet");
 document.head.appendChild(link);
 localStorage.removeItem(`chat-convo-all-muted`)
 
-shortcut([
-    "Control", "m"
-], () => {
-    if (!window.ccPorted.muteManagerPopupOpen) {
-        muteManager()
-    } else {
-        closeMuteManager();
-    }
-});
-importJSON("/games.json").then(games => {
-    var { games } = games;
-    var unseengames = games.filter(game => !hasSeenGame(game.name));
-    if (unseengames.length == 0) return;
-    var string = "New games to play: ";
-    unseengames.forEach((game, i) => {
-        markGameSeen(game.name);
-        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+
+
+
+
+async function init() {
+    importJSON("/games.json").then(games => {
+        var { games } = games;
+        var unseengames = games.filter(game => {
+            var hasSeen = !hasSeenGame(game.name);
+            markGameSeen(game.name);
+            return hasSeen;
+        });
+        if (unseengames.length == 0) return;
+        var tail = "";
+        if (unseengames.length > 5) {
+            tail = " and more";
+        }
+        unseengames = unseengames.splice(0, 5);
+
+        var string = "New games to play: ";
+        unseengames.forEach((game, i) => {
+
+            string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+        });
+        createPopup(string + tail);
+        localStorage.setItem("ccported-popup", "yes")
+
     });
-    createPopup(string);
-    localStorage.setItem("ccported-popup", "yes")
-
-});
-if (localStorage.getItem("chat-convo-all-muted") !== 1) {
-    setupRealtime();
+    if (localStorage.getItem("chat-convo-all-muted") !== 1) {
+        setupRealtime();
+    }
+    if (!seenPopup) {
+        setTimeout(createPopup, 120000);
+    }
+    shortcut([
+        "Control", "m"
+    ], () => {
+        if (!window.ccPorted.muteManagerPopupOpen) {
+            muteManager()
+        } else {
+            closeMuteManager();
+        }
+    });
+    installGTAG();
 }
-if (!seenPopup) {
-    setTimeout(createPopup, 120000);
-}
-
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
     url.searchParams.append('_', Date.now());
@@ -467,4 +483,4 @@ function createPopup(text = "Check out more awesome games like Spelunky, Minecra
     localStorage.setItem("ccported-popup", "yes")
 }
 
-installGTAG()
+init();

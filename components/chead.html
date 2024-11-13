@@ -9,6 +9,7 @@
 <title>{{title}}</title>
 
 {% if (ads == "true") %}
+<script async src="https://ss.mrmnd.com/banner.js"></script>
 <script src="/assets/scripts/adblockdetect.js"></script>
 <link href="/assets/styles/a.css" rel="stylesheet"/>
 <script>
@@ -80,17 +81,17 @@
         `;
             document.body.appendChild(enabledEl);
         }
-        // if (typeof window.adblockDetector === 'undefined') {
-        //     adBlockDetected();
-        // } else {
-        //     window.adblockDetector.init(
-        //         {
-        //             debug: true,
-        //             found: adBlockDetected,
-        //             notFound: adBlockNotDetected
-        //         }
-        //     );
-        // }
+        if (typeof window.adblockDetector === 'undefined') {
+            adBlockDetected();
+        } else {
+            window.adblockDetector.init(
+                {
+                    debug: true,
+                    found: adBlockDetected,
+                    notFound: adBlockNotDetected
+                }
+            );
+        }
     }
 </script>
 {% endif %}
