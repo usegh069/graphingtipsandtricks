@@ -230,12 +230,13 @@ class StateSyncUtility {
     async importState(compressedState) {
         try {
             const state = await this.decompressData(compressedState);
-
-            await this.importLocalStorageState(state.localStorage);
-            await this.importIndexedDBState(state.indexedDB);
             return {
                 success: true,
-                timestamp: state.timestamp
+                timestamp: state.timestamp,
+                import: async () => {
+                    await this.importLocalStorageState(state.localStorage);
+                    await this.importIndexedDBState(state.indexedDB);
+                }
             };
         } catch (error) {
             console.error('Error importing state:', error);
@@ -309,7 +310,7 @@ class GameStateSync {
                         sessionStorage.setItem('lastSave',(result.timestamp));
                         if (!currentSave || currentSave == null || result.timestamp > currentSave) {
                             console.log('Game state has been updated');
-                            
+                            await result.import();
 
                             location.reload();
                         }
