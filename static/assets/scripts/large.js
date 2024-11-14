@@ -112,6 +112,8 @@ async function handleUserLoggedIn() {
         window.ccPortedTrackingData = { games: {}, total_playtime: 0, chat_messages_sent: 0, pages_visited: {} };
     }
     setupTracking();
+    window.ccPorted.stateSync = new GameStateSync(window.ccPorted.user.id,window.ccSupaClient);
+    window.ccPorted.stateSync.initialize();
 }
 async function init() {
 

@@ -1,6 +1,6 @@
+try{
 window.ccPorted = window.ccPorted || {};
 window.ccPorted.muteManagerPopupOpen = false;
-
 const link = document.createElement("link");
 const script = document.currentScript;
 const gameID = script.getAttribute("data-gameid");
@@ -421,11 +421,13 @@ function handleNewMessage(payload) {
     });
 }
 function installLargeScript() {
+    alert("installing large script")
     const script = document.createElement("script");
     script.src = "/assets/scripts/large.js";
     document.head.appendChild(script);
     return new Promise((r, rr) => {
         script.onload = () => {
+            alert("large script installed")
             r();
         }
     });
@@ -489,3 +491,6 @@ function createPopup(text = "Check out more awesome games like Spelunky, Minecra
 }
 
 init();
+}catch(err){
+    alert(err);
+}

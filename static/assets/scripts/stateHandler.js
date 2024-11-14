@@ -1,6 +1,8 @@
+alert("state handler.js loaded")
 // State Synchronization Utility
 class StateSyncUtility {
     constructor() {
+        alert("new state sync utility created");
         this.compressionEnabled = typeof CompressionStream !== 'undefined';
     }
 
@@ -254,25 +256,32 @@ class StateSyncUtility {
 }
 
 class GameStateSync {
-    constructor(userId, apiEndpoint) {
+    constructor(userId, client) {
+        alert("game state sync created");
         this.userId = userId;
-        this.apiEndpoint = apiEndpoint;
+        this.client = client;
         this.syncUtil = new StateSyncUtility();
     }
 
     async initialize() {
+        alert("initialize")
         // Set up automatic sync
         this.syncUtil.setupAutoSync(async (state) => {
+            alert("auto syncing");
+            alert(state);
             await this.saveToServer(state);
-        });
-
+        },3 * 1000);
+        try{
         // Load initial state from server
-        await this.loadFromServer();
+            await this.loadFromServer();
+        }catch(err){
+            alert(err);
+        }
     }
 
     async saveToServer(compressedState) {
         try {
-            const { error } = await window.ccSupaClient
+            const { error } = await this.client
                 .from('save_states')
                 .upsert({
                     user_id: this.userId,
@@ -280,6 +289,7 @@ class GameStateSync {
                 });
 
             if (error) {
+                alert(JSON.stringify(error));
                 console.error('Error saving state:', error);
                 throw error;
             }
@@ -291,12 +301,15 @@ class GameStateSync {
 
     async loadFromServer() {
         try {
-            const { data: [state] } = await window.ccSupaClient
+            alert("loading from server");
+            const { data: state } = await this.client
                 .from('save_states')
                 .select('state')
                 .eq('user_id', this.userId)
                 .single();
+            alert(JSON.stringify(state));
             if (state) {
+                alert("state loaded");
                 await this.syncUtil.importState(state);
             }
         } catch (error) {
