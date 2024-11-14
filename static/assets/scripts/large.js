@@ -120,8 +120,11 @@ async function init() {
     if (window.ccPorted.user) {
         handleUserLoggedIn();
     } else if(window.ccPorted.userPromise){
-        window.ccPorted.user = await window.ccPorted.userPromise;
-        handleUserLoggedIn();
+        const user = await window.ccPorted.userPromise;
+        if(user){
+            window.ccPorted.user = user;
+            handleUserLoggedIn();
+        }
     }
 }
 init();

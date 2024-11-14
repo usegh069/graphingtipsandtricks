@@ -421,13 +421,11 @@ function handleNewMessage(payload) {
     });
 }
 function installLargeScript() {
-    alert("installing large script")
     const script = document.createElement("script");
     script.src = "/assets/scripts/large.js";
     document.head.appendChild(script);
     return new Promise((r, rr) => {
         script.onload = () => {
-            alert("large script installed")
             r();
         }
     });

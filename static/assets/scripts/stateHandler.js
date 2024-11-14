@@ -1,8 +1,6 @@
-alert("state handler.js loaded")
 // State Synchronization Utility
 class StateSyncUtility {
     constructor() {
-        alert("new state sync utility created");
         this.compressionEnabled = typeof CompressionStream !== 'undefined';
     }
 
@@ -16,7 +14,7 @@ class StateSyncUtility {
         const encoder = new TextEncoder();
         const compressed = new Blob([encoder.encode(jsonString)]).stream()
             .pipeThrough(new CompressionStream('gzip'));
-        
+
         return new Response(compressed).arrayBuffer()
             .then(buffer => btoa(String.fromCharCode(...new Uint8Array(buffer))));
     }
@@ -31,7 +29,7 @@ class StateSyncUtility {
         const bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0));
         const decompressed = new Blob([bytes]).stream()
             .pipeThrough(new DecompressionStream('gzip'));
-        
+
         return new Response(decompressed).text().then(JSON.parse);
     }
 
@@ -49,7 +47,7 @@ class StateSyncUtility {
     async getObjectStoreSchema(db, storeName) {
         const transaction = db.transaction(storeName, 'readonly');
         const store = transaction.objectStore(storeName);
-        
+
         // Get index information
         const indexes = Array.from(store.indexNames).map(indexName => {
             const index = store.index(indexName);
@@ -81,7 +79,7 @@ class StateSyncUtility {
                 stores: {},
                 schema: {}
             };
-            
+
             const connection = await new Promise((resolve, reject) => {
                 const request = indexedDB.open(dbName);
                 request.onerror = () => reject(request.error);
@@ -89,18 +87,18 @@ class StateSyncUtility {
             });
 
             const stores = Array.from(connection.objectStoreNames);
-            
+
             // Get schema for each store
             for (const storeName of stores) {
                 data[dbName].schema[storeName] = await this.getObjectStoreSchema(
-                    connection, 
+                    connection,
                     storeName
                 );
 
                 // Get data from each store
                 const transaction = connection.transaction(storeName, 'readonly');
                 const store = transaction.objectStore(storeName);
-                
+
                 data[dbName].stores[storeName] = await new Promise((resolve, reject) => {
                     const request = store.getAll();
                     request.onerror = () => reject(request.error);
@@ -116,23 +114,27 @@ class StateSyncUtility {
                     });
                 }
             }
-            
+
             connection.close();
         }
-        
+
         return data;
     }
 
     // Export all browser state
     async exportState() {
         try {
+            const time = Date.now();
             const state = {
                 localStorage: this.getLocalStorageData(),
                 indexedDB: await this.getAllIndexedDBData(),
-                timestamp: Date.now()
+                timestamp: time
             };
-            
-            return await this.compressData(state);
+
+            return {
+                state: await this.compressData(state),
+                timestamp: time
+            };
         } catch (error) {
             console.error('Error exporting state:', error);
             throw error;
@@ -179,16 +181,16 @@ class StateSyncUtility {
             const db = await new Promise((resolve, reject) => {
                 const request = indexedDB.open(dbName, dbData.version || 1);
                 request.onerror = () => reject(request.error);
-                
+
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
-                    
+
                     // Create stores with their schemas
                     for (const [storeName, storeSchema] of Object.entries(dbData.schema)) {
                         this.createObjectStore(db, storeSchema);
                     }
                 };
-                
+
                 request.onsuccess = () => resolve(request.result);
             });
 
@@ -198,7 +200,7 @@ class StateSyncUtility {
                 const store = transaction.objectStore(storeName);
                 const data = dbData.stores[storeName];
                 const keys = dbData.stores[`${storeName}_keys`];
-                
+
                 // If we have both keys and data, use them together
                 if (keys && data) {
                     for (let i = 0; i < data.length; i++) {
@@ -228,10 +230,9 @@ class StateSyncUtility {
     async importState(compressedState) {
         try {
             const state = await this.decompressData(compressedState);
-            
+
             await this.importLocalStorageState(state.localStorage);
             await this.importIndexedDBState(state.indexedDB);
-            
             return {
                 success: true,
                 timestamp: state.timestamp
@@ -247,7 +248,7 @@ class StateSyncUtility {
         setInterval(async () => {
             try {
                 const state = await this.exportState();
-                await callback(state);
+                await callback(state.state, state.timestamp);
             } catch (error) {
                 console.error('Auto-sync failed:', error);
             }
@@ -257,26 +258,18 @@ class StateSyncUtility {
 
 class GameStateSync {
     constructor(userId, client) {
-        alert("game state sync created");
         this.userId = userId;
         this.client = client;
         this.syncUtil = new StateSyncUtility();
     }
 
     async initialize() {
-        alert("initialize")
         // Set up automatic sync
-        this.syncUtil.setupAutoSync(async (state) => {
-            alert("auto syncing");
-            alert(state);
+        this.syncUtil.setupAutoSync(async (state, timestamp) => {
+            sessionStorage.setItem('lastSave', timestamp);
             await this.saveToServer(state);
-        },3 * 1000);
-        try{
-        // Load initial state from server
-            await this.loadFromServer();
-        }catch(err){
-            alert(err);
-        }
+        });
+        await this.loadFromServer();
     }
 
     async saveToServer(compressedState) {
@@ -287,9 +280,8 @@ class GameStateSync {
                     user_id: this.userId,
                     state: compressedState
                 });
-
+            // update last save time
             if (error) {
-                alert(JSON.stringify(error));
                 console.error('Error saving state:', error);
                 throw error;
             }
@@ -301,16 +293,31 @@ class GameStateSync {
 
     async loadFromServer() {
         try {
-            alert("loading from server");
             const { data: state } = await this.client
                 .from('save_states')
                 .select('state')
                 .eq('user_id', this.userId)
                 .single();
-            alert(JSON.stringify(state));
             if (state) {
-                alert("state loaded");
-                await this.syncUtil.importState(state);
+                const result = await this.syncUtil.importState(state.state);
+                if (result.success) {
+                    console.log('State loaded successfully');
+                    if (result.timestamp) {
+                        console.log('Last saved at:', new Date(result.timestamp).toLocaleString());
+                        console.log(`Current save from ${new Date(parseInt(sessionStorage.getItem('lastSave')) || 0).toLocaleString()}`);
+                        const currentSave = parseInt(sessionStorage.getItem('lastSave'));
+                        sessionStorage.setItem('lastSave',(result.timestamp));
+                        if (!currentSave || currentSave == null || result.timestamp > currentSave) {
+                            console.log('Game state has been updated');
+                            
+
+                            location.reload();
+                        }
+                    }
+                } else {
+                    console.error('Error loading state:', result.error);
+                    throw result.error;
+                }
             }
         } catch (error) {
             console.error('Error loading state:', error);
