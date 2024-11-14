@@ -160,8 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: { user } } = await window.ccSupaClient.auth.getUser();
             if (!user) return;
-
+            const dataToUpdate = {};
             if (displayName.value) {
+                dataToUpdate.data.display_name
                 await window.ccSupaClient
                     .from('u_profiles')
                     .update({ display_name: displayName.value })
