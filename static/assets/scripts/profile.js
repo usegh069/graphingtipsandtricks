@@ -26,9 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 .single();
 
             if (profile) {
-                displayName.value = profile.display_name || '';
+                // alert(JSON.stringify(user));
+                displayName.value = user.user_metadata.display_name || '';
                 if (profile.avatar_url) {
                     profilePicture.src = profile.avatar_url;
+                }else{
+                    profilePicture.src = "/assets/images/profile_pic.png";
                 }
                 var newAchievements = await checkForNewAchievements(profile);
                 let { data: achievements, error } = await window.ccSupaClient
@@ -126,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create a sandbox with only allowed functions
         const sandbox = createSandbox({
             getEveryGame,
-            // Add other allowed functions here
             getCurrentTimestamp: () => Date.now(),
             calculateTotal: (arr) => arr.reduce((sum, val) => sum + val, 0)
         });
@@ -162,24 +164,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!user) return;
             const dataToUpdate = {};
             if (displayName.value) {
-                dataToUpdate.data.display_name
-                await window.ccSupaClient
-                    .from('u_profiles')
-                    .update({ display_name: displayName.value })
-                    .eq('id', user.id);
+                dataToUpdate.data.display_name = displayName.value;
+                // await window.ccSupaClient
+                //     .from('u_profiles')
+                //     .update({ display_name: displayName.value })
+                //     .eq('id', user.id);
             }
-
             if (currentPassword.value && newPassword.value) {
-                const { error } = await window.ccSupaClient.auth.updateUser({
-                    password: newPassword.value
-                });
+                dataToUpdate.password = newPassword.value;
+                // const { error } = await window.ccSupaClient.auth.updateUser({
+                //     password: newPassword.value
+                // });
 
-                if (error) throw error;
+                // if (error) throw error;
 
                 currentPassword.value = '';
                 newPassword.value = '';
             }
-
+            await window.ccSupaClient.auth.updateUser(dataToUpdate);
             alert('Changes saved successfully!');
         } catch (error) {
             console.error('Error saving changes:', error);

@@ -21,6 +21,7 @@ let currentPage = 0;
 let isLoading = false;
 let hasMoreMessages = true;
 let profilePictureCache = new Map();
+let displayNameCache = new Map();
 let messagesSent = 0;
 
 window.createChannelPopupOpen = false;
@@ -158,7 +159,19 @@ async function loadPFP(user_id) {
     profilePictureCache.set(user_id, data[0].avatar_url || '/assets/images/profile_pic.png');
     return profilePictureCache.get(user_id);
 }
-
+async function loadDisplayName(user_id) {
+    log(`Loading display name for user <${user_id}>`);
+    if(displayNameCache.has(user_id)){
+        return displayNameCache.get(user_id);
+    }
+    const { data, error } = await window.ccSupaClient
+        .rpc('get_user_display_name',{
+            user_id
+        });
+    if(error) console.error(error);
+    displayNameCache.set(user_id,data);
+    return displayNameCache.get(user_id);
+}
 async function handleNewMessage(payload) {
     log(`Handling new message`)
     await appendMessage(payload.new);
@@ -183,7 +196,7 @@ async function appendMessage(message, before = false) {
     authorTime.classList.add('author-time');
     const messageAuthor = document.createElement('span');
     messageAuthor.classList.add('message-author');
-    messageAuthor.textContent = message.display_name;
+    messageAuthor.textContent = await loadDisplayName(message.user_id);
     authorTime.appendChild(messageAuthor);
     const messageTime = document.createElement('span');
     messageTime.classList.add('message-time');
