@@ -1,9 +1,9 @@
 window.ccPorted = window.ccPorted || {};
 window.ccPorted.muteManagerPopupOpen = false;
-
 const link = document.createElement("link");
 const script = document.currentScript;
 const gameID = script.getAttribute("data-gameid");
+window.gameID = gameID;
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
 const stlyeLoadPromise = new Promise((r, rr) => {
     link.onload = () => {
@@ -21,47 +21,49 @@ localStorage.removeItem(`chat-convo-all-muted`)
 
 
 
-
-async function init() {
-    importJSON("/games.json").then(games => {
-        var { games } = games;
-        var unseengames = games.filter(game => {
-            var hasSeen = !hasSeenGame(game.name);
-            markGameSeen(game.name);
-            return hasSeen;
-        });
-        if (unseengames.length == 0) return;
-        var tail = "";
-        if (unseengames.length > 5) {
-            tail = " and more";
-        }
-        unseengames = unseengames.splice(0, 5);
-
-        var string = "New games to play: ";
-        unseengames.forEach((game, i) => {
-
-            string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
-        });
-        createPopup(string + tail);
-        localStorage.setItem("ccported-popup", "yes")
-
+importJSON("/games.json").then(games => {
+    var { games } = games;
+    var unseengames = games.filter(game => {
+        var hasSeen = !hasSeenGame(game.name);
+        markGameSeen(game.name);
+        return hasSeen;
     });
+    if (unseengames.length == 0) return;
+    var tail = "";
+    if (unseengames.length > 5) {
+        tail = " and more";
+    } 
+    unseengames = unseengames.splice(0, 5);
+
+    var string = "New games to play: ";
+    unseengames.forEach((game, i) => {
+
+        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+    });
+    createPopup(string + tail);
+    localStorage.setItem("ccported-popup", "yes")
+});
+shortcut([
+    "Control", "m"
+], () => {
+    if (!window.ccPorted.muteManagerPopupOpen) {
+        muteManager()
+    } else {
+        closeMuteManager();
+    }
+});
+async function init() {
+    installGTAG();
+    await installSupascript();
+    const { data: { user } } = await window.ccSupaClient.auth.getUser();
+    window.ccPorted.user = user;
     if (localStorage.getItem("chat-convo-all-muted") !== 1) {
         setupRealtime();
     }
     if (!seenPopup) {
         setTimeout(createPopup, 120000);
     }
-    shortcut([
-        "Control", "m"
-    ], () => {
-        if (!window.ccPorted.muteManagerPopupOpen) {
-            muteManager()
-        } else {
-            closeMuteManager();
-        }
-    });
-    installGTAG();
+    installLargeScript();
 }
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
@@ -77,6 +79,7 @@ async function importJSON(path) {
     });
     return res.json();
 }
+
 async function installGTAG() {
     if (window.gtag) {
         emit();
@@ -103,11 +106,25 @@ async function installGTAG() {
     }
 
 }
-async function setupRealtime() {
+
+
+// Modified init function
+async function init() {
+    installGTAG();
     await installSupascript();
     const { data: { user } } = await window.ccSupaClient.auth.getUser();
-    if (!user) return;
     window.ccPorted.user = user;
+    
+    if (localStorage.getItem("chat-convo-all-muted") !== 1 && user) {
+        setupRealtime();
+    }
+    
+    if (!seenPopup) {
+        setTimeout(createPopup, 120000);
+    }
+    installLargeScript();
+}
+async function setupRealtime() {
     try {
         window.ccSupaClient
             .channel('public:chat_messages')
@@ -122,7 +139,7 @@ async function setupRealtime() {
             )
             .subscribe();
     } catch (err) {
-        console.log(error)
+        console.log(err);
     }
 }
 async function muteManagerPopup() {
@@ -423,6 +440,16 @@ function handleNewMessage(payload) {
             }, "rgb(248,0,0)"]
         ]
 
+    });
+}
+function installLargeScript() {
+    const script = document.createElement("script");
+    script.src = "/assets/scripts/large.js";
+    document.head.appendChild(script);
+    return new Promise((r, rr) => {
+        script.onload = () => {
+            r();
+        }
     });
 }
 function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!", opts) {

@@ -17,7 +17,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             localStorage.removeItem('redirect');
             return;
         }
-        window.location.href = '/chat/index.html';
+        window.location.href = '/profile/';
     } catch (error) {
         log(`Error:`, error);
         alert(error.message);

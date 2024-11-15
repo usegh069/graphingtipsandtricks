@@ -1,18 +1,36 @@
-if(typeof supabase === "undefined"){
-    installSupascript().then(()=>{
+if (typeof supabase === "undefined") {
+    installSupascript().then(() => {
         log("Supabase script loaded");
     });
-}else{
+} else {
     window.ccSupaClient = createClient();
 }
+async function importJSON(path) {
+    let url;
+    if (path.startsWith("/") && !path.startsWith("//")) {
+        url = new URL(path, window.location.origin);
+    } else {
+        url = new URL(path);
+    }
+    url.searchParams.append('_', Date.now());
 
-function installSupascript(){
+    const res = await fetch(path, {
+        method: "GET",
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    });
+    return res.json();
+}
+function installSupascript() {
     log("Installing Supabase script");
     const script = document.createElement("script");
     script.src = "https://unpkg.com/@supabase/supabase-js@2";
     document.head.appendChild(script);
-    const loadPromise = new Promise((r,rr)=>{
-        script.onload = ()=>{
+    const loadPromise = new Promise((r, rr) => {
+        script.onload = () => {
             window.ccSupaClient = createClient();
             r();
         }
@@ -20,7 +38,7 @@ function installSupascript(){
 
     return loadPromise;
 }
-function createClient(){
+function createClient() {
     const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
     return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -54,14 +72,14 @@ function shortcut(keys, cb) {
         return allPressed;
     }
 }
-function decamelize(string){
+function decamelize(string) {
     // string are in camelcase
     // should end up as "Camel Case"
     let denormalized = "";
-    for(let i = 0; i < string.length; i++){
-        if(string[i] === string[i].toUpperCase()){
+    for (let i = 0; i < string.length; i++) {
+        if (string[i] === string[i].toUpperCase()) {
             denormalized += " " + string[i];
-        }else{
+        } else {
             denormalized += string[i];
         }
     }
