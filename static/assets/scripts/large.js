@@ -1,6 +1,6 @@
 // Setup tracking interval
 function setupTracking() {
-    updateTracking(`pages_visited.${window.location.pathname}.count`, (getDeepValue(window.ccPortedTrackingData, `pages_visited.${window.location.pathname}.count`) || 0) + 1);
+    updateTracking(`pages_visited.${treat(window.location.pathname)}.count`, (getDeepValue(window.ccPortedTrackingData, `pages_visited.${treat(window.location.pathname)}.count`) || 0) + 1);
     trackingTick();
     if (trackingInterval) {
         clearInterval(trackingInterval);
