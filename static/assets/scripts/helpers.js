@@ -1,9 +1,33 @@
 if (typeof supabase === "undefined") {
     installSupascript().then(() => {
         log("Supabase script loaded");
+        postSupaInstall();
     });
 } else {
     window.ccSupaClient = createClient();
+    postSupaInstall();
+}
+async function postSupaInstall(){
+    window.ccPorted.userPromise = new Promise((resolve, reject) => {
+        window.ccSupaClient.auth.getUser().then(({ data }) => {
+            try {
+                const { user } = data;
+                window.user = user;
+                window.ccPorted.user = user;
+                if (user && document.getElementById("loggedInReplacable")) {
+                    document.getElementById("loggedInReplacable").innerHTML = `<a href="/profile/" class="cc">${user.user_metadata.display_name}</a>`;
+                }
+                resolve(user);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    });
+    window.user = {};
+    window.ccPorted = window.ccPorted || {};
+}
+function log(...args) {
+    console.log("[CCPORTED]: ", ...args);
 }
 async function importJSON(path) {
     let url;
