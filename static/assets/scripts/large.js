@@ -33,7 +33,7 @@ let lastUpdate = Date.now();
 
 function treat(text){
     if(!text) return null;
-    return text.split('.').join('');
+    return text.split('.').join('-');
 }
 // Helper function to deep set object values using dot notation
 function setDeepValue(obj, path, value) {
