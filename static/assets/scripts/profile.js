@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .single();
 
             if (profile) {
-                // alert(JSON.stringify(user));
                 displayName.value = user.user_metadata.display_name || '';
                 if (profile.avatar_url) {
                     profilePicture.src = profile.avatar_url;
@@ -48,10 +47,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         .update({ achievements: [...profile.achievements, ...newAchievementIds] })
                         .eq('id', user.id);
                 }
+                const trackingData = profile.tracking_data;
+                renderStats(trackingData);
             }
         } catch (error) {
             console.error('Error loading user data:', error);
         }
+    }
+    function renderStats(trackingData){
+        return;
+        const totalGameTime = trackingData.total_playtime || 0;
+        const gamesPlayed = Object.keys(trackingData.games || {});
+        const gamesFormatted = gamesPlayed.map(game=>{
+
+        });
+        return;
     }
     // Set profile picture loading state
     function setProfilePictureLoading() {

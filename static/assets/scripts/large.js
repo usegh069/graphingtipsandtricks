@@ -30,6 +30,11 @@ window.addEventListener('beforeunload', cleanupTracking);
 let trackingInterval = null;
 let lastUpdate = Date.now();
 
+
+function treat(text){
+    if(!text) return null;
+    return text.split('.').join('');
+}
 // Helper function to deep set object values using dot notation
 function setDeepValue(obj, path, value) {
     const parts = path.split('.');
@@ -76,6 +81,8 @@ async function updateTracking(attrPath, value) {
     setDeepValue(window.ccPortedTrackingData, attrPath, value);
 }
 
+
+const tGameID = treat(window.gameID);
 // Function to handle periodic tracking updates
 async function trackingTick() {
     const now = Date.now();
@@ -84,14 +91,14 @@ async function trackingTick() {
 
     // Convert ms to minutes
     const minutesElapsed = parseFloat((timeDiff / 60000).toFixed(2));
-    if (minutesElapsed > 0 && window.gameID) {
-        if (!window.ccPortedTrackingData.games[window.gameID]) {
-            window.ccPortedTrackingData.games[window.gameID] = { playtime: 0 };
+    if (minutesElapsed > 0 && tGameID) {
+        if (!window.ccPortedTrackingData.games[tGameID]) {
+            window.ccPortedTrackingData.games[tGameID] = { playtime: 0 };
         }
 
         // Update game-specific playtime
-        const currentPlaytime = getDeepValue(window.ccPortedTrackingData, `games.${window.gameID}.playtime`) || 0;
-        updateTracking(`games.${window.gameID}.playtime`, currentPlaytime + minutesElapsed);
+        const currentPlaytime = getDeepValue(window.ccPortedTrackingData, `games.${tGameID}.playtime`) || 0;
+        updateTracking(`games.${tGameID}.playtime`, currentPlaytime + minutesElapsed);
 
         // Update total playtime
         const totalPlaytime = window.ccPortedTrackingData.total_playtime || 0;
