@@ -1,4 +1,3 @@
-try{
 window.ccPorted = window.ccPorted || {};
 window.ccPorted.muteManagerPopupOpen = false;
 const link = document.createElement("link");
@@ -19,6 +18,31 @@ link.setAttribute("rel", "stylesheet");
 document.head.appendChild(link);
 localStorage.removeItem(`chat-convo-all-muted`)
 
+
+
+
+importJSON("/games.json").then(games => {
+    var { games } = games;
+    var unseengames = games.filter(game => {
+        var hasSeen = !hasSeenGame(game.name);
+        markGameSeen(game.name);
+        return hasSeen;
+    });
+    if (unseengames.length == 0) return;
+    var tail = "";
+    if (unseengames.length > 5) {
+        tail = " and more";
+    } 
+    unseengames = unseengames.splice(0, 5);
+
+    var string = "New games to play: ";
+    unseengames.forEach((game, i) => {
+
+        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
+    });
+    createPopup(string + tail);
+    localStorage.setItem("ccported-popup", "yes")
+});
 shortcut([
     "Control", "m"
 ], () => {
@@ -28,21 +52,19 @@ shortcut([
         closeMuteManager();
     }
 });
-importJSON("/games.json").then(games => {
-    var { games } = games;
-    var unseengames = games.filter(game => !hasSeenGame(game.name));
-    if (unseengames.length == 0) return;
-    var string = "New games to play: ";
-    unseengames.forEach((game, i) => {
-        markGameSeen(game.name);
-        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
-    });
-    createPopup(string);
-    localStorage.setItem("ccported-popup", "yes")
-
-});
-
-
+async function init() {
+    installGTAG();
+    await installSupascript();
+    const { data: { user } } = await window.ccSupaClient.auth.getUser();
+    window.ccPorted.user = user;
+    if (localStorage.getItem("chat-convo-all-muted") !== 1) {
+        setupRealtime();
+    }
+    if (!seenPopup) {
+        setTimeout(createPopup, 120000);
+    }
+    installLargeScript();
+}
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
     url.searchParams.append('_', Date.now());
@@ -489,6 +511,3 @@ function createPopup(text = "Check out more awesome games like Spelunky, Minecra
 }
 
 init();
-}catch(err){
-    alert(err);
-}

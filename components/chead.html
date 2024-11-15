@@ -12,7 +12,7 @@
 <script src = "/assets/scripts/large.js"></script>
 
 {% if (ads == "true") %}
-<script src='https://adncdnend.azureedge.net/adnimation/matthieufuller.js'></script>
+<script async src="https://ss.mrmnd.com/banner.js"></script>
 <script src="/assets/scripts/adblockdetect.js"></script>
 <link href="/assets/styles/a.css" rel="stylesheet"/>
 <script>
@@ -96,5 +96,10 @@
             );
         }
     }
+    window.adsEnabled = true;
+</script>
+{% else %}
+<script>
+    window.adsEnabled = false;
 </script>
 {% endif %}
