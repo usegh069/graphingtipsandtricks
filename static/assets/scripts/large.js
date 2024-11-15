@@ -90,7 +90,8 @@ async function trackingTick() {
     lastUpdate = now;
 
     // Convert ms to minutes
-    const minutesElapsed = parseFloat((timeDiff / 60000).toFixed(2));
+    let minutesElapsedX = (timeDiff / 60000);
+    const minutesElapsed = Math.round((minutesElapsedX + Number.EPSILON) * 100) / 100
     if (minutesElapsed > 0 && tGameID) {
         if (!window.ccPortedTrackingData.games[tGameID]) {
             window.ccPortedTrackingData.games[tGameID] = { playtime: 0 };
