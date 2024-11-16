@@ -48,20 +48,76 @@ document.addEventListener('DOMContentLoaded', () => {
                         .eq('id', user.id);
                 }
                 const trackingData = profile.tracking_data;
+                try{
                 renderStats(trackingData);
+                }catch(err){
+                    alert(err);
+                }
             }
         } catch (error) {
             console.error('Error loading user data:', error);
         }
     }
     function renderStats(trackingData){
-        return;
+        const statsC = document.querySelector(".stats-container");
         const totalGameTime = trackingData.total_playtime || 0;
         const gamesPlayed = Object.keys(trackingData.games || {});
         const gamesFormatted = gamesPlayed.map(game=>{
-
+            const name = deIDIfy(game);
+            const timePlayed = trackingData.games[game];
+            const stat = document.createElement("div");
+            stat.classList.add("stat");
+            const sname = document.createElement("div");
+            sname.classList.add("stat-name");
+            sname.innerHTML = name;
+            const svalue = document.createElement("div");
+            svalue.classList.add("stat-value");
+            svalue.innerHTML = formatMinutes(timePlayed.playtime);
+            stat.appendChild(sname);
+            stat.appendChild(svalue);
+            statsC.appendChild(stat);
+            return [name, timePlayed];
         });
+        const stat = document.createElement("div");
+            stat.classList.add("stat");
+            const sname = document.createElement("div");
+            sname.classList.add("stat-name");
+            sname.innerHTML = "Total Playtime";
+            const svalue = document.createElement("div");
+            svalue.classList.add("stat-value");
+            svalue.innerHTML = formatMinutes(trackingData.total_playtime);
+            stat.appendChild(sname);
+            stat.appendChild(svalue);
+            statsC.appendChild(stat);
         return;
+    }
+    function formatMinutes(minutes){
+        const hours = Math.floor(minutes / 60);
+        const minutesLeft = minutes % 60;
+        const days = Math.floor(hours / 24);
+        const hoursLeft = hours % 24;
+
+        let string = "";
+        if(days > 0){
+            string = `${Math.floor(days)}d ${Math.floor(hoursLeft)}h ${minutesLeft.toFixed(1)}m`;
+        }else if(hours > 0){
+            string = `${Math.floor(hours)}h ${minutesLeft.toFixed(1)}m`
+        }else{
+            string = `${minutes.toFixed(1)}m`
+        }
+        return string;
+    }
+    function deIDIfy(id){
+        let string = "";
+        const parts = id.split("_");
+        parts.forEach((word,i)=>{
+            word = word.split("-").join(".");
+            string += capitalizeFirstLetter(word) + " ";
+        });
+        return string;
+    }
+    function capitalizeFirstLetter(val) {
+        return val.charAt(0).toUpperCase() + val.slice(1);
     }
     // Set profile picture loading state
     function setProfilePictureLoading() {
