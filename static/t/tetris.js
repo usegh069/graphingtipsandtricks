@@ -41,12 +41,12 @@ try {
     nextPieceCanvas.width = 120;
     nextPieceCanvas.height = 120;
 
-    // Sound effects
-    const moveSound = new Audio('sounds/move.mp3');
-    const clearSound = new Audio('sounds/line-clear.mp3');
-    const dropSound = new Audio('sounds/move.mp3');
-    const music = new Audio('sounds/bg.mp3');
-    music.loop = true;
+    // Sound effects using Howler.js
+    const moveSound = new Howl({ src: ['sounds/move.mp3'] });
+    const clearSound = new Howl({ src: ['sounds/line-clear.mp3'] });
+    const dropSound = moveSound;
+    const turnSound = moveSound;
+    const music = new Howl({ src: ['sounds/bg.mp3'], loop: true });
     music.play();
 
 
@@ -104,6 +104,7 @@ try {
                     return;
                 }
             }
+            turnSound.play();
         }
 
         collision() {
