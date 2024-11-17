@@ -505,6 +505,20 @@
                 }
             ],
             "tags": ["flash","skill","action"]
+        },
+        {
+            "name":"stickman_hook",
+            "fName":"Stickman Hook",
+            "description":"Swing through the levels and try not to fall in this fun and challenging game.",
+            "image":"/assets/images/stickman_hook.webp",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/sth/"
+                }
+            ],
+            "tags": ["mouse", "action", "skill"]
         }
     ]
 }
