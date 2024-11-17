@@ -8,10 +8,13 @@
 
 .profile-header {
     display: flex;
+    justify-content: space-evenly;    
+}
+.profile-edit-group {
+    display: flex;
     gap: 30px;
     align-items: start;
 }
-
 .profile-picture-container {
     position: relative;
     width: 200px;
@@ -158,4 +161,31 @@
     position: absolute;
     z-index: -1;
     opacity: 0;
+}
+.stats{
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    max-width: 400px;
+    height: 100%;
+    max-height: 300px;
+    overflow-y: scroll;
+}
+.stats-container{
+    width: 100%;
+}
+.stat{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 3px;
+}
+.stat-value{
+    font-style: italic;
+}
+.stat-title{
+    padding: 0;
+    margin: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
 }
