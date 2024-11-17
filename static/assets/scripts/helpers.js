@@ -1,3 +1,4 @@
+window.ccPorted = window.ccPorted || {};
 if (typeof supabase === "undefined") {
     installSupascript().then(() => {
         log("Supabase script loaded");

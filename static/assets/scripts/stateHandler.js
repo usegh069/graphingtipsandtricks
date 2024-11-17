@@ -38,6 +38,7 @@ class StateSyncUtility {
         const data = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
+            if (key === 'ccStatelastSave') continue;
             data[key] = localStorage.getItem(key);
         }
         return data;
@@ -143,7 +144,9 @@ class StateSyncUtility {
 
     // Import state into localStorage
     async importLocalStorageState(data) {
+        const ccStatelastSave = localStorage.getItem('ccStatelastSave');
         localStorage.clear();
+        localStorage.setItem('ccStatelastSave', ccStatelastSave);
         for (const [key, value] of Object.entries(data)) {
             localStorage.setItem(key, value);
         }
@@ -267,7 +270,7 @@ class GameStateSync {
     async initialize() {
         // Set up automatic sync
         this.syncUtil.setupAutoSync(async (state, timestamp) => {
-            sessionStorage.setItem('lastSave', timestamp);
+            localStorage.setItem('ccStatelastSave', timestamp);
             await this.saveToServer(state);
         });
         await this.loadFromServer();
@@ -279,7 +282,8 @@ class GameStateSync {
                 .from('save_states')
                 .upsert({
                     user_id: this.userId,
-                    state: compressedState
+                    state: compressedState,
+                    timestamp: Date.now()
                 });
             // update last save time
             if (error) {
@@ -296,29 +300,32 @@ class GameStateSync {
         try {
             const { data: state } = await this.client
                 .from('save_states')
-                .select('state')
+                .select('state, timestamp')
                 .eq('user_id', this.userId)
                 .single();
             if (state) {
-                const result = await this.syncUtil.importState(state.state);
-                if (result.success) {
-                    console.log('State loaded successfully');
-                    if (result.timestamp) {
-                        console.log('Last saved at:', new Date(result.timestamp).toLocaleString());
-                        console.log(`Current save from ${new Date(parseInt(sessionStorage.getItem('lastSave')) || 0).toLocaleString()}`);
-                        const currentSave = parseInt(sessionStorage.getItem('lastSave'));
-                        sessionStorage.setItem('lastSave',(result.timestamp));
-                        if (!currentSave || currentSave == null || result.timestamp > currentSave) {
-                            console.log('Game state has been updated');
-                            await result.import();
+                const timestamp = state.timestamp;
+                console.log(timestamp)
+                console.log('Last saved at:', new Date(timestamp).toLocaleString());
+                console.log(`Current save from ${new Date(parseInt(localStorage.getItem('ccStatelastSave')) || 0).toLocaleString()}`);
+                const currentSave = parseInt(localStorage.getItem('ccStatelastSave'));
+                localStorage.setItem('ccStatelastSave', (timestamp));
+                if (!currentSave || currentSave == null || timestamp > currentSave) {
+                    console.log('Game state has been updated');
+                    const result = await this.syncUtil.importState(state.state);
+                    if (result.success) {
+                        console.log('State loaded successfully');
 
-                            location.reload();
-                        }
+                        await result.import();
+
+                        location.reload();
+                    } else {
+                        console.error('Error loading state:', result.error);
+                        throw result.error;
                     }
-                } else {
-                    console.error('Error loading state:', result.error);
-                    throw result.error;
+
                 }
+
             }
         } catch (error) {
             console.error('Error loading state:', error);

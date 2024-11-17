@@ -114,7 +114,7 @@ async function handleUserLoggedIn() {
         .select('tracking_data')
         .eq('id', window.ccPorted.user.id)
         .single();
-    if(error) alert(error);
+    if(error) console.error('Error fetching tracking data:', error);
     if (data && data.tracking_data) {
         window.ccPortedTrackingData = data.tracking_data;
     } else {
