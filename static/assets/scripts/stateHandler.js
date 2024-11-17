@@ -38,7 +38,7 @@ class StateSyncUtility {
         const data = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if(key == "ccStateUtil-lastSave") continue;
+            if(key === 'ccStatelastSave') continue;
             data[key] = localStorage.getItem(key);
         }
         return data;
@@ -144,9 +144,9 @@ class StateSyncUtility {
 
     // Import state into localStorage
     async importLocalStorageState(data) {
-        const ccStateUtilLastSave = localStorage.getItem('ccStateUtil-lastSave');
+        const ccStatelastSave = localStorage.getItem('ccStatelastSave');
         localStorage.clear();
-        localStorage.setItem('ccStateUtil-lastSave', ccStateUtilLastSave || 0);
+        localStorage.setItem('ccStatelastSave', ccStatelastSave);
         for (const [key, value] of Object.entries(data)) {
             localStorage.setItem(key, value);
         }
@@ -265,16 +265,12 @@ class GameStateSync {
         this.userId = userId;
         this.client = client;
         this.syncUtil = new StateSyncUtility();
-        if(sessionStorage.getItem('lastSave')){
-            // roll back to old version
-            localStorage.setItem('ccStateUtil-lastSave', sessionStorage.getItem('lastSave'));
-        }
     }
 
     async initialize() {
         // Set up automatic sync
         this.syncUtil.setupAutoSync(async (state, timestamp) => {
-            localStorage.setItem('ccStateUtil-lastSave', timestamp);
+            localStorage.setItem('ccStatelastSave', timestamp);
             await this.saveToServer(state);
         });
         await this.loadFromServer();
@@ -286,8 +282,7 @@ class GameStateSync {
                 .from('save_states')
                 .upsert({
                     user_id: this.userId,
-                    state: compressedState,
-                    timestamp: new Date().getTime()
+                    state: compressedState
                 });
             // update last save time
             if (error) {
@@ -313,9 +308,9 @@ class GameStateSync {
                     console.log('State loaded successfully');
                     if (result.timestamp) {
                         console.log('Last saved at:', new Date(result.timestamp).toLocaleString());
-                        console.log(`Current save from ${new Date(parseInt(localStorage.getItem('ccStateUtil-lastSave')) || 0).toLocaleString()}`);
-                        const currentSave = parseInt(localStorage.getItem('ccStateUtil-lastSave'));
-                        localStorage.setItem('ccStateUtil-lastSave',(result.timestamp));
+                        console.log(`Current save from ${new Date(parseInt(localStorage.getItem('ccStatelastSave')) || 0).toLocaleString()}`);
+                        const currentSave = parseInt(localStorage.getItem('lastSave'));
+                        localStorage.setItem('ccStatelastSave',(result.timestamp));
                         if (!currentSave || currentSave == null || result.timestamp > currentSave) {
                             console.log('Game state has been updated');
                             await result.import();
