@@ -208,7 +208,8 @@
             "tags": [
                 "cooking",
                 "simulation",
-                "papa's"
+                "papa's",
+                "flash"
             ]
         },
         {
@@ -226,7 +227,8 @@
             "tags": [
                 "cooking",
                 "simulation",
-                "papa's"
+                "papa's",
+                "flash"
             ]
         },
         {
@@ -489,6 +491,20 @@
                 }
             ],
             "tags": ["towerDefense","strategy","bloons"]
+        },
+        {
+            "name":"toss_the_turtle",
+            "fName":"Toss The Turtle",
+            "description":"Toss the Turtle is a fun and addictive game where you launch a turtle as far as you can using cannons, bombs, and jetpacks.",
+            "image":"/assets/images/toss_the_turtle.jpg",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/ttt/"
+                }
+            ],
+            "tags": ["flash","skill","action"]
         }
     ]
 }

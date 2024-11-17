@@ -282,13 +282,15 @@ try {
     }
     async function addGameRequest(game_name) {
         try {
+            log(`Adding game request for ${game_name}`);
             const { data, error } = await client
                 .from('CCPorted Game RQs')
                 .insert([
-                    { game_name: game_name }
+                    { game_name }
                 ]);
-
-            if (error) throw error;
+            log('error:', error);
+            if (error) console.error(error);
+            log('Game request added:', data);
             return data;
         } catch (error) {
             console.error('Error adding game request:', error.message);
@@ -580,9 +582,9 @@ try {
         nvmdButton.addEventListener("click", () => {
             closePopup();
         });
-        sendButton.addEventListener("click", () => {
+        sendButton.addEventListener("click", async () => {
             const input = document.getElementById("gameRequestInput");
-            addGameRequest(input.value);
+            await addGameRequest(input.value);
             closePopup();
         });
 

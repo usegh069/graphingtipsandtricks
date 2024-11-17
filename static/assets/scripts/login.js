@@ -23,3 +23,20 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         alert(error.message);
     }
 });
+
+// document.getElementById('resend-verification').addEventListener('click', async () => {
+//     const email = prompt('Enter your email address');
+//     try {
+//         const { error } = await supabase.auth.resend({
+//             type: 'signup',
+//             email: email,
+//             options: {
+//                 emailRedirectTo: 'http://ccported.gitub.io/login'
+//             }
+//         })
+
+//         alert('Verification email sent');
+//     } catch (error) {
+//         alert(error.message);
+//     }
+// });
