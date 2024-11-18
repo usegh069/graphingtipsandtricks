@@ -1,4 +1,5 @@
 async function init() {
+    try{
     const search = new URLSearchParams(window.location.search);
     if (search.has("core") && search.has("rom")) {
         const core = search.get("core");
@@ -6,11 +7,11 @@ async function init() {
         const url = `https://ccported.github.io/roms/roms/${core}/${rom}`;
         window.EJS_player = "#game";
         window.EJS_core = core;
-        window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+        window.EJS_pathtodata = "https://ccported.github.io/emdata/data/";
         window.EJS_gameUrl = url;
         // window.EJS_startOnLoaded = true;
         const script = document.createElement("script");
-        script.src = "https://cdn.emulatorjs.org/latest/data/loader.js";
+        script.src = "https://ccported.github.io/emdata/data/loader.js";
         document.body.appendChild(script);
         document.querySelector(".select-game-popup").style.display = "none";
         document.querySelector("#game").style.display = "block";
@@ -19,7 +20,11 @@ async function init() {
         document.querySelector("#game").style.display = "none";
         await createSelect();
     }
+}catch(err){
+    alert(err);
 }
+}
+
 
 function formatCategoryName(category) {
     // Convert category names to more readable format

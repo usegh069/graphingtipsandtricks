@@ -533,6 +533,20 @@
                 }
             ],
             "tags": ["timing", "fruit", "skill"]
+        },
+        {
+            "name":"emulator",
+            "fName":"Emulator V2",
+            "description":"Run any ROM in the ROM library, with custom contrls, quick saves, and more.",
+            "image":"/assets/images/super_mario_bros.png",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/emulator/"
+                }
+            ],
+            "tags": ["emulator", "arcade", "rom" ]
         }
     ]
 }
