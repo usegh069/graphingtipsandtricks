@@ -519,6 +519,20 @@
                 }
             ],
             "tags": ["mouse", "action", "skill"]
+        },
+        {
+            "name":"knife_hit",
+            "fName":"Knife Hit",
+            "description":"Throw knives at spinning targets, try to hit the fruit without hitting the other knives.",
+            "image":"/assets/images/knife_hit.png",
+            "online":true,
+            "links": [
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/kh/"
+                }
+            ],
+            "tags": ["timing", "fruit", "skill"]
         }
     ]
 }
