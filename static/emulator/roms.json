@@ -1,0 +1,32 @@
+{
+    "gba":[
+        ["dragonball_advanced_adventure.gba", "Dragonball Advnaced Adventure"],
+        ["dragonball_z_supersonic_warriors.gba","Dragonball Z Supersonic Warriors"],
+        ["grand_theft_auto_advance.gba","Grand Theft Auto Advnace"],
+        ["mario_kart_super_circuit.gba","Mario Kart Super Circuit"],
+        ["naruto_ninja_council_2.gba","Naruto Ninja Council 2"],
+        ["need_for_speed_underground.gba","Need For Speed Underground"],
+        ["pokemon_black_special_palace_edition_1.gba","Pokemon Black Special Palace Edition 1"],
+        ["pokemon_emerald_version.gba","Pokemon Emerald Version"],
+        ["pokemon_fire_red_version.gba","Pokemon Fire Red Version"],
+        ["pokemon_leaf_green_version.gba","Pokemon Leaf Green Version"],
+        ["pokemon_ruby_version.gba","Pokemon Ruby Version"],
+        ["pokemon_sapphire_version.gba","Pokemon Sapphire Version"],
+        ["pokemon_ultra_violet.gba","Pokemon Ultra Violet"],
+        ["super_mario_bros.gba","Super Mario Bros"],
+        ["super_mario_world.gba","Super Mario World"],
+        ["the_legend_of_zelda.gba","The Legend of Zelda"],
+        ["ultimate_spider_man.gba","The Ultimate Spider-Man"]
+    ],
+    "nes":[
+        ["legend_of_zelda.nes.zip","The Legend of Zelda"],
+        ["mike_tyson_punch_out.nes.zip","Mike Tyson's Punch Out"],
+        ["rc_pro_am_2.nes.zip","RC Pro Am 2"],
+        ["super_mario_bros_3.nes.zip","Super Mario Bros 3"],
+        ["super_mario_bros.nes.zip","Super Mario Bros"],
+        ["terminator_2_judgement_day.nes.zip","Terminator 2 Judgement Day"],
+        ["tetris_2.nes.zip","Tetris 2"],
+        ["zelda_2.nes.zip","Zelda 2"],
+        ["galaga.nes","Galaga"]
+    ]
+}
