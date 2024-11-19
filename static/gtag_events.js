@@ -301,6 +301,7 @@ function emit() {
         isFramed: framed,
     }
     if(framed){
+        data["parentDomainHost"] = (window.parent.location.hostname.length > 0) ? window.parent.location.hostname : "unknown";
         data["parentDomain"] = window.parent.location;
     }
     gtag("event", "play_game", data);
