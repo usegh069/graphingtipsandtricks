@@ -295,11 +295,15 @@ function installSupascript() {
     return loadPromise;
 }
 function emit() {
-    gtag("event", "play_game", {
+    const data = {
         gameID,
         location: (glocation.length > 0) ? glocation : "unknown",
-        isFramed: framed
-    });
+        isFramed: framed,
+    }
+    if(framed){
+        data["parentDomain"] = window.parent.location;
+    }
+    gtag("event", "play_game", data);
 }
 function hasSeenGame(gameID) {
     return localStorage.getItem(`seen-${gameID}`) == "yes";
