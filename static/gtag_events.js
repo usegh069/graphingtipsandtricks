@@ -5,6 +5,12 @@ const script = document.currentScript;
 const gameID = script.getAttribute("data-gameid");
 window.gameID = gameID;
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
+const glocation = window.location.hostname;
+const framed = pageInIframe();
+
+function pageInIframe() {
+    return (window.location !== window.parent.location);
+}
 const stlyeLoadPromise = new Promise((r, rr) => {
     link.onload = () => {
         r();
@@ -32,7 +38,7 @@ importJSON("/games.json").then(games => {
     var tail = "";
     if (unseengames.length > 5) {
         tail = " and more";
-    } 
+    }
     unseengames = unseengames.splice(0, 5);
 
     var string = "New games to play: ";
@@ -114,11 +120,11 @@ async function init() {
     await installSupascript();
     const { data: { user } } = await window.ccSupaClient.auth.getUser();
     window.ccPorted.user = user;
-    
+
     if (localStorage.getItem("chat-convo-all-muted") !== 1 && user) {
         setupRealtime();
     }
-    
+
     if (!seenPopup) {
         setTimeout(createPopup, 120000);
     }
@@ -291,7 +297,8 @@ function installSupascript() {
 function emit() {
     gtag("event", "play_game", {
         gameID,
-        location: window.location.hostname
+        location: (glocation.length > 0) ? glocation : "unknown",
+        isFramed: framed
     });
 }
 function hasSeenGame(gameID) {
