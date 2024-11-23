@@ -1,8 +1,17 @@
 {% if (showAds == "true") %}
-<script async src="https://ss.mrmnd.com/interstitial.js" data-mndintid="26d09c2c-6d2a-4c22-bd80-4f36b8ed40a6"></script>
+<!-- <script async src="https://ss.mrmnd.com/interstitial.js" data-mndintid="26d09c2c-6d2a-4c22-bd80-4f36b8ed40a6"></script> -->
+<!-- should make a component -->
+<script type="text/javascript" src="https://cdn.applixir.com/applixir.sdk4.0m.js"></script>
+<script>
+    window.adOptions = {
+        zoneId: 2050,
+        accountId: 8518,
+        siteId: 9054
+    };
+</script>
 {% endif %}
 
 <gtag />
 
 <script src="/assets/scripts/stateHandler.js"></script>
-<script src="/gtag_events.js?v=001" data-gameid="{{gameID}}"></script>
+<script src="/gtag_events.js?v=002" data-gameid="{{gameID}}"></script>

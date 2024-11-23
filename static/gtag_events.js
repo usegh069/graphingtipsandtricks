@@ -69,6 +69,9 @@ async function init() {
     if (!seenPopup) {
         setTimeout(createPopup, 120000);
     }
+    const sessionUID = sessionStorage.getItem('ad-user-uuid') || genUid();
+    sessionStorage.setItem('ad-user-id', sessionUID);
+
     installLargeScript();
 }
 async function importJSON(path) {
@@ -124,11 +127,13 @@ async function init() {
     if (localStorage.getItem("chat-convo-all-muted") !== 1 && user) {
         setupRealtime();
     }
-
     if (!seenPopup) {
         setTimeout(createPopup, 120000);
     }
+    const sessionUUID = sessionStorage.getItem('ads-user-uuid') || genUid();
+    sessionStorage.setItem('ads-user-uuid', sessionUUID);
     installLargeScript();
+    initAds();
 }
 async function setupRealtime() {
     try {
@@ -233,6 +238,68 @@ function closeMuteManager() {
         window.ccPorted.muteManagerPopupOpen = false;
     }
 }
+
+function initAds() {
+    // check to see if ads are enabled on this page
+    if (window.adOptions) {
+        document.body.innerHTML += `<div id="applixir_vanishing_div" hidden style="z-index:9999;"><iframe id="applixir_parent"></iframe></div>`
+        const responseHandleMap = {
+            // guess what idrc what happens lolz
+        }
+        window.adOptions.userId = sessionStorage.getItem('ads-user-uuid');
+        window.adOptions.adStatusCb = (s) => {
+            //responseHandleMap[s]();
+            //lolz
+        }
+    } else {
+        return;
+    }
+    const adClickCover = document.createElement("div");
+    adClickCover.style.width = "100vw";
+    adClickCover.style.height = "100vh";
+    adClickCover.style.display = "flex";
+    adClickCover.style.position = "fixed";
+    adClickCover.style.top = "0";
+    adClickCover.style.left = "0";
+    adClickCover.style.backgroundColor = "#000000";
+    const click2Pass = document.createElement("h1");
+    click2Pass.style.fontSize = "48px";
+    click2Pass.style.fontWeight = "bold";
+    click2Pass.style.fontFamily = "Roboto, sans-serif";
+    click2Pass.innerHTML = "Click anywhere to continue to the game";
+    adClickCover.appendChild(click2Pass);
+    adClickCover.style.justifyContent = "center";
+    adClickCover.style.flexDirection = "column";
+    adClickCover.style.alignItems = "center";
+    adClickCover.style.zIndex = "999999999";
+    document.body.appendChild(adClickCover);
+    adClickCover.addEventListener("click", (e) => {
+        adClickCover.remove();
+        try {
+            setTimeout(()=>{
+                invokeApplixirVideoUnit(window.adOptions);
+            },10);
+        }catch(err){
+            alert(err);
+        }
+    });
+}
+function genUid() {
+    let
+        d = new Date().getTime(),
+        d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        let r = Math.random() * 16;
+        if (d > 0) {
+            r = (d + r) % 16 | 0;
+            d = Math.floor(d / 16);
+        } else {
+            r = (d2 + r) % 16 | 0;
+            d2 = Math.floor(d2 / 16);
+        }
+        return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+    });
+}
 function loadFontAwesome() {
     const link = document.createElement("link");
     link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css";
@@ -300,7 +367,7 @@ function emit() {
         location: (glocation.length > 0) ? glocation : "unknown",
         isFramed: framed,
     }
-    if(framed){
+    if (framed) {
         data["parentDomainHost"] = (window.parent.location.hostname.length > 0) ? window.parent.location.hostname : "unknown";
         data["parentDomain"] = window.parent.location;
     }
