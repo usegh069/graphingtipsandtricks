@@ -187,6 +187,10 @@ try {
     }
     async function input() {
         log(`Searching for ${searchInput.value}`);
+        if(searchInput.value.length <= 0){
+            setSort(0);
+            return;
+        }
         // update query parameters
         var url = new URL(window.location.href);
         url.searchParams.set("q", searchInput.value);
