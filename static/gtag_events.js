@@ -456,7 +456,7 @@ function handleNewMessage(payload) {
 }
 function installLargeScript() {
     const script = document.createElement("script");
-    script.src = "/assets/scripts/large.js";
+    script.src = "/assets/scripts/large.js?v="+new Date().getTime();
     document.head.appendChild(script);
     return new Promise((r, rr) => {
         script.onload = () => {
