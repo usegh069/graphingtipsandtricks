@@ -6,6 +6,9 @@ const absLinks = [
     "/login/",
     "/",
     "/chat/",
+    "/status/",
+    "/profile/",
+    "/roms/"
 ]
 const { games: gamesJSON } = require("./static/games.json");
 const parseXml = require("./sitemap_parser.js");
