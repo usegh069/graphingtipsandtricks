@@ -79,7 +79,7 @@ try {
                         e.preventDefault();
                         // if it's a link, open it
                         incrementClicks(id);
-                        window.open(e.target.href, '_blank');
+                        window.open(e.target.href.replace("ccported.github.io",window.location.hostname), '_blank');
                     }
                     return;
                 }
@@ -231,7 +231,7 @@ try {
                 var h3 = document.createElement("h3");
                 h3.innerHTML = `Rom Results`
                 var fullLibrary = document.createElement("p");
-                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://ccported.github.io/roms'>full library</a></i>";
+                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://"+window.location.hostname+"/roms/'>full library</a></i>";
 
                 var div = document.createElement("div");
                 div.appendChild(h3)
@@ -239,7 +239,7 @@ try {
                 for (const result of results) {
                     var p = document.createElement("p");
                     var [url, name, platform] = result;
-                    p.innerHTML = `<a href = https://ccported.github.io/roms/roms/${platform}/${url}>${name}</a>`;
+                    p.innerHTML = `<a href = "/emulator/?core=${platform}&rom=${url}">${name}</a>`;
                     div.appendChild(p)
                 }
                 document.getElementById("check-roms").innerHTML = "";
@@ -263,7 +263,7 @@ try {
         let json;
         if (!cachedRomsJSON) {
 
-            response = await fetch("https://ccported.github.io/roms/roms.json");
+            response = await fetch("https://"+window.location.hostname+"/roms/roms.json");
             json = await response.json();
             cachedRomsJSON = json;
         } else {
