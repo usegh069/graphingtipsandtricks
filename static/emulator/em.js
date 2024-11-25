@@ -53,7 +53,7 @@ function formatCategoryName(category) {
 }
 
 async function createSelect() {
-    const romsJSON = await importJSON("/emulator/roms.json");
+    const romsJSON = await importJSON("/roms/roms.json");
     const container = document.querySelector('.game-selector-container');
     const searchInput = container.querySelector('.search-input');
     const select = document.createElement("select");
