@@ -27,6 +27,15 @@ jobs:
         
       - name: Build Sitemap
         run: node generate_sitemap.js
+      
+      - name: Build roms.json
+        env:
+          ROMS_AWS_ACCESS_KEY: ${{ secrets.ROMS_AWS_ACCESS_KEY }}
+          ROMS_AWS_SECRET_ACCESS_KEY: ${{ secrets.ROMS_AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd static/roms
+          npm install
+          node build.js
         
       - name: Build static site
         run: htmlc static --out=build
