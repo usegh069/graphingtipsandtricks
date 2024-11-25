@@ -4,7 +4,12 @@ async function init() {
     if (search.has("core") && search.has("rom")) {
         const core = search.get("core");
         const rom = search.get("rom");
-        const url = `https://ccported.github.io/roms/roms/${core}/${rom}`;
+        let url;
+        if(rom.startsWith("http") || rom.startsWith("//")){
+            url = rom;
+        }else{
+            url = `https://ccportedroms.s3-us-west-2.amazonaws.com/${core}/${rom}`;
+        }
         window.EJS_player = "#game";
         window.EJS_core = core;
         window.EJS_pathtodata = "https://ccported.github.io/emdata/data/";
