@@ -1,33 +1,33 @@
 async function init() {
     try{
-    const search = new URLSearchParams(window.location.search);
-    if (search.has("core") && search.has("rom")) {
-        const core = search.get("core");
-        const rom = search.get("rom");
-        let url;
-        if(rom.startsWith("http") || rom.startsWith("//")){
-            url = rom;
-        }else{
-            url = `https://ccportedroms.s3-us-west-2.amazonaws.com/${core}/${rom}`;
+        const search = new URLSearchParams(window.location.search);
+        if (search.has("core") && search.has("rom")) {
+            const core = search.get("core");
+            const rom = search.get("rom");
+            let url;
+            if(rom.startsWith("http") || rom.startsWith("//")){
+                url = rom;
+            }else{
+                url = `https://ccportedroms.s3-us-west-2.amazonaws.com/${core}/${rom}`;
+            }
+            window.EJS_player = "#game";
+            window.EJS_core = core;
+            window.EJS_pathtodata = "https://ccported.github.io/emdata/data/";
+            window.EJS_gameUrl = url;
+            // window.EJS_startOnLoaded = true;
+            const script = document.createElement("script");
+            script.src = "https://ccported.github.io/emdata/data/loader.js";
+            document.body.appendChild(script);
+            document.querySelector(".select-game-popup").style.display = "none";
+            document.querySelector("#game").style.display = "block";
+        } else {
+            document.querySelector(".select-game-popup").style.display = "flex";
+            document.querySelector("#game").style.display = "none";
+            await createSelect();
         }
-        window.EJS_player = "#game";
-        window.EJS_core = core;
-        window.EJS_pathtodata = "https://ccported.github.io/emdata/data/";
-        window.EJS_gameUrl = url;
-        // window.EJS_startOnLoaded = true;
-        const script = document.createElement("script");
-        script.src = "https://ccported.github.io/emdata/data/loader.js";
-        document.body.appendChild(script);
-        document.querySelector(".select-game-popup").style.display = "none";
-        document.querySelector("#game").style.display = "block";
-    } else {
-        document.querySelector(".select-game-popup").style.display = "flex";
-        document.querySelector("#game").style.display = "none";
-        await createSelect();
+    }catch(err){
+        alert(err);
     }
-}catch(err){
-    alert(err);
-}
 }
 
 
@@ -49,7 +49,6 @@ function formatCategoryName(category) {
         'atari2600': 'Atari 2600',
         'arcade': 'Arcade',
         'vb':'Virtual Boy',
-        'playstation':'Playstation'
     };
     return `${names[category]} (${category.toUpperCase()})` || category.toUpperCase();
 }
