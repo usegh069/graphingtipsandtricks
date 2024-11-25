@@ -1,22 +1,25 @@
 async function init() {
-    try{
+    try {
+        const dataLibraryBaseUrl = await findDataCDN();
+
+
         const search = new URLSearchParams(window.location.search);
         if (search.has("core") && search.has("rom")) {
             const core = search.get("core");
             const rom = search.get("rom");
             let url;
-            if(rom.startsWith("http") || rom.startsWith("//")){
+            if (rom.startsWith("http") || rom.startsWith("//")) {
                 url = rom;
-            }else{
+            } else {
                 url = `https://ccportedroms.s3-us-west-2.amazonaws.com/${core}/${rom}`;
             }
             window.EJS_player = "#game";
             window.EJS_core = core;
-            window.EJS_pathtodata = "https://ccported.github.io/emdata/data/";
+            window.EJS_pathtodata = `${dataLibraryBaseUrl}/data/`;
             window.EJS_gameUrl = url;
             // window.EJS_startOnLoaded = true;
             const script = document.createElement("script");
-            script.src = "https://ccported.github.io/emdata/data/loader.js";
+            script.src = `${dataLibraryBaseUrl}/data/loader.js`;
             document.body.appendChild(script);
             document.querySelector(".select-game-popup").style.display = "none";
             document.querySelector("#game").style.display = "block";
@@ -25,11 +28,31 @@ async function init() {
             document.querySelector("#game").style.display = "none";
             await createSelect();
         }
-    }catch(err){
+    } catch (err) {
         alert(err);
     }
 }
-
+async function findDataCDN() {
+    var cdns = ["https://ccported.github.io/emdata", "https://emdata.onrender.com", "https://sojs-coder.github.io/emdata"];
+    for (var i = 0; i < cdns.length; i++) {
+        try {
+            const response = await fetch(cdns[i] + '/blocked_res.txt', {
+                method: 'GET',
+                cors: "no-cors"
+            });
+            const text = await response.text();
+            if(text.indexOf("===NOT_BLOCKED===") !== -1){
+                return cdns[i];
+            }else{
+                continue;
+            }
+        } catch (err) {
+            console.log(err);
+            // ^ super soft error handling
+        }
+    }
+    alert("All data delivery networks seem to be blocked. This will not work. If you think this is an error contact me though the instagram, discord, or email me at sojscoder@gmail.com");
+}
 
 function formatCategoryName(category) {
     // Convert category names to more readable format
@@ -48,7 +71,7 @@ function formatCategoryName(category) {
         'psx': 'PlayStation',
         'atari2600': 'Atari 2600',
         'arcade': 'Arcade',
-        'vb':'Virtual Boy',
+        'vb': 'Virtual Boy',
     };
     return `${names[category]} (${category.toUpperCase()})` || category.toUpperCase();
 }
@@ -87,7 +110,7 @@ async function createSelect() {
 
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        
+
         // Reset all groups visibility
         Object.values(allGroups).forEach(group => {
             group.style.display = '';
@@ -96,7 +119,7 @@ async function createSelect() {
         // Track which groups have visible options
         const groupsWithVisibleOptions = new Set();
 
-        allOptions.forEach(({element, category}) => {
+        allOptions.forEach(({ element, category }) => {
             const matches = element.innerText.toLowerCase().includes(searchTerm);
             element.style.display = matches ? '' : 'none';
             if (matches) {
