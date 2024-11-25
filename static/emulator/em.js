@@ -42,7 +42,9 @@ function formatCategoryName(category) {
         'dreamcast': 'Dreamcast',
         'psx': 'PlayStation',
         'atari2600': 'Atari 2600',
-        'arcade': 'Arcade'
+        'arcade': 'Arcade',
+        'vb':'Virtual Boy',
+        'playstation':'Playstation'
     };
     return `${names[category]} (${category.toUpperCase()})` || category.toUpperCase();
 }
