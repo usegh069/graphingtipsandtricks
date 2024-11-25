@@ -6,6 +6,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Add permissions block to grant necessary access
+permissions:
+  contents: write   # This is required for pushing to gh-pages branch
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -32,9 +36,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
-          publish_branch: gh-pages  # Explicitly set the target branch
-          force_orphan: true        # Create a new history for gh-pages branch, keeping it clean
+          publish_branch: gh-pages
+          force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_message: 'Deploy: ${{ github.event.head_commit.message }}'
-          enable_jekyll: false      # Since this is a static site, disable Jekyll processing
+          enable_jekyll: false
