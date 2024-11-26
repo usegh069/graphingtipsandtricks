@@ -1,6 +1,8 @@
 const base = process.argv[2] || "https://ccported.github.io";
 const toModify = process.argv[3] || "no";
 const fs = require("fs");
+const other_domains = ["https://ccported.onrender.com"]; // Add your alternate domains here
+
 const absLinks = [
     "/signup/",
     "/login/",
@@ -28,26 +30,42 @@ function linkExtractor(xmlString) {
             }
         }
         if(lastMod){
-            lastMod= lastMod.children[0].content;
+            lastMod = lastMod.children[0].content;
         }
         if (loc) {
             loc = loc.children[0].content
         }
         return [loc, lastMod];
     })
-    // const links = urls.map(url => url.children.find(child => child.name === "loc").content);
     return links
 }
+
 function format(link, priority = 1.00, lastMod = new Date().toISOString()) {
-    // desired: base + link -> "https://ccported.github.io/signup/"
     return [base + link, priority, lastMod];
 }
+
+function generateAlternateLinks(path) {
+    return other_domains.map(domain => 
+        `    <xhtml:link 
+        rel="alternate"
+        href="${domain}${path}"/>`
+    ).join('\n');
+}
+
 function xml([url, priority = 1.00, lastMod = new Date().toISOString()]) {
+    const path = new URL(url).pathname;
+    const alternateLinks = generateAlternateLinks(path);
+    
     return `
 <url>
     <loc>${url}</loc>
     <lastmod>${lastMod}</lastmod>
     <priority>${priority}</priority>
+    <xhtml:link 
+        rel="alternate"
+        hreflang="x-default"
+        href="${url}"/>
+${alternateLinks}
 </url>`;
 }
 
@@ -89,7 +107,6 @@ function getLinks(existing, toModify) {
     return links;
 }
 
-
 function main() {
     const existing = linkExtractor(fs.readFileSync("static/sitemap.xml", "utf8"));
     const links = Array.from(getLinks(existing, toModify));
@@ -98,6 +115,7 @@ function main() {
 <urlset
       xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xhtml="http://www.w3.org/1999/xhtml"
       xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 ${xmls.join("\n")}
