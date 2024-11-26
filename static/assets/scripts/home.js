@@ -84,7 +84,7 @@ try {
                     return;
                 }
                 incrementClicks(id);
-                window.open(links[0].href, '_blank');
+                window.open(links[0].href.replace("ccported.github.io",window.location.hostname), '_blank');
             });
             checkSeenGame(id, card);
             markGameSeen(id);
