@@ -8023,13 +8023,6 @@ fg_api.prototype.gameModule = function() {
 	};
 
 	gamePrototype.linkCanonical = function() {
-		var canonicalUrl = self.getShortLink();
-		var link = faZepto(
-			'<link rel="canonical" href="' + canonicalUrl + '">'
-		);
-
-		link.appendTo(self.headElement);
-
 		return M;
 	};
 
