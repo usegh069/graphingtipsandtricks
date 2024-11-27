@@ -20,7 +20,7 @@ var _fgq = [];
 		}
 	};
 	firstJS.parentNode.insertBefore(fgJS, firstJS);
-})(document, 'patch/js/famobi-api.js?api.famobi.com/assets/0.2-f5062bad/js/gameapi.js');
+})(document, 'patch/js/famobi-api.js');
 
 window.famobi_ts = 1694160020000;
 if ((new Date).getTime() > famobi_ts) {
@@ -28,13 +28,13 @@ if ((new Date).getTime() > famobi_ts) {
 		// window.xlocation == '//play.famobi.com/';
 	});
 }
-(function (document, url, newJS, firstJS) {
-	newJS = document.createElement('script');
-	newJS.setAttribute('async', true);
-	firstJS = document.getElementsByTagName('script')[0];
-	newJS.src = url;
-	firstJS.parentNode.insertBefore(newJS, firstJS);
-})(document, '/patch/js/gtag.js?www.googletagmanager.com/gtag/js?id=G-MW44YFJQMQ&l=famobi_dataLayer');
+// (function (document, url, newJS, firstJS) {
+// 	newJS = document.createElement('script');
+// 	newJS.setAttribute('async', true);
+// 	firstJS = document.getElementsByTagName('script')[0];
+// 	newJS.src = url;
+// 	firstJS.parentNode.insertBefore(newJS, firstJS);
+// })(document, '/patch/js/gtag.js?www.googletagmanager.com/gtag/js?id=G-MW44YFJQMQ&l=famobi_dataLayer');
 window.famobi_dataLayer = window.famobi_dataLayer || [];
 function gtag(){famobi_dataLayer.push(arguments);}
 gtag('js', new Date());
