@@ -49,6 +49,19 @@ try {
     const music = new Howl({ src: ['sounds/bg.mp3'], loop: true });
     music.play();
 
+    function formatScore(score) {
+        // 1000 -> 1K
+        // 1000000 -> 1M
+        // 1234567 -> 1.23M
+        if (score < 1000) {
+            return score;
+        } else if (score < 1000000) {
+            return (score / 1000).toFixed(2) + 'K';
+        } else {
+            return (score / 1000000).toFixed(2) + 'M';
+        }
+    }
+
 
     class Tetris {
         constructor() {
@@ -83,6 +96,11 @@ try {
             this.piece = this.nextPiece;
             this.nextPiece = this.createPiece();
             if (this.collision()) {
+                if(window.ccPorted.user){
+                    window.ccPorted.leaderboard.addScore(window.ccPorted.user.id, game.score);
+                }else{
+                    window.ccPorted.leaderboard.addGuestScore(game.score);
+                }
                 this.gameOver = true;
             }
         }
@@ -235,9 +253,30 @@ try {
                 ctx.fillStyle = "#ffffff";
                 ctx.textAlign = "center";
                 ctx.font = "20px ps2p";
-                ctx.fillText("GAME OVER!", canvas.width / 2, canvas.height / 2);
+                ctx.fillText("GAME OVER!", canvas.width / 2, canvas.height / 2 - 100);
                 ctx.font = "10px ps2p";
-                ctx.fillText("Press enter to restart", canvas.width / 2, (canvas.height / 2) + 25);
+                ctx.fillText("Press enter to restart", canvas.width / 2, (canvas.height / 2) - 75);
+                ctx.font = "13px ps2p";
+                ctx.fillText("Leaderboard:", canvas.width / 2, (canvas.height / 2) - 40);
+                window.ccPorted.leaderboard.loadScores().then((data) => {
+                    ctx.font = "10px ps2p";
+                    ctx.textAlign = "left";
+                    data.forEach((entry, i) => {
+                        if(i == 10){
+                            ctx.fillText("...", canvas.width / 2 - 40, (canvas.height / 2) - 15 + (i * 15));
+                        }
+                        if(entry.u_profiles.id == "guest" || entry.u_profiles.id == window.ccPorted.user?.id){
+                            ctx.fillStyle = "#FFD700";
+                        }
+           
+                        const displayName = entry.u_profiles.display_name.length > 10 ? entry.u_profiles.display_name.substring(0, 10) + "..." : entry.u_profiles.display_name;
+                        const score = formatScore(entry.score);
+
+                        ctx.fillText(`${i + 1} ${displayName}: ${score}`, canvas.width / 2 - 50, (canvas.height / 2) - 15 + (i * 15) + (i == 10 ? 15 : 0));
+
+
+                    });
+                });
                 return;
             }
             // Draw board
@@ -362,6 +401,9 @@ try {
     });
 
     game.update();
+    window.ccPorted.supaLoadPromise.then(async () => {
+        window.ccPorted.leaderboard = new Leaderboard('tetris', window.ccSupaClient);
+    })
 } catch (err) {
     alert(err);
 }

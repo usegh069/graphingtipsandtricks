@@ -25,7 +25,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
             log(`User signed up with email ${email}`);
             const { error: insertError } = await client
                 .from('u_profiles')
-                .insert({ id: user.id });
+                .insert({ id: user.id, display_name: displayName });
 
             if (insertError) throw insertError;
 

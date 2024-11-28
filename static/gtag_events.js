@@ -22,8 +22,6 @@ let cachedChannels = null;
 link.href = "/assets/styles/master.css";
 link.setAttribute("rel", "stylesheet");
 document.head.appendChild(link);
-localStorage.removeItem(`chat-convo-all-muted`)
-
 
 
 
@@ -58,19 +56,7 @@ shortcut([
         closeMuteManager();
     }
 });
-async function init() {
-    installGTAG();
-    await installSupascript();
-    const { data: { user } } = await window.ccSupaClient.auth.getUser();
-    window.ccPorted.user = user;
-    if (localStorage.getItem("chat-convo-all-muted") !== 1) {
-        setupRealtime();
-    }
-    if (!seenPopup) {
-        setTimeout(createPopup, 120000);
-    }
-    installLargeScript();
-}
+
 async function importJSON(path) {
     const url = new URL(path, window.location.origin);
     url.searchParams.append('_', Date.now());
@@ -283,7 +269,7 @@ function installSupascript() {
     const script = document.createElement("script");
     script.src = "https://unpkg.com/@supabase/supabase-js@2";
     document.head.appendChild(script);
-    const loadPromise = new Promise((r, rr) => {
+    window.ccPorted.supaLoadPromise = new Promise((r, rr) => {
         script.onload = () => {
             const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
@@ -292,7 +278,7 @@ function installSupascript() {
         }
     });
 
-    return loadPromise;
+    return window.ccPorted.supaLoadPromise;
 }
 function emit() {
     const data = {

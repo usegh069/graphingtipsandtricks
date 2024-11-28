@@ -52,7 +52,7 @@ async function init() {
         console.error('Error getting channel info:', cerror);
         alert("Error getting channel info");
     }
-    const { data, error } = await client
+    const { error } = await client
         .from('u_profiles')
         .update({ 'current_channel': currentChannel })
         .eq('id', user.id)
