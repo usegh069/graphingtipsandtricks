@@ -135,14 +135,14 @@ try {
                 },
                 "logs": (content) => {
                     return `<h1>${content.panel}</h1>
-                    <button onclick="window.ccPorted.stats.logs = []">Clear</button>
+                    <button onclick="document.getElementById('cc_stats_logs').innerHTML = '';">Clear</button>
                     <pre style="white-space: pre-wrap;" id="cc_stats_logs"></pre>
                     <input type="text" placeholder="Eval" onkeydown="if(event.key === 'Enter') { window.ccPorted.stats.log('<',this.value);try{let o = eval(this.value);window.ccPorted.stats.log('>',o);}catch(err){window.ccPorted.stats.log(err)} this.value = '' }">`
                 },
                 "requests": (content) => {
                     return `<h1>${content.panel}</h1>
                     <button onclick="fetch('/assets/images/ovo.jpg')">Test Request</button>
-                    ${content.aspects.map(aspect => `<div id = "cc_stats_${aspect}">testing testing</div>`).join('')}`;
+                    ${content.aspects.map(aspect => `<div id = "cc_stats_${aspect}"></div>`).join('')}`;
                 }
             }
 
@@ -473,6 +473,7 @@ try {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/service-worker.js')
                         .then(registration => {
+                            this.workerLoaded = true;
                             this.log('Service Worker registered successfully:', registration.scope);
                         })
                         .catch(error => {
