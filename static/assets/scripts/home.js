@@ -32,13 +32,6 @@ try {
     window.gameRQPopupOpen = false;
     document.querySelector(".cards").classList.add("loading");
 
-    shortcut([17, 81], () => {
-        log("Shortcut CTRL + M pressed");
-        createPopup({
-            message: "Hello, Antonio",
-            cta: false
-        })
-    });
     async function importJSON(path) {
         let url;
         if (path.startsWith("/") && !path.startsWith("//")) {
