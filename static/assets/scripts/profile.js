@@ -51,7 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try{
                 renderStats(trackingData);
                 }catch(err){
-                    alert(err);
+                    alert("Something went wrong.");
+                    log(err);
                 }
             }
         } catch (error) {

@@ -1,3 +1,18 @@
+<!-- supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+    window.ccPorted = {};
+    const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
+    window.ccSupaClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+
+<!-- large.js -->
+<script src="/assets/scripts/helpers.js?i=1"></script>
+<script src="/assets/scripts/large.js?i=1"></script>
+<script src = "/assets/scripts/stateHandler.js"></script>
+
+
 <!-- external (gtag) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DJDL65P9Y4"></script>
 <script>

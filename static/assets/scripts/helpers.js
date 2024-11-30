@@ -5,7 +5,8 @@ if (typeof supabase === "undefined") {
         postSupaInstall();
     });
 } else {
-    window.ccSupaClient = createClient();
+
+    if(!window.ccSupaClient) window.ccSupaClient = createClient();
     postSupaInstall();
 }
 async function postSupaInstall(){
@@ -29,6 +30,9 @@ async function postSupaInstall(){
 }
 function log(...args) {
     console.log("[CCPORTED]: ", ...args);
+    if(window.ccPorted?.stats){
+        window.ccPorted.stats.log(...args);
+    }
 }
 async function importJSON(path) {
     let url;

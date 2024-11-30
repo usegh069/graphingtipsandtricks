@@ -258,23 +258,22 @@ try {
                 ctx.fillText("Press enter to restart", canvas.width / 2, (canvas.height / 2) - 75);
                 ctx.font = "13px ps2p";
                 ctx.fillText("Leaderboard:", canvas.width / 2, (canvas.height / 2) - 40);
-                window.ccPorted.leaderboard.loadScores().then((data) => {
+                window.ccPorted.leaderboard.loadScores(true).then((data) => {
                     ctx.font = "10px ps2p";
                     ctx.textAlign = "left";
                     data.forEach((entry, i) => {
                         if(i == 10){
                             ctx.fillText("...", canvas.width / 2 - 40, (canvas.height / 2) - 15 + (i * 15));
                         }
-                        if(entry.u_profiles.id == "guest" || entry.u_profiles.id == window.ccPorted.user?.id){
+                        if(entry.id == "guest" || entry.id == window.ccPorted.user?.id){
                             ctx.fillStyle = "#FFD700";
+                        }else{
+                            ctx.fillStyle = "#ffffff";
                         }
            
-                        const displayName = entry.u_profiles.display_name.length > 10 ? entry.u_profiles.display_name.substring(0, 10) + "..." : entry.u_profiles.display_name;
+                        const displayName = entry.display_name.length > 10 ? entry.display_name.substring(0, 9) + "..." : entry.display_name;
                         const score = formatScore(entry.score);
-
-                        ctx.fillText(`${i + 1} ${displayName}: ${score}`, canvas.width / 2 - 50, (canvas.height / 2) - 15 + (i * 15) + (i == 10 ? 15 : 0));
-
-
+                        ctx.fillText(`${entry.rank || (i + 1)} ${displayName}: ${score}`, canvas.width / 2 - 110, (canvas.height / 2) - 15 + (i * 15) + (i == 10 ? 15 : 0));
                     });
                 });
                 return;
@@ -392,6 +391,7 @@ try {
                         game.reset();
                         // game = new Tetris();
                         game.update();
+                        window.ccPorted.leaderboard.clearCache();
                     } catch (err) {
                         alert(err);
                     }
@@ -401,9 +401,7 @@ try {
     });
 
     game.update();
-    window.ccPorted.supaLoadPromise.then(async () => {
-        window.ccPorted.leaderboard = new Leaderboard('tetris', window.ccSupaClient);
-    })
+    window.ccPorted.leaderboard = new Leaderboard('tetris', window.ccSupaClient);
 } catch (err) {
     alert(err);
 }

@@ -102,11 +102,8 @@ async function installGTAG() {
 
 // Modified init function
 async function init() {
-    installGTAG();
-    await installSupascript();
     const { data: { user } } = await window.ccSupaClient.auth.getUser();
     window.ccPorted.user = user;
-
     if (localStorage.getItem("chat-convo-all-muted") !== 1 && user) {
         setupRealtime();
     }
@@ -114,7 +111,6 @@ async function init() {
     if (!seenPopup) {
         setTimeout(createPopup, 120000);
     }
-    installLargeScript();
 }
 async function setupRealtime() {
     try {
@@ -440,16 +436,7 @@ function handleNewMessage(payload) {
 
     });
 }
-function installLargeScript() {
-    const script = document.createElement("script");
-    script.src = "/assets/scripts/large.js?v="+new Date().getTime();
-    document.head.appendChild(script);
-    return new Promise((r, rr) => {
-        script.onload = () => {
-            r();
-        }
-    });
-}
+
 function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!", opts) {
     const popup = document.createElement('div');
     popup.style.cssText = `

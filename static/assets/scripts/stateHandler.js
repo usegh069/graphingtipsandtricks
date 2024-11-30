@@ -265,10 +265,12 @@ class GameStateSync {
         this.client = client;
         this.syncUtil = new StateSyncUtility();
         this.stateFileName = `${userId}_save_state.state`;
+        this.lastSync = 0;
     }
 
     async initialize() {
         this.syncUtil.setupAutoSync(async (state, timestamp) => {
+            this.lastSync = timestamp;
             var notification = showAutoSaveNotification();
             localStorage.setItem('ccStatelastSave', timestamp);
             await this.saveToServer(state, timestamp);
