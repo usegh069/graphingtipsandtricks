@@ -13,7 +13,10 @@ try {
             this.dom = dom;
             this.workerLoaded = false;
             dom.style.display = 'none';
-            this.contentBeforeLoad = {};
+            this.contentBeforeLoad = {
+                "logs": [],
+                "requestsIntercepted": []
+            };
             this.customUpdates = {
                 "logs": (content) => {
                     if (document.getElementById('cc_stats_logs')) {
@@ -48,6 +51,18 @@ try {
                 .cc_stats_table_row:hover {
                     background-color: #333;
                 }
+                .cc_stats pre{
+                    white-space: pre-wrap;
+                    background-color: #222;
+                    color: #fff;
+                    border: 1px solid #fff;
+                    border-radius: 6px;
+                    padding: 5px;
+                    max-height: 500px;
+                    overflow-y: auto;
+
+                }
+
                 `;
                 document.head.appendChild(style);
             });
@@ -77,6 +92,7 @@ try {
         }
         generateDom() {
             const dom = document.createElement('div');
+            dom.classList.add("cc_stats")
             dom.style.cssText = `
             position:fixed;
             top:0;
@@ -123,7 +139,7 @@ try {
             });
             const panels = {
                 "stats": ["time", "requestInterceptionLoaded", "memory", "cpu", "user", "game", "lastTrackingTick",
-                    "lastAutoSync", "mouse", "mouseCovering", "trackingData"
+                    "lastAutoSync", "currentStateFrom", "mouse", "mouseCovering", "trackingData"
                 ],
                 "logs": ["logs"],
                 "requests": ["requestsIntercepted"]
@@ -241,7 +257,7 @@ try {
             }
         }
         renderTableFromJSON(json) {
-            if(!json) {
+            if (!json) {
                 this.log("No JSON to render");
                 return '';
             };
@@ -255,10 +271,10 @@ try {
                 headerRow.appendChild(th);
             });
             table.appendChild(headerRow);
-            Object.entries(json).forEach(([key,value]) => {
-                if(key == undefined) return;
-                if(value == undefined) return;
-                if(value.length > 100) {
+            Object.entries(json).forEach(([key, value]) => {
+                if (key == undefined) return;
+                if (value == undefined) return;
+                if (value.length > 100) {
                     value = value.slice(0, 100) + '...';
                 }
                 const row = document.createElement('tr');
@@ -363,7 +379,7 @@ try {
                                 case 'json':
                                     try {
                                         const formattedJson = JSON.stringify(JSON.parse(rawResponse), null, 2);
-                                        previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
+                                        previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
                                     } catch (e) {
                                         this.log(e)
                                         previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
@@ -394,20 +410,20 @@ try {
                                     </div>
                                 </div>
                             `;
-                            if(requestt.responseFormat == 'html') {
+                            if (requestt.responseFormat == 'html') {
                                 const iframe = document.getElementById(`cc_stats_request_${id}_iframe`);
                                 iframe.srcdoc = rawResponse;
                             }
 
 
-                            
-                        }else{
+
+                        } else {
                             this.log("element not found")
                         }
                         break;
                     } else {
-                        try{
-                        return `
+                        try {
+                            return `
                             <details id = "cc_stats_request_${id}">
                                 <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${id} (${requestt.method}): ${new URL(requestt.url).pathname} <span id="cc_stats_request_${id}_status">Pending...</span></summary>
                                 <div>
@@ -417,27 +433,27 @@ try {
                                 <div>
                                     <strong>Request Data:</strong>
                                     ${this.renderTableFromJSON({
-                                    "Body Used": requestt.bodyUsed,
-                                    "Cache": requestt.cache,
-                                    "Credentials": requestt.credentials,
-                                    "Destination": requestt.destination,
-                                    "Integrity": requestt.integrity,
-                                    "Keepalive": requestt.keepalive,
-                                    "Method": requestt.method,
-                                    "Mode": requestt.mode,
-                                    "Referrer": requestt.referrer,
-                                    "URL": requestt.url
-                                })}
+                                "Body Used": requestt.bodyUsed,
+                                "Cache": requestt.cache,
+                                "Credentials": requestt.credentials,
+                                "Destination": requestt.destination,
+                                "Integrity": requestt.integrity,
+                                "Keepalive": requestt.keepalive,
+                                "Method": requestt.method,
+                                "Mode": requestt.mode,
+                                "Referrer": requestt.referrer,
+                                "URL": requestt.url
+                            })}
                                 <div>
                                     <strong>Request Body:</strong>
                                     <pre>${requestt.body}</pre>
                                 </div>
                             </details>
                     `;
-                            } catch (err) {
-                                this.log(err + "\n" + err.stack);
-                                return `Error when rendering request data: ${err}`;
-                            }
+                        } catch (err) {
+                            this.log(err + "\n" + err.stack);
+                            return `Error when rendering request data: ${err}`;
+                        }
                     }
                     break;
                 case "request-error":
@@ -527,6 +543,7 @@ try {
                 game: game || 'N/A',
                 lastTrackingTick: `${lastTrackingTick} (${this.timeAgo(lastTrackingTick)} ago)`,
                 lastAutoSync: `${lastAutoSync} (${this.timeAgo(lastAutoSync)} ago)`,
+                currentStateFrom:new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleDateString() + " " + new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleTimeString(),
                 mouse: this.getMouse()[0] + '|' + this.getMouse()[1],
                 mouseCovering: this.objectHovering ? this.objectHovering.tagName + "#" + this.objectHovering.id + "." + this.objectHovering.classList : 'N/A',
                 trackingData: this.formatTracking(trackingData),
@@ -558,9 +575,9 @@ try {
         }
         log(...msg) {
             msg = msg.map(m => {
-                switch(typeof m) {
+                switch (typeof m) {
                     case 'object':
-                        switch(m.constructor) {
+                        switch (m.constructor) {
                             case Object:
                                 return JSON.stringify(m);
                             case Array:
