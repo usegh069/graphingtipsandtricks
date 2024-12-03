@@ -566,24 +566,29 @@ try {
         }
     });
     addGameRequestButton.addEventListener("click", () => {
-        createAddGamePopup();
-        const sendButton = document.getElementById("sendGameRequestButton");
-        const nvmdButton = document.getElementById("nvmd");
-        const popup = document.querySelector(".popup");
-
-        popup.addEventListener("click", (e) => {
-            if (e.target == popup) {
-                closePopup();
+        if (window.gameRQPopupOpen) return;
+        const popup = createAddGamePopup();
+    
+        const sendButton = popup.querySelector("#sendGameRequestButton");
+        const closeButton = popup.querySelector("#nvmd");
+    
+        sendButton.addEventListener("click", async () => {
+            const gameName = document.getElementById("gameRequestInput").value.trim();
+            if (gameName) {
+                try {
+                    await addGameRequest(gameName);
+                    closePopup(); // Close the popup after successful submission
+                    alert("Game request submitted successfully!");
+                } catch (error) {
+                    console.error("Error submitting game request:", error);
+                    alert("Failed to submit game request. Please try again.");
+                }
+            } else {
+                alert("Please enter a game name.");
             }
         });
-        nvmdButton.addEventListener("click", () => {
-            closePopup();
-        });
-        sendButton.addEventListener("click", async () => {
-            const input = document.getElementById("gameRequestInput");
-            await addGameRequest(input.value);
-            closePopup();
-        });
+    
+        closeButton.addEventListener("click", closePopup);
 
     })
     sortButton.addEventListener("click", () => {
