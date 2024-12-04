@@ -55,10 +55,18 @@ try {
         // 1234567 -> 1.23M
         if (score < 1000) {
             return score;
-        } else if (score < 1000000) {
+        } else if (score < 1_000_000) {
             return (score / 1000).toFixed(2) + 'K';
+        } else if (score < 1000000000) {
+            return (score / 1_000_000).toFixed(2) + 'M';
+        } else if (score < 1_000_000_000_000) {
+            return (score / 1_000_000_000).toFixed(2) + 'B';
+        } else if (score < 1_000_000_000_000_000) {
+            return (score / 1_000_000_000_000).toFixed(2) + 'T';
+        } else if (score < 1_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000).toFixed(2) + 'Q';
         } else {
-            return (score / 1000000).toFixed(2) + 'M';
+            return score / 1_000_000_000_000_000_000 + 'QQ';
         }
     }
 

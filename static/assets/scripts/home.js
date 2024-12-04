@@ -57,7 +57,13 @@ try {
     async function init() {
         const gamesJson = await importJSON("/games.json");
         const { games } = gamesJson;
-        let clicks = await getAllClicks();
+        let clicks;
+        try {
+            clicks = await getAllClicks();
+        } catch (e) {
+            log(e);
+            return;
+        }
         games.forEach(game => {
             const card = buildCard(game);
             const id = card.getAttribute('id');
@@ -72,12 +78,12 @@ try {
                         e.preventDefault();
                         // if it's a link, open it
                         incrementClicks(id);
-                        window.open(e.target.href.replace("ccported.github.io",window.location.hostname), '_blank');
+                        window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
                     }
                     return;
                 }
                 incrementClicks(id);
-                window.open(links[0].href.replace("ccported.github.io",window.location.hostname), '_blank');
+                window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
             });
             checkSeenGame(id, card);
             markGameSeen(id);
@@ -180,7 +186,7 @@ try {
     }
     async function input() {
         log(`Searching for ${searchInput.value}`);
-        if(searchInput.value.length <= 0){
+        if (searchInput.value.length <= 0) {
             setSort(0);
             return;
         }
@@ -224,7 +230,7 @@ try {
                 var h3 = document.createElement("h3");
                 h3.innerHTML = `Rom Results`
                 var fullLibrary = document.createElement("p");
-                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://"+window.location.hostname+"/roms/'>full library</a></i>";
+                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://" + window.location.hostname + "/roms/'>full library</a></i>";
 
                 var div = document.createElement("div");
                 div.appendChild(h3)
@@ -256,7 +262,7 @@ try {
         let json;
         if (!cachedRomsJSON) {
 
-            response = await fetch("https://"+window.location.hostname+"/roms/roms.json");
+            response = await fetch("https://" + window.location.hostname + "/roms/roms.json");
             json = await response.json();
             cachedRomsJSON = json;
         } else {
@@ -320,18 +326,15 @@ try {
         searchInput.focus();
     }
     function markGameSeen(id) {
-        log("Marking object as seen", id);
         localStorage.setItem(`seen-${id}`, "yes");
     }
     function checkSeenGame(id, card) {
-        log(`Checking if game ${id} has been seen`);
         if (localStorage.getItem(`seen-${id}`) !== "yes") {
             card.querySelector(".card-content .card-title").textContent += " (New)";
             card.classList.add("new");
         }
     }
     function checkRomSeen(id) {
-        log(`Checking if rom ${id} seen`);
         return localStorage.getItem(`seen-${id}`) == "yes";
     }
     function normalize(string) {
@@ -528,7 +531,7 @@ try {
     }
     function loadAds(num = 3) {
         log(`Loading ${num} ads`);
-        if(!window.adsEnabled) return;
+        if (!window.adsEnabled) return;
         if (!showingAds) {
             log("Ads not shown, not loading");
             needToLoadAds = true;
@@ -581,7 +584,12 @@ try {
         });
         sendButton.addEventListener("click", async () => {
             const input = document.getElementById("gameRequestInput");
-            await addGameRequest(input.value);
+            try{
+                await addGameRequest(input.value);
+            }catch(e){
+                alert("An error occurred while sending your request. Please try again later.")
+                log(e);
+            }
             closePopup();
         });
 
@@ -604,10 +612,10 @@ try {
         // check if ad is visible
         const ads = document.querySelectorAll(".tad");
         ads.forEach(ad => {
-            if(ad.getAttribute("data-loaded-check") == "true") return;
+            if (ad.getAttribute("data-loaded-check") == "true") return;
             if (ad.getBoundingClientRect().top < window.innerHeight) {
                 // allow a 5s loading grace period
-                setTimeout(() =>{
+                setTimeout(() => {
                     // check if ad loaded (will have Iframe)
                     if (ad.querySelector("iframe")) {
                         ad.setAttribute("data-loaded-check", "true");
@@ -615,7 +623,7 @@ try {
                     } else {
                         ad.remove();
                     }
-                },5000)
+                }, 5000)
             }
         });
     });

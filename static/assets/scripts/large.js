@@ -20,7 +20,7 @@ try {
             this.customUpdates = {
                 "logs": (content) => {
                     if (document.getElementById('cc_stats_logs')) {
-                        document.getElementById('cc_stats_logs').textContent += content;
+                        document.getElementById('cc_stats_logs').innerHTML += content;
                     } else {
                         this.contentBeforeLoad.logs.push(content);
                     }
@@ -157,7 +157,8 @@ try {
                 },
                 "requests": (content) => {
                     return `<h1>${content.panel}</h1>
-                    <button onclick="fetch('/assets/images/ovo.jpg')">Test Request</button>
+                    <button onclick="fetch('/assets/images/ovo.jpg')">Test Request</button><button onclick="document.getElementById('cc_stats_requestsIntercepted').innerHTML = '';">Clear</button>
+                    <button onclick="fetch('https://httpbin.org/post', {method: 'POST', body: JSON.stringify({test: 'test'})})">Test Post</button>
                     ${content.aspects.map(aspect => `<div id = "cc_stats_${aspect}"></div>`).join('')}`;
                 }
             }
@@ -283,14 +284,14 @@ try {
                 row.style.wordWrap = 'break-word';
                 row.style.maxWidth = '100%';
                 const cellKey = document.createElement('td');
-                cellKey.style.maxWidth = '20%';
+                cellKey.style.maxWidth = '30%';
                 const code = document.createElement('code');
                 code.textContent = key;
                 code.cssText = 'background-color: #999; color: orange; border-radius:3px;';
 
                 cellKey.appendChild(code);
                 const cellValue = document.createElement('td');
-                cellValue.style.maxWidth = '80%';
+                cellValue.style.maxWidth = '70%';
                 cellValue.style.wordWrap = 'break-word';
                 cellValue.style.border = '1px solid #0ff';
                 cellValue.textContent = (typeof value == 'object') ? JSON.stringify(value) : value;
@@ -303,7 +304,7 @@ try {
             });
             table.style.width = '100%';
             table.style.overflow = 'auto';
-
+            table.style.wordBreak = 'break-all';
             return table.outerHTML;
         }
         formatRawRes(rawResponse) {
@@ -318,16 +319,59 @@ try {
                 return rawResponse;
             }
         };
-        formatRequest(request) {
+        async formatRequest(request) {
             const id = request.id;
             const requestt = request.request;
             const type = requestt.type;
-            if (!request) return '';
+            this.log(type);
             switch (type) {
                 case "request-start":
-                    return `
+                    try {
+                        // body is of type ReadableStream
+                        // convert to string
+                        let bodyRaw = "";
+                        const body = requestt.body || [];
+                        for await (const chunk of body) {
+                            bodyRaw += chunk;
+                        }
+                        let formatRequest = {
+                            "application/json": (content) => {
+                                try {
+                                    const json = JSON.parse(content);
+                                    return JSON.stringify(json, null, 2);
+                                } catch (err) {
+                                    return content;
+                                }
+                            },
+                            "text/": (content) => content,
+                            "image/": (content) => `<img src="${content}" style="max-width:100%; max-height:300px;">`,
+                            "multipart/form-data": (content) => {
+                                // convert to JSON
+                                const formData = new FormData(content);
+                                const object = {};
+                                formData.forEach((value, key) => {
+                                    object[key] = value;
+                                });
+                                // return a table
+                                return this.renderTableFromJSON(object);
+                            }
+                        }
+                        let bodyRender = '';
+                        const contentType = requestt.headers['content-type'];
+
+                        if (contentType) {
+                            const format = Object.keys(formatRequest).find(key => contentType.includes(key));
+                            if (format) {
+                                bodyRender = formatRequest[format](bodyRaw);
+                            } else {
+                                bodyRender = bodyRaw;
+                            }
+                        } else {
+                            bodyRender = bodyRaw;
+                        }
+                        return `
                     <details id = "cc_stats_request_${id}">
-                        <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${id} (${requestt.method}): ${new URL(requestt.url).pathname} <span id="cc_stats_request_${id}_status">Pending...</span></summary>
+                        <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method}) <span id="cc_stats_request_${id}_status"></span></summary>
                         <div>
                             <strong>Request Headers:</strong>
                             ${this.renderTableFromJSON(requestt.headers)}
@@ -335,127 +379,114 @@ try {
                         <div>
                             <strong>Request Data:</strong>
                             ${this.renderTableFromJSON({
-                        "Body Used": requestt.bodyUsed,
-                        "Cache": requestt.cache,
-                        "Credentials": requestt.credentials,
-                        "Destination": requestt.destination,
-                        "Integrity": requestt.integrity,
-                        "Keepalive": requestt.keepalive,
-                        "Method": requestt.method,
-                        "Mode": requestt.mode,
-                        "Referrer": requestt.referrer,
-                        "URL": requestt.url
-                    })}
+                            "Body Used": requestt.bodyUsed,
+                            "Cache": requestt.cache,
+                            "Credentials": requestt.credentials,
+                            "Destination": requestt.destination,
+                            "Integrity": requestt.integrity,
+                            "Keepalive": requestt.keepalive,
+                            "Method": requestt.method,
+                            "Mode": requestt.mode,
+                            "Referrer": requestt.referrer,
+                            "URL": requestt.url
+                        })}
                         <div>
+                        ${(bodyRender) ? `
                             <strong>Request Body:</strong>
-                            <pre>${requestt.body}</pre>
+                            <pre>${bodyRender}</pre>` : ''}
                         </div>
                     </details>
                     `;
+                    } catch (e) {
+                        this.log(e);
+                    }
                     break;
                 case "request-complete":
-                    if (document.getElementById(`cc_stats_request_${id}`)) {
-                        document.getElementById(`cc_stats_request_${id}_status`).textContent = requestt.status;
-                        // add headers
-                        document.getElementById(`cc_stats_request_${id}`).innerHTML += `
+                    if (!document.getElementById(`cc_stats_request_${id}`)) {
+                        document.getElementById("cc_stats_requestsIntercepted").innerHTML += `
+                        <details id = "cc_stats_request_${id}">
+                            <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method || "??"}) <span id="cc_stats_request_${id}_status">Pending...</span></summary>
+                            <div>
+                                <strong>Request Headers:</strong>
+                                ${this.renderTableFromJSON(requestt.headers)}
+                            </div>
+                            <div>
+                                <strong>Request Data:</strong>
+                                ${this.renderTableFromJSON({
+                            "Body Used": requestt.bodyUsed,
+                            "Cache": requestt.cache,
+                            "Credentials": requestt.credentials,
+                            "Destination": requestt.destination,
+                            "Integrity": requestt.integrity,
+                            "Keepalive": requestt.keepalive,
+                            "Method": requestt.method,
+                            "Mode": requestt.mode,
+                            "Referrer": requestt.referrer,
+                            "URL": requestt.url
+                        })}
+                        </details>
+                        `;
+                    }
+                    document.getElementById(`cc_stats_request_${id}_status`).textContent = requestt.status;
+                    // add headers
+                    document.getElementById(`cc_stats_request_${id}`).innerHTML += `
                             <div>
                                 <strong>Response Headers:</strong>
                                 <pre style = "white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;">${JSON.stringify(requestt.headers, null, 2)}</pre>
                             </div>
                         `;
-                        // add preview as iframe
-                        // use srcdoc to prevent CORS issues
-                        // get the raw text
-                        const relement = document.getElementById(`cc_stats_request_${id}`);
-                        if (relement) {
-                            const rawResponse = requestt.response;
-                            let previewHtml = '';
-                            let dangerous = false;
-                            switch (requestt.responseFormat) {
-                                case 'image':
-                                    previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
-                                    break;
+                    // add preview as iframe
+                    // use srcdoc to prevent CORS issues
+                    // get the raw text
+                    const relement = document.getElementById(`cc_stats_request_${id}`);
+                    const rawResponse = requestt.response;
+                    let previewHtml = '';
+                    let dangerous = false;
+                    switch (requestt.responseFormat) {
+                        case 'image':
+                            previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
+                            break;
 
-                                case 'json':
-                                    try {
-                                        const formattedJson = JSON.stringify(JSON.parse(rawResponse), null, 2);
-                                        previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
-                                    } catch (e) {
-                                        this.log(e)
-                                        previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
-                                    }
-                                    break;
-
-                                case 'html':
-                                    previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
-                                    break;
-
-                                default:
-                                    previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(rawResponse)}</pre>`;
+                        case 'json':
+                            try {
+                                const formattedJson = JSON.stringify(JSON.parse(rawResponse), null, 2);
+                                previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
+                            } catch (e) {
+                                this.log(e)
+                                previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
                             }
+                            break;
+
+                        case 'html':
+                            previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
+                            break;
+
+                        default:
+                            previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(rawResponse)}</pre>`;
+                    }
 
 
-                            // const viewToggle = `
-                            //     <div class="response-toggle" style="margin-bottom:10px;">
-                            //     <button id="view_${id}_preview" data-val="preview">Preview</button>
-                            //     <button id="view_${id}_raw" data-val="raw">Raw</button>
-                            //     </div>
-                            // `;
+                    // const viewToggle = `
+                    //     <div class="response-toggle" style="margin-bottom:10px;">
+                    //     <button id="view_${id}_preview" data-val="preview">Preview</button>
+                    //     <button id="view_${id}_raw" data-val="raw">Raw</button>
+                    //     </div>
+                    // `;
 
-                            relement.innerHTML += `
-                                <div>
-                                    <strong>Response:</strong>
-                                    <div class="response-content">
-                                        <div class="preview-view">${previewHtml}</div>
-                                    </div>
+                    relement.innerHTML += `
+                            <div>
+                                <strong>Response:</strong>
+                                <div class="response-content">
+                                    <div class="preview-view">${previewHtml}</div>
                                 </div>
-                            `;
-                            if (requestt.responseFormat == 'html') {
-                                const iframe = document.getElementById(`cc_stats_request_${id}_iframe`);
-                                iframe.srcdoc = rawResponse;
-                            }
-
-
-
-                        } else {
-                            this.log("element not found")
-                        }
-                        break;
-                    } else {
-                        try {
-                            return `
-                            <details id = "cc_stats_request_${id}">
-                                <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${id} (${requestt.method}): ${new URL(requestt.url).pathname} <span id="cc_stats_request_${id}_status">Pending...</span></summary>
-                                <div>
-                                    <strong>Request Headers:</strong>
-                                    ${this.renderTableFromJSON(requestt.headers)}
-                                </div>
-                                <div>
-                                    <strong>Request Data:</strong>
-                                    ${this.renderTableFromJSON({
-                                "Body Used": requestt.bodyUsed,
-                                "Cache": requestt.cache,
-                                "Credentials": requestt.credentials,
-                                "Destination": requestt.destination,
-                                "Integrity": requestt.integrity,
-                                "Keepalive": requestt.keepalive,
-                                "Method": requestt.method,
-                                "Mode": requestt.mode,
-                                "Referrer": requestt.referrer,
-                                "URL": requestt.url
-                            })}
-                                <div>
-                                    <strong>Request Body:</strong>
-                                    <pre>${requestt.body}</pre>
-                                </div>
-                            </details>
-                    `;
-                        } catch (err) {
-                            this.log(err + "\n" + err.stack);
-                            return `Error when rendering request data: ${err}`;
-                        }
+                            </div>
+                        `;
+                    if (requestt.responseFormat == 'html') {
+                        const iframe = document.getElementById(`cc_stats_request_${id}_iframe`);
+                        iframe.srcdoc = rawResponse;
                     }
                     break;
+
                 case "request-error":
                     if (document.getElementById(`cc_stats_request_${id}`)) {
                         document.getElementById(`cc_stats_request_${id}_status`).textContent = requestt.status;
@@ -498,31 +529,14 @@ try {
                 });
 
                 // Listen for messages from the service worker
-                navigator.serviceWorker.addEventListener('message', event => {
+                navigator.serviceWorker.addEventListener('message', async event => {
                     const data = event.data;
-
-                    switch (data.type) {
-                        case 'request-start':
-                            this.customUpdates['requestsIntercepted'](this.formatRequest({
-                                id: data.id,
-                                request: data
-                            }));
-                            break;
-
-                        case 'request-complete':
-                            this.customUpdates['requestsIntercepted'](this.formatRequest({
-                                id: data.id,
-                                request: data
-                            }));
-                            break;
-
-                        case 'request-error':
-                            this.customUpdates['requestsIntercepted'](this.formatRequest({
-                                id: data.id,
-                                request: data
-                            }));
-                            break;
+                    const toPass = {
+                        id: data.id,
+                        request: data
                     }
+                    const formatted = await this.formatRequest(toPass);
+                    this.customUpdates.requestsIntercepted(formatted);
                 });
             }
         }
@@ -543,7 +557,7 @@ try {
                 game: game || 'N/A',
                 lastTrackingTick: `${lastTrackingTick} (${this.timeAgo(lastTrackingTick)} ago)`,
                 lastAutoSync: `${lastAutoSync} (${this.timeAgo(lastAutoSync)} ago)`,
-                currentStateFrom:new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleDateString() + " " + new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleTimeString(),
+                currentStateFrom: new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleDateString() + " " + new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleTimeString(),
                 mouse: this.getMouse()[0] + '|' + this.getMouse()[1],
                 mouseCovering: this.objectHovering ? this.objectHovering.tagName + "#" + this.objectHovering.id + "." + this.objectHovering.classList : 'N/A',
                 trackingData: this.formatTracking(trackingData),
@@ -577,13 +591,14 @@ try {
             msg = msg.map(m => {
                 switch (typeof m) {
                     case 'object':
+                        if(m === null) return 'null';
                         switch (m.constructor) {
                             case Object:
                                 return JSON.stringify(m);
                             case Array:
                                 return JSON.stringify(m);
                             case Error:
-                                return m + "\n" + m.stack;
+                                return `<div style = "color:red">${m + "\n" + m.stack}</div>`;
                         }
                     default:
                         return m;
@@ -633,7 +648,6 @@ try {
     // Global tracking state
     let trackingInterval = null;
     let lastUpdate = Date.now();
-
 
     function treat(text) {
         if (!text) return null;
