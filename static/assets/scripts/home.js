@@ -287,15 +287,21 @@ try {
         try {
             log(`Adding game request for ${game_name}`);
             // run function 'notion-integration'
-            const { data, error } = await client.functions.invoke('notion-integration', { 
-                name: game_name,
-            })
-            log('error:', error);
-            if (error) console.error(error);
+            const response = await fetch('https://dahljrdecyiwfjgklnvz.supabase.co/functions/v1/notion-integration', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: game_name })
+            });
+
+            const data = await response.json();
+            
             log('Game request added:', data);
-            return data;
         } catch (error) {
             console.error('Error adding game request:', error.message);
+            log(error);
             throw error;
         }
     };
@@ -583,11 +589,11 @@ try {
         });
         sendButton.addEventListener("click", async () => {
             const input = document.getElementById("gameRequestInput");
-            try{
+            try {
                 await addGameRequest(input.value);
-            }catch(e){
-                alert("An error occurred while sending your request. Please try again later.")
-                log(e);
+            } catch (e) {
+                // alert("An error occurred while sending your request. Please try again later.")
+                log("error" + e);
             }
             closePopup();
         });
