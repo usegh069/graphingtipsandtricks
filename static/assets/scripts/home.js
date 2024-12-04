@@ -286,11 +286,10 @@ try {
     async function addGameRequest(game_name) {
         try {
             log(`Adding game request for ${game_name}`);
-            const { data, error } = await client
-                .from('CCPorted Game RQs')
-                .insert([
-                    { game_name }
-                ]);
+            // run function 'notion-integration'
+            const { data, error } = await client.functions.invoke('notion-integration', { 
+                name: game_name,
+            })
             log('error:', error);
             if (error) console.error(error);
             log('Game request added:', data);
