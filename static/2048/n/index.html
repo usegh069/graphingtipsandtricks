@@ -6,7 +6,7 @@
 
   <meta charset="utf-8">
   <title>2048 | Unblocked on CCPorted</title>
-  <meta name = "description" content = "The original 2048 game, unblocked and free to play."/>
+  <meta name="description" content="The original 2048 game, unblocked and free to play." />
   <link href="style/main.css" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
@@ -22,10 +22,12 @@
   <meta name="MobileOptimized" content="320">
   <meta name="viewport"
     content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <script src = "/assets/scripts/leaderboard.js"></script>
 </head>
 
 <body>
   <div class="container">
+    <div class = "col">
     <div class="heading">
       <h1 class="title">2048</h1>
       <div class="scores-container">
@@ -79,13 +81,16 @@
 
       </div>
     </div>
+    </div>
+    <div class = "col">
+    <p class = 'game-explanation'>
+      <p><strong>Note: </strong> Scores will be added when your game ends.</p>
+      <h1>Leaderboard</h1>
+      <div id="leaderboard">
 
-    <p class="game-explanation">
-      <strong class="important">How to play:</strong> Use your <strong>arrow keys</strong> to move the tiles. When two
-      tiles with the same number touch, they <strong>merge into one!</strong>
+      </div>
     </p>
-    <hr>
-    <hr>
+    </div>
   </div>
 
   <script src="js/bind_polyfill.js"></script>

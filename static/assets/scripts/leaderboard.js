@@ -63,6 +63,37 @@ class Leaderboard {
             this.cached.sort((a, b) => b.score - a.score);
         }
     }
+    formatScore(score) {
+        // 1000 -> 1K
+        // 1000000 -> 1M
+        // 1234567 -> 1.23M
+        // thousand, million, billion, trillion, quadrilion, quintillion, sextillion, septillion, octillion, nonillion, decillion, undecillion, duodecillion
+        if (score < 1000) {
+            return score;
+        } else if (score < 1_000_000) {
+            return (score / 1000).toFixed(2) + 'K';
+        } else if (score < 1000000000) {
+            return (score / 1_000_000).toFixed(2) + 'M';
+        } else if (score < 1_000_000_000_000) {
+            return (score / 1_000_000_000).toFixed(2) + 'B';
+        } else if (score < 1_000_000_000_000_000) {
+            return (score / 1_000_000_000_000).toFixed(2) + 'T';
+        } else if (score < 1_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000).toFixed(2) + 'Q';
+        } else if (score < 1_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000).toFixed(2) + 'QQ';
+        } else if (score < 1_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000).toFixed(2) + 'S';
+        } else if (score < 1_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000).toFixed(2) + 'SS';
+        } else if (score < 1_000_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000_000).toFixed(2) + 'O';
+        } else if (score < 1_000_000_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000_000_000).toFixed(2) + 'N';
+        } else {
+            return (score / 1_000_000_000_000_000_000_000_000_000_000_000).toFixed(2) + 'D';
+        }
+    }
     async addScore(userID, score) {
         log("adding score");
         try {

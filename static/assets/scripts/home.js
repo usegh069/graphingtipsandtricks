@@ -296,9 +296,8 @@ try {
                 body: JSON.stringify({ name: game_name })
             });
 
-            const data = await response.json();
             
-            log('Game request added:', data);
+            log('Game request added:');
         } catch (error) {
             console.error('Error adding game request:', error.message);
             log(error);
