@@ -49,7 +49,7 @@ async function init() {
     const { data: channel, cerror } = await client
         .rpc("get_channel_info", { channel_id: currentChannel });
     if (cerror) {
-        console.error('Error getting channel info:', cerror);
+        log('Error getting channel info:', cerror);
         alert("Error getting channel info");
     }
     const { error } = await client
@@ -61,7 +61,7 @@ async function init() {
     document.getElementById("chat_name").textContent = channelRef.friendly_name;
     if (!channelRef.joined_users.includes(user.id)) {
         if (channelRef.is_public) {
-            console.log("Joining w/o password")
+            log("Joining w/o password")
             joinC(channelRef.id, null);
         } else {
             if (!password || password.length == 0) {
@@ -108,7 +108,7 @@ async function loadMessages(page = 0, pageSize = 20) {
             .range(page * (pageSize), (page + 1) * (pageSize));
 
         if (error) {
-            console.error('Error loading messages:', error);
+            log('Error loading messages:', error);
             return;
         }
         for (const message of data) {
@@ -121,7 +121,7 @@ async function loadMessages(page = 0, pageSize = 20) {
             return { hasMore: false, messages: data };
         }
     } catch (err) {
-        console.error('Error loading messages:', err);
+        log('Error loading messages:', err);
         return { hasMore: false, messages: [] };
     }
 }
@@ -153,7 +153,7 @@ async function loadPFP(user_id) {
         .select('avatar_url')
         .eq('id', user_id);
     if (error) {
-        console.error('Error loading profile picture:', error);
+        log('Error loading profile picture:', error);
         return;
     }
     profilePictureCache.set(user_id, data[0].avatar_url || '/assets/images/profile_pic.png');
@@ -168,7 +168,7 @@ async function loadDisplayName(user_id) {
         .rpc('get_user_display_name',{
             user_id
         });
-    if(error) console.error(error);
+    if(error) log(error);
     displayNameCache.set(user_id,data);
     return displayNameCache.get(user_id);
 }
@@ -320,7 +320,7 @@ function createInvitePopup() {
         }
         if (res.error) {
             alert("Error sending invites");
-            console.log(res.error);
+            log(res.error);
             closePopup();
         }
     });
@@ -370,7 +370,7 @@ messageForm.addEventListener('submit', async (e) => {
         messageInput.value = '';
         updateTracking('chat_messages_sent', getDeepValue(window.ccPortedTrackingData, 'chat_messages_sent') + 1);
     } catch (error) {
-        console.error('Error sending message:', error);
+        log('Error sending message:', error);
         alert("Error sending message")
     }
 });
@@ -394,7 +394,7 @@ joinChannel.addEventListener("click", () => {
             .eq('friendly_name', channelName)
             .eq('password', passwordValue);
         if (error) {
-            console.error('Error joining channel:', error);
+            log('Error joining channel:', error);
             alert("Error joining channel")
         }
         window.location.href = `?channel=${data[0].id}`;
@@ -426,7 +426,7 @@ createChannel.addEventListener("click", () => {
             .insert([{ friendly_name: channelName, password: (passwordValue.length > 0) ? passwordValue : null, is_public: public, owner: currentUser.id, joined_users: [currentUser.id] }])
             .select('id');
         if (error) {
-            console.error('Error creating channel:', error);
+            log('Error creating channel:', error);
             alert("Error creating channel")
         }
         const joinHTML = `
@@ -497,7 +497,7 @@ chatMessages.addEventListener("scroll", async () => {
                 });
             }
         } catch (error) {
-            console.error('Error loading messages:', error);
+            log('Error loading messages:', error);
             isLoading = false;
         } finally {
             isLoading = false;
