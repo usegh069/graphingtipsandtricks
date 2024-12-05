@@ -1,5 +1,4 @@
 shortcut([17, 81], toggleStats);
-
 class Stats {
     constructor() {
         this.isOpen = false;
@@ -11,41 +10,43 @@ class Stats {
         const [dom] = this.generateDom();
         this.dom = dom;
         this.workerLoaded = false;
-        dom.style.display = 'none';
+        dom.style.display = "none";
         this.contentBeforeLoad = {
-            "logs": [],
-            "requestsIntercepted": []
+            logs: [],
+            requestsIntercepted: [],
         };
         this.customUpdates = {
-            "logs": (content) => {
-                if (document.getElementById('cc_stats_logs')) {
-                    document.getElementById('cc_stats_logs').innerHTML += content;
+            logs: (content) => {
+                if (document.getElementById("cc_stats_logs")) {
+                    document.getElementById("cc_stats_logs").innerHTML += content;
                 } else {
                     this.contentBeforeLoad.logs.push(content);
                 }
             },
-            "requestsIntercepted": (content) => {
-                if (document.getElementById('cc_stats_requestsIntercepted')) {
-                    document.getElementById('cc_stats_requestsIntercepted').innerHTML += content;
+            requestsIntercepted: (content) => {
+                if (document.getElementById("cc_stats_requestsIntercepted")) {
+                    document.getElementById("cc_stats_requestsIntercepted").innerHTML +=
+                        content;
                 } else {
                     this.contentBeforeLoad.requestsIntercepted.push(content);
                 }
-            }
-        }
+            },
+        };
         this.tick();
-        document.addEventListener('mousemove', (e) => {
-            this.mouseX = e.clientX
-            this.mouseY = e.clientY
+        document.addEventListener("mousemove", (e) => {
+            this.mouseX = e.clientX;
+            this.mouseY = e.clientY;
             this.objectHovering = e.target;
         });
-        window.addEventListener('load', () => {
+        window.addEventListener("load", () => {
+            this.log("Window loaded");
             document.body.appendChild(dom);
             Object.entries(this.contentBeforeLoad).forEach(([key, value]) => {
-                value.forEach(val => {
+                value.forEach((val) => {
                     this.customUpdates[key](val);
-                })
+                });
             });
-            const style = document.createElement('style');
+            const style = document.createElement("style");
             style.textContent = `
                 .cc_stats_table_row:hover {
                     background-color: #333;
@@ -66,7 +67,6 @@ class Stats {
             document.head.appendChild(style);
         });
         this.setupRequestInterception();
-
     }
     getPanel(panel = 0) {
         return this.dom.children[panel];
@@ -82,16 +82,16 @@ class Stats {
     }
     open() {
         this.isOpen = true;
-        this.dom.style.display = 'flex';
+        this.dom.style.display = "flex";
         this.tick();
     }
     close() {
         this.isOpen = false;
-        this.dom.style.display = 'none';
+        this.dom.style.display = "none";
     }
     generateDom() {
-        const dom = document.createElement('div');
-        dom.classList.add("cc_stats")
+        const dom = document.createElement("div");
+        dom.classList.add("cc_stats");
         dom.style.cssText = `
             position:fixed;
             top:0;
@@ -116,16 +116,19 @@ class Stats {
         //make it expandable
         document.addEventListener("mousemove", (e) => {
             if (this.isDragging) {
-                dom.style.width = e.clientX + 'px';
+                dom.style.width = e.clientX + "px";
             }
             // 10 px from right edge of dom
-            if (e.clientX > dom.getBoundingClientRect().right - 20 && e.clientX < dom.getBoundingClientRect().right + 40) {
+            if (
+                e.clientX > dom.getBoundingClientRect().right - 20 &&
+                e.clientX < dom.getBoundingClientRect().right + 40
+            ) {
                 this.ableToDrag = true;
                 // set cursor
-                dom.style.cursor = 'ew-resize';
+                dom.style.cursor = "ew-resize";
             } else {
                 this.ableToDrag = false;
-                dom.style.cursor = 'default';
+                dom.style.cursor = "default";
             }
         });
         document.addEventListener("mousedown", (e) => {
@@ -137,43 +140,66 @@ class Stats {
             this.isDragging = false;
         });
         const panels = {
-            "stats": ["time", "requestInterceptionLoaded", "memory", "cpu", "user", "game", "lastTrackingTick",
-                "lastAutoSync", "currentStateFrom", "mouse", "mouseCovering", "trackingData"
+            stats: [
+                "time",
+                "requestInterceptionLoaded",
+                "memory",
+                "cpu",
+                "user",
+                "game",
+                "lastTrackingTick",
+                "lastAutoSync",
+                "currentStateFrom",
+                "mouse",
+                "mouseCovering",
+                "trackingData",
             ],
-            "logs": ["logs"],
-            "requests": ["requestsIntercepted"]
-        }
+            logs: ["logs"],
+            requests: ["requestsIntercepted"],
+        };
         const formats = {
-            "stats": (content) => {
+            stats: (content) => {
                 return `<h1>${content.panel}</h1>
-                    ${content.aspects.map(aspect => `<div><strong>${decamelize(aspect)}:</strong> <span id="cc_stats_${aspect}"></span></div>`).join('')}`;
+                    ${content.aspects
+                        .map(
+                            (aspect) =>
+                                `<div><strong>${decamelize(
+                                    aspect
+                                )}:</strong> <span id="cc_stats_${aspect}"></span></div>`
+                        )
+                        .join("")}`;
             },
-            "logs": (content) => {
+            logs: (content) => {
                 return `<h1>${content.panel}</h1>
                     <button onclick="document.getElementById('cc_stats_logs').innerHTML = '';">Clear</button>
                     <pre style="white-space: pre-wrap;" id="cc_stats_logs"></pre>
-                    <input type="text" placeholder="Eval" onkeydown="if(event.key === 'Enter') { window.ccPorted.stats.log('<',this.value);try{let o = eval(this.value);window.ccPorted.stats.log('>',o);}catch(err){window.ccPorted.stats.log(err)} this.value = '' }">`
+                    <input type="text" placeholder="Eval" onkeydown="if(event.key === 'Enter') { window.ccPorted.stats.log('<',this.value);try{let o = eval(this.value);window.ccPorted.stats.log('>',o);}catch(err){window.ccPorted.stats.log(err)} this.value = '' }">`;
             },
-            "requests": (content) => {
+            requests: (content) => {
                 return `<h1>${content.panel}</h1>
                     <button onclick="fetch('/assets/images/ovo.jpg')">Test Request</button><button onclick="document.getElementById('cc_stats_requestsIntercepted').innerHTML = '';">Clear</button>
                     <button onclick="fetch('https://httpbin.org/post', {method: 'POST', body: JSON.stringify({test: 'test'})})">Test Post</button>
-                    ${content.aspects.map(aspect => `<div id = "cc_stats_${aspect}"></div>`).join('')}`;
-            }
-        }
+                    ${content.aspects
+                        .map((aspect) => `<div id = "cc_stats_${aspect}"></div>`)
+                        .join("")}`;
+            },
+        };
 
         // build everything:
         const panelHTMLs = [];
-        Object.keys(panels).forEach(panel => {
+        Object.keys(panels).forEach((panel) => {
             const aspectsToRender = panels[panel];
             const content = {
                 panel,
-                aspects: aspectsToRender
-            }
-            const finished = `<div id="${panel}" style="width: ${100 / Object.keys(panels).length}vw;max-height:100vh;overflow:scroll;padding:5px;box-sizing:border-box;">${formats[panel](content)}</div>`;
+                aspects: aspectsToRender,
+            };
+            const finished = `<div id="${panel}" style="width: ${100 / Object.keys(panels).length
+                }vw;max-height:100vh;overflow:scroll;padding:5px;box-sizing:border-box;">${formats[
+                    panel
+                ](content)}</div>`;
             panelHTMLs.push(finished);
         });
-        dom.innerHTML = panelHTMLs.join('');
+        dom.innerHTML = panelHTMLs.join("");
         return [dom];
     }
     timeAgo(date) {
@@ -183,68 +209,68 @@ class Stats {
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
-        if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
-        if (seconds > 0) return `${seconds} second${seconds > 1 ? 's' : ''}`;
-        return 'just now';
+        if (days > 0) return `${days} day${days > 1 ? "s" : ""}`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`;
+        if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+        if (seconds > 0) return `${seconds} second${seconds > 1 ? "s" : ""}`;
+        return "just now";
     }
     formatTracking(tracking) {
         try {
-            const table = document.createElement('table');
-            table.style.borderCollapse = 'collapse';
+            const table = document.createElement("table");
+            table.style.borderCollapse = "collapse";
 
-            const headerRow = document.createElement('tr');
-            const headerPage = document.createElement('th');
-            headerPage.style.border = '1px solid #0ff';
-            headerPage.textContent = 'Pages Visited';
-            const headerCount = document.createElement('th');
-            headerCount.style.border = '1px solid #0ff';
-            headerCount.textContent = 'Count';
+            const headerRow = document.createElement("tr");
+            const headerPage = document.createElement("th");
+            headerPage.style.border = "1px solid #0ff";
+            headerPage.textContent = "Pages Visited";
+            const headerCount = document.createElement("th");
+            headerCount.style.border = "1px solid #0ff";
+            headerCount.textContent = "Count";
             headerRow.appendChild(headerPage);
             headerRow.appendChild(headerCount);
             table.appendChild(headerRow);
             Object.entries(tracking.pages_visited || {}).forEach(([page, data]) => {
-                const row = document.createElement('tr');
-                row.style.border = '1px solid #0ff';
-                row.style.cursor = 'pointer';
+                const row = document.createElement("tr");
+                row.style.border = "1px solid #0ff";
+                row.style.cursor = "pointer";
 
                 // add hover event
-                const cellPage = document.createElement('td');
-                cellPage.style.border = '1px solid #0ff';
+                const cellPage = document.createElement("td");
+                cellPage.style.border = "1px solid #0ff";
                 cellPage.textContent = page;
-                const cellCount = document.createElement('td');
-                cellCount.style.border = '1px solid #0ff';
+                const cellCount = document.createElement("td");
+                cellCount.style.border = "1px solid #0ff";
                 cellCount.textContent = data.count;
                 row.appendChild(cellPage);
                 row.appendChild(cellCount);
                 table.appendChild(row);
             });
 
-            const gamesTable = document.createElement('table');
-            gamesTable.style.borderCollapse = 'collapse';
-            gamesTable.style.marginTop = '10px';
+            const gamesTable = document.createElement("table");
+            gamesTable.style.borderCollapse = "collapse";
+            gamesTable.style.marginTop = "10px";
 
-            const gamesHeaderRow = document.createElement('tr');
-            const gamesHeaderGame = document.createElement('th');
-            gamesHeaderGame.style.border = '1px solid #0ff';
-            gamesHeaderGame.textContent = 'Games Played';
-            const gamesHeaderPlaytime = document.createElement('th');
-            gamesHeaderPlaytime.style.border = '1px solid #0ff';
-            gamesHeaderPlaytime.textContent = 'Playtime';
+            const gamesHeaderRow = document.createElement("tr");
+            const gamesHeaderGame = document.createElement("th");
+            gamesHeaderGame.style.border = "1px solid #0ff";
+            gamesHeaderGame.textContent = "Games Played";
+            const gamesHeaderPlaytime = document.createElement("th");
+            gamesHeaderPlaytime.style.border = "1px solid #0ff";
+            gamesHeaderPlaytime.textContent = "Playtime";
             gamesHeaderRow.appendChild(gamesHeaderGame);
             gamesHeaderRow.appendChild(gamesHeaderPlaytime);
             gamesTable.appendChild(gamesHeaderRow);
 
             Object.entries(tracking.games || {}).forEach(([game, data]) => {
-                const row = document.createElement('tr');
-                row.style.border = '1px solid #0ff';
-                row.style.cursor = 'pointer';
-                const cellGame = document.createElement('td');
-                cellGame.style.border = '1px solid #0ff';
+                const row = document.createElement("tr");
+                row.style.border = "1px solid #0ff";
+                row.style.cursor = "pointer";
+                const cellGame = document.createElement("td");
+                cellGame.style.border = "1px solid #0ff";
                 cellGame.textContent = game;
-                const cellPlaytime = document.createElement('td');
-                cellPlaytime.style.border = '1px solid #0ff';
+                const cellPlaytime = document.createElement("td");
+                cellPlaytime.style.border = "1px solid #0ff";
                 cellPlaytime.textContent = `${data.playtime.toFixed(2)} minutes`;
                 row.appendChild(cellGame);
                 row.appendChild(cellPlaytime);
@@ -259,14 +285,14 @@ class Stats {
     renderTableFromJSON(json) {
         if (!json) {
             this.log("No JSON to render");
-            return '';
-        };
-        const table = document.createElement('table');
-        table.style.borderCollapse = 'collapse';
-        const headerRow = document.createElement('tr');
-        ["Key", "Value"].forEach(header => {
-            const th = document.createElement('th');
-            th.style.border = '1px solid #0ff';
+            return "";
+        }
+        const table = document.createElement("table");
+        table.style.borderCollapse = "collapse";
+        const headerRow = document.createElement("tr");
+        ["Key", "Value"].forEach((header) => {
+            const th = document.createElement("th");
+            th.style.border = "1px solid #0ff";
             th.textContent = header;
             headerRow.appendChild(th);
         });
@@ -275,25 +301,27 @@ class Stats {
             if (key == undefined) return;
             if (value == undefined) return;
             if (value.length > 100) {
-                value = value.slice(0, 100) + '...';
+                value = value.slice(0, 100) + "...";
             }
-            const row = document.createElement('tr');
-            row.style.border = '1px solid #0ff';
+            const row = document.createElement("tr");
+            row.style.border = "1px solid #0ff";
             // make the row wrap
-            row.style.wordWrap = 'break-word';
-            row.style.maxWidth = '100%';
-            const cellKey = document.createElement('td');
-            cellKey.style.maxWidth = '30%';
-            const code = document.createElement('code');
+            row.style.wordWrap = "break-word";
+            row.style.maxWidth = "100%";
+            const cellKey = document.createElement("td");
+            cellKey.style.maxWidth = "30%";
+            const code = document.createElement("code");
             code.textContent = key;
-            code.cssText = 'background-color: #999; color: orange; border-radius:3px;';
+            code.cssText =
+                "background-color: #999; color: orange; border-radius:3px;";
 
             cellKey.appendChild(code);
-            const cellValue = document.createElement('td');
-            cellValue.style.maxWidth = '70%';
-            cellValue.style.wordWrap = 'break-word';
-            cellValue.style.border = '1px solid #0ff';
-            cellValue.textContent = (typeof value == 'object') ? JSON.stringify(value) : value;
+            const cellValue = document.createElement("td");
+            cellValue.style.maxWidth = "70%";
+            cellValue.style.wordWrap = "break-word";
+            cellValue.style.border = "1px solid #0ff";
+            cellValue.textContent =
+                typeof value == "object" ? JSON.stringify(value) : value;
             row.appendChild(cellKey);
             row.classList.add("cc_stats_table_row");
             cellValue.classList.add("cc_stats_table_cell");
@@ -301,14 +329,14 @@ class Stats {
             row.appendChild(cellValue);
             table.appendChild(row);
         });
-        table.style.width = '100%';
-        table.style.overflow = 'auto';
-        table.style.wordBreak = 'break-all';
+        table.style.width = "100%";
+        table.style.overflow = "auto";
+        table.style.wordBreak = "break-all";
         return table.outerHTML;
     }
     formatRawRes(rawResponse) {
         if (rawResponse.length > 1000) {
-            return rawResponse.slice(0, 1000) + '...';
+            return rawResponse.slice(0, 1000) + "...";
         }
         // test if it's json
         try {
@@ -317,7 +345,82 @@ class Stats {
         } catch (err) {
             return rawResponse;
         }
-    };
+    }
+    async formatRequestBody(body, contentType) {
+        console.log(contentType)
+        console.log("rendering body")
+        if (!body) {
+            return '<pre>Empty body</pre>';
+        }
+
+        try {
+            // Handle images
+            if (contentType.includes('image/')) {
+                const url = URL.createObjectURL(body);
+                return `<img src="${url}" alt="Request body image" style="max-width: 100%; height: auto;">`;
+            }
+
+            // Handle JSON
+            if (contentType === 'application/json') {
+                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
+            }
+
+            // Handle FormData
+            if (contentType === 'multipart/form-data') {
+                const formEntries = [];
+                for (const [key, value] of body.entries()) {
+                    formEntries.push(`${key}: ${value}`);
+                }
+                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${formEntries.join('\n')}</pre>`;
+            }
+
+            // Handle URL-encoded form data
+            if (contentType === 'application/x-www-form-urlencoded') {
+                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
+            }
+
+            // Handle XML
+            if (contentType.includes('text/xml') || contentType.includes('application/xml')) {
+                const serializer = new XMLSerializer();
+                const formattedXML = serializer.serializeToString(body)
+                    .replace(/></g, '>\n<')
+                    .replace(/(<[^>]+>)/g, (match) => match.trim());
+                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${formattedXML}</pre>`;
+            }
+
+            // Handle PDFs
+            if (contentType === 'application/pdf') {
+                const url = URL.createObjectURL(body);
+                return `
+                    <div style="width: 100%; height: 600px;">
+                        <object data="${url}" type="application/pdf" width="100%" height="100%">
+                            <p>Unable to display PDF. <a href="${url}" target="_blank">Download PDF</a></p>
+                        </object>
+                    </div>`;
+            }
+
+            // Handle plain text and other text-based content types
+            if (typeof body === 'string') {
+                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${body}</pre>`;
+            }
+
+            // Fallback for unknown types
+            return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
+        } catch (error) {
+            return `<pre style="color: red;">Error formatting body: ${error.message}</pre>`;
+        } finally {
+            // Clean up any created object URLs when the content is no longer needed
+            setTimeout(() => {
+                const objectUrls = document.querySelectorAll('img[src^="blob:"], object[data^="blob:"]');
+                objectUrls.forEach(element => {
+                    const url = element.src || element.data;
+                    if (url.startsWith('blob:')) {
+                        URL.revokeObjectURL(url);
+                    }
+                });
+            }, 0);
+        }
+    }
     async formatRequest(request) {
         const id = request.id;
         const requestt = request.request;
@@ -325,74 +428,33 @@ class Stats {
         switch (type) {
             case "request-start":
                 try {
-                    // body is of type ReadableStream
-                    // convert to string
-                    let bodyRaw = "";
-                    const body = requestt.body || [];
-                    for await (const chunk of body) {
-                        bodyRaw += chunk;
-                    }
-                    let formatRequest = {
-                        "application/json": (content) => {
-                            try {
-                                const json = JSON.parse(content);
-                                return JSON.stringify(json, null, 2);
-                            } catch (err) {
-                                return content;
-                            }
-                        },
-                        "text/": (content) => content,
-                        "image/": (content) => `<img src="${content}" style="max-width:100%; max-height:300px;">`,
-                        "multipart/form-data": (content) => {
-                            // convert to JSON
-                            const formData = new FormData(content);
-                            const object = {};
-                            formData.forEach((value, key) => {
-                                object[key] = value;
-                            });
-                            // return a table
-                            return this.renderTableFromJSON(object);
-                        }
-                    }
-                    let bodyRender = '';
-                    const contentType = requestt.headers['content-type'];
-
-                    if (contentType) {
-                        const format = Object.keys(formatRequest).find(key => contentType.includes(key));
-                        if (format) {
-                            bodyRender = formatRequest[format](bodyRaw);
-                        } else {
-                            bodyRender = bodyRaw;
-                        }
-                    } else {
-                        bodyRender = bodyRaw;
-                    }
                     return `
                     <details id = "cc_stats_request_${id}">
-                        <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method}) <span id="cc_stats_request_${id}_status"></span></summary>
+                        <summary title="${requestt.url}">[${new Date(
+                        requestt.timestamp
+                    ).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method
+                        }) <span id="cc_stats_request_${id}_status"></span></summary>
                         <div>
                             <strong>Request Headers:</strong>
                             ${this.renderTableFromJSON(requestt.headers)}
                         </div>
+                        <div id ="cc_stats_request_body_to_be_${id}">
+                        </div>
                         <div>
                             <strong>Request Data:</strong>
                             ${this.renderTableFromJSON({
-                        "Body Used": requestt.bodyUsed,
-                        "Cache": requestt.cache,
-                        "Credentials": requestt.credentials,
-                        "Destination": requestt.destination,
-                        "Integrity": requestt.integrity,
-                        "Keepalive": requestt.keepalive,
-                        "Method": requestt.method,
-                        "Mode": requestt.mode,
-                        "Referrer": requestt.referrer,
-                        "URL": requestt.url
-                    })}
+                            "Body Used": requestt.bodyUsed,
+                            Cache: requestt.cache,
+                            Credentials: requestt.credentials,
+                            Destination: requestt.destination,
+                            Integrity: requestt.integrity,
+                            Keepalive: requestt.keepalive,
+                            Method: requestt.method,
+                            Mode: requestt.mode,
+                            Referrer: requestt.referrer,
+                            URL: requestt.url,
+                        })}
                         <div>
-                        ${(bodyRender) ? `
-                            <strong>Request Body:</strong>
-                            <pre>${bodyRender}</pre>` : ''}
-                        </div>
                     </details>
                     `;
                 } catch (e) {
@@ -401,111 +463,169 @@ class Stats {
                 break;
             case "request-complete":
                 if (!document.getElementById(`cc_stats_request_${id}`)) {
-                    document.getElementById("cc_stats_requestsIntercepted").innerHTML += `
+                    return `
                         <details id = "cc_stats_request_${id}">
-                            <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method || "??"}) <span id="cc_stats_request_${id}_status">Pending...</span></summary>
+                            <summary title="${requestt.url}">[${new Date(
+                        requestt.timestamp
+                    ).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method || "??"
+                        }) <span id="cc_stats_request_${id}_status">${requestt.status}</span></summary>
                             <div>
                                 <strong>Request Headers:</strong>
                                 ${this.renderTableFromJSON(requestt.headers)}
                             </div>
+                            <div id="cc_stats_request_body_to_be_${id}">
+                                ${(async () => {
+                            if (requestt.body) {
+                                await this.formatRequestBody(requestt.body, requestt.bodyType)
+                            } else {
+                                return "<i>No request body</i>"
+                            }
+                        })()}
+                            </div>
                             <div>
                                 <strong>Request Data:</strong>
                                 ${this.renderTableFromJSON({
-                        "Body Used": requestt.bodyUsed,
-                        "Cache": requestt.cache,
-                        "Credentials": requestt.credentials,
-                        "Destination": requestt.destination,
-                        "Integrity": requestt.integrity,
-                        "Keepalive": requestt.keepalive,
-                        "Method": requestt.method,
-                        "Mode": requestt.mode,
-                        "Referrer": requestt.referrer,
-                        "URL": requestt.url
-                    })}
-                        </details>
+                            "Body Used": requestt.bodyUsed,
+                            Cache: requestt.cache,
+                            Credentials: requestt.credentials,
+                            Destination: requestt.destination,
+                            Integrity: requestt.integrity,
+                            Keepalive: requestt.keepalive,
+                            Method: requestt.method,
+                            Mode: requestt.mode,
+                            Referrer: requestt.referrer,
+                            URL: requestt.url,
+                        })}
+                                <div>
+                                    <strong>Response Headers:</strong>
+                                    <pre style = "white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;">${JSON.stringify(
+                            requestt.headers,
+                            null,
+                            2
+                        )}</pre>
+                                </div>
+                            </details>
                         `;
-                }
-                document.getElementById(`cc_stats_request_${id}_status`).textContent = requestt.status;
-                // add headers
-                document.getElementById(`cc_stats_request_${id}`).innerHTML += `
+                } else {
+                    document.getElementById(`cc_stats_request_${id}_status`).textContent =
+                        requestt.status;
+
+                    document.getElementById("cc_stats_request_body_to_be_" + id).innerHTML = (requestt.body) ? await this.formatRequestBody(requestt.body, requestt.bodyType) : "<i>No request body</i>"
+                    document.getElementById(`cc_stats_request_${id}`).innerHTML += `
                             <div>
                                 <strong>Response Headers:</strong>
-                                <pre style = "white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;">${JSON.stringify(requestt.headers, null, 2)}</pre>
+                                <pre style = "white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;">${JSON.stringify(
+                        requestt.headers,
+                        null,
+                        2
+                    )}</pre>
                             </div>
-                        `;
-                // add preview as iframe
-                // use srcdoc to prevent CORS issues
-                // get the raw text
-                const relement = document.getElementById(`cc_stats_request_${id}`);
-                const rawResponse = requestt.response;
-                let previewHtml = '';
-                let dangerous = false;
-                switch (requestt.responseFormat) {
-                    case 'image':
-                        previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
-                        break;
+                            ${(() => {
+                            const rawResponse = requestt.response;
+                            let previewHtml = "";
+                            let dangerous = false;
+                            switch (requestt.responseFormat) {
+                                // case "image":
+                                //     previewHtml = rawResponse;
+                                //     break;
 
-                    case 'json':
-                        try {
-                            const formattedJson = JSON.stringify(JSON.parse(rawResponse), null, 2);
-                            previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
-                        } catch (e) {
-                            this.log(e)
-                            previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
-                        }
-                        break;
+                                case "json":
+                                    try {
+                                        const formattedJson = JSON.stringify(
+                                            JSON.parse(rawResponse),
+                                            null,
+                                            2
+                                        );
+                                        previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
+                                    } catch (e) {
+                                        this.log(e);
+                                        previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
+                                    }
+                                    break;
 
-                    case 'html':
-                        previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
-                        break;
+                                // case "html":
+                                //     previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
+                                //     break;
 
-                    default:
-                        previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(rawResponse)}</pre>`;
-                }
-
-
-                // const viewToggle = `
-                //     <div class="response-toggle" style="margin-bottom:10px;">
-                //     <button id="view_${id}_preview" data-val="preview">Preview</button>
-                //     <button id="view_${id}_raw" data-val="raw">Raw</button>
-                //     </div>
-                // `;
-
-                relement.innerHTML += `
-                            <div>
+                                default:
+                                    previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(
+                                        rawResponse
+                                    )}</pre>`;
+                            }
+                            return `<div>
                                 <strong>Response:</strong>
                                 <div class="response-content">
                                     <div class="preview-view">${previewHtml}</div>
+                                    // <script>document.getElementById("cc_stats_request_${id}_iframe").srcdoc = "${rawResponse}"</script>
                                 </div>
-                            </div>
+                            </div>`
+                        })()}
                         `;
-                if (requestt.responseFormat == 'html') {
-                    const iframe = document.getElementById(`cc_stats_request_${id}_iframe`);
-                    iframe.srcdoc = rawResponse;
+                    // use srcdoc to prevent CORS issues
+                    // get the raw text
+                    const relement = document.getElementById(`cc_stats_request_${id}`);
+                    const rawResponse = requestt.response;
+                    let previewHtml = "";
+                    let dangerous = false;
+                    switch (requestt.responseFormat) {
+                        // case "image":
+                        //     previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
+                        //     break;
+
+                        case "json":
+                            try {
+                                const formattedJson = JSON.stringify(
+                                    JSON.parse(rawResponse),
+                                    null,
+                                    2
+                                );
+                                previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
+                            } catch (e) {
+                                this.log(e);
+                                previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
+                            }
+                            break;
+
+                        // case "html":
+                        //     previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
+                        //     break;
+
+                        default:
+                            previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(
+                                rawResponse
+                            )}</pre>`;
+                    }
+
+                    // const viewToggle = `
+                    //     <div class="response-toggle" style="margin-bottom:10px;">
+                    //     <button id="view_${id}_preview" data-val="preview">Preview</button>
+                    //     <button id="view_${id}_raw" data-val="raw">Raw</button>
+                    //     </div>
+                    // `;
+
+                    
+                    if (requestt.responseFormat == "html") {
+                        const iframe = document.getElementById(
+                            `cc_stats_request_${id}_iframe`
+                        );
+                        iframe.srcdoc = rawResponse;
+                    }
                 }
                 break;
 
             case "request-error":
                 if (document.getElementById(`cc_stats_request_${id}`)) {
-                    document.getElementById(`cc_stats_request_${id}_status`).textContent = requestt.status;
+                    document.getElementById(`cc_stats_request_${id}_status`).textContent =
+                        requestt.status;
                     // add headers
                     document.getElementById(`cc_stats_request_${id}`).innerHTML += `
                             <div>Errored</div>
                         `;
                 }
-                return '';
+                return "";
                 break;
         }
-        return '';
-        // return `
-        //         <details id = "cc_stats_request_${id}">
-        //             <summary title="${requestt.url}">[${new Date(requestt.timestamp).toLocaleTimeString()}] ${id} (${(type == "request-start" ? requestt.method : "UNK")}): ${new URL(requestt.url).pathname} <span id="cc_stats_request_${id}_status">${(type == "request-complete" || type == "request-error") ? requestt.status : "Pending..."}</span></summary>
-        //             <div>
-        //                 <strong>Request Headers:</strong>
-        //                 <pre>${JSON.stringify(requestt.headers, null, 2)}</pre>
-        //             </div>
-        //         </details>
-        //     `;
+        return "";
     }
     getMouse() {
         return [this.mouseX, this.mouseY];
@@ -514,25 +634,29 @@ class Stats {
         // using /assets/scripts/sw_request_interceptor.js
         // service worker
         // client.js
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker
+                    .register("/service-worker.js")
+                    .then((registration) => {
                         this.workerLoaded = true;
-                        this.log('Service Worker registered successfully:', registration.scope);
+                        this.log(
+                            "Service Worker registered successfully:",
+                            registration.scope
+                        );
                     })
-                    .catch(error => {
-                        console.error('Service Worker registration failed:', error);
+                    .catch((error) => {
+                        console.error("Service Worker registration failed:", error);
                     });
             });
 
             // Listen for messages from the service worker
-            navigator.serviceWorker.addEventListener('message', async event => {
+            navigator.serviceWorker.addEventListener("message", async (event) => {
                 const data = event.data;
                 const toPass = {
                     id: data.id,
-                    request: data
-                }
+                    request: data,
+                };
                 const formatted = await this.formatRequest(toPass);
                 this.customUpdates.requestsIntercepted(formatted);
             });
@@ -545,21 +669,40 @@ class Stats {
         const game = window.gameID;
         const lastTrackingTick = lastUpdate;
         const trackingData = window.ccPortedTrackingData || {};
-        const lastAutoSync = window.ccPorted.stateSync?.lastSync || 'N/A';
+        const lastAutoSync = window.ccPorted.stateSync?.lastSync || "N/A";
         const aspects = {
-            time: `${new Date().toLocaleTimeString()} (${((new Date().getTime() - this.initTime) / 1000).toFixed(3)} seconds up)`,
+            time: `${new Date().toLocaleTimeString()} (${(
+                (new Date().getTime() - this.initTime) /
+                1000
+            ).toFixed(3)} seconds up)`,
             requestInterceptionLoaded: this.workerLoaded,
             memory: memoryUsage,
             cpu: cpuUsage,
-            user: `${user ? user.id : 'N/A'} (${user ? user.user_metadata.display_name : 'Guest'})`,
-            game: game || 'N/A',
-            lastTrackingTick: `${lastTrackingTick} (${this.timeAgo(lastTrackingTick)} ago)`,
+            user: `${user ? user.id : "N/A"} (${user ? user.user_metadata.display_name : "Guest"
+                })`,
+            game: game || "N/A",
+            lastTrackingTick: `${lastTrackingTick} (${this.timeAgo(
+                lastTrackingTick
+            )} ago)`,
             lastAutoSync: `${lastAutoSync} (${this.timeAgo(lastAutoSync)} ago)`,
-            currentStateFrom: new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleDateString() + " " + new Date(parseInt(localStorage.getItem('ccStatelastSave'))).toLocaleTimeString(),
-            mouse: this.getMouse()[0] + '|' + this.getMouse()[1],
-            mouseCovering: this.objectHovering ? this.objectHovering.tagName + "#" + this.objectHovering.id + "." + this.objectHovering.classList : 'N/A',
+            currentStateFrom:
+                new Date(
+                    parseInt(localStorage.getItem("ccStatelastSave"))
+                ).toLocaleDateString() +
+                " " +
+                new Date(
+                    parseInt(localStorage.getItem("ccStatelastSave"))
+                ).toLocaleTimeString(),
+            mouse: this.getMouse()[0] + "|" + this.getMouse()[1],
+            mouseCovering: this.objectHovering
+                ? this.objectHovering.tagName +
+                "#" +
+                this.objectHovering.id +
+                "." +
+                this.objectHovering.classList
+                : "N/A",
             trackingData: this.formatTracking(trackingData),
-        }
+        };
         try {
             Object.entries(aspects).forEach(([aspect, value]) => {
                 const element = document.getElementById("cc_stats_" + aspect);
@@ -573,23 +716,22 @@ class Stats {
         } catch (err) {
             this.log(err);
         }
-
     }
     getMemoryUsage() {
         const memory = window.performance.memory;
-        if (!memory) return 'N/A';
+        if (!memory) return "N/A";
         return `${(memory.usedJSHeapSize / 1048576).toFixed(2)} MB`;
     }
     getCpuUsage() {
-        const cpu = window.performance.getEntriesByType('navigation')[0];
-        if (!cpu) return 'N/A';
+        const cpu = window.performance.getEntriesByType("navigation")[0];
+        if (!cpu) return "N/A";
         return `${cpu.duration.toFixed(2)} ms`;
     }
     log(...msg) {
-        msg = msg.map(m => {
+        msg = msg.map((m) => {
             switch (typeof m) {
-                case 'object':
-                    if (m === null) return 'null';
+                case "object":
+                    if (m === null) return "null";
                     switch (m.constructor) {
                         case Object:
                             return JSON.stringify(m);
@@ -601,8 +743,10 @@ class Stats {
                 default:
                     return m;
             }
-        })
-        this.customUpdates.logs(`[${new Date().toLocaleTimeString()}] ${msg.join(" ")}\n`);
+        });
+        this.customUpdates.logs(
+            `[${new Date().toLocaleTimeString()}] ${msg.join(" ")}\n`
+        );
     }
 }
 
@@ -617,7 +761,13 @@ function toggleStats() {
 }
 // Setup tracking interval
 function setupTracking() {
-    updateTracking(`pages_visited.${treat(window.location.pathname)}.count`, (getDeepValue(window.ccPortedTrackingData, `pages_visited.${treat(window.location.pathname)}.count`) || 0) + 1);
+    updateTracking(
+        `pages_visited.${treat(window.location.pathname)}.count`,
+        (getDeepValue(
+            window.ccPortedTrackingData,
+            `pages_visited.${treat(window.location.pathname)}.count`
+        ) || 0) + 1
+    );
     trackingTick();
     if (trackingInterval) {
         clearInterval(trackingInterval);
@@ -641,7 +791,7 @@ function cleanupTracking() {
 }
 
 // Add cleanup listener
-window.addEventListener('beforeunload', cleanupTracking);
+window.addEventListener("beforeunload", cleanupTracking);
 
 // Global tracking state
 let trackingInterval = null;
@@ -649,11 +799,11 @@ let lastUpdate = Date.now();
 
 function treat(text) {
     if (!text) return null;
-    return text.split('.').join('-');
+    return text.split(".").join("-");
 }
 // Helper function to deep set object values using dot notation
 function setDeepValue(obj, path, value) {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let current = obj;
 
     for (let i = 0; i < parts.length - 1; i++) {
@@ -669,22 +819,22 @@ function setDeepValue(obj, path, value) {
 
 // Helper function to deep get object values using dot notation
 function getDeepValue(obj, path) {
-    return path.split('.').reduce((curr, part) => curr && curr[part], obj);
+    return path.split(".").reduce((curr, part) => curr && curr[part], obj);
 }
 
 // Update tracking data in database
 async function saveTrackingData() {
     try {
         const { error } = await window.ccSupaClient
-            .from('u_profiles')
+            .from("u_profiles")
             .update({ tracking_data: window.ccPortedTrackingData })
-            .eq('id', window.ccPorted.user.id);
+            .eq("id", window.ccPorted.user.id);
 
         if (error) {
-            log('Error saving tracking data:', error);
+            log("Error saving tracking data:", error);
         }
     } catch (err) {
-        log('Failed to save tracking data:', err);
+        log("Failed to save tracking data:", err);
     }
 }
 
@@ -697,7 +847,6 @@ async function updateTracking(attrPath, value) {
     setDeepValue(window.ccPortedTrackingData, attrPath, value);
 }
 
-
 const tGameID = treat(window.gameID);
 // Function to handle periodic tracking updates
 async function trackingTick() {
@@ -706,42 +855,55 @@ async function trackingTick() {
     lastUpdate = now;
 
     // Convert ms to minutes
-    let minutesElapsedX = (timeDiff / 60000);
-    const minutesElapsed = Math.round((minutesElapsedX + Number.EPSILON) * 100) / 100
+    let minutesElapsedX = timeDiff / 60000;
+    const minutesElapsed =
+        Math.round((minutesElapsedX + Number.EPSILON) * 100) / 100;
     if (minutesElapsed > 0 && tGameID) {
         if (!window.ccPortedTrackingData.games[tGameID]) {
             window.ccPortedTrackingData.games[tGameID] = { playtime: 0 };
         }
 
         // Update game-specific playtime
-        const currentPlaytime = getDeepValue(window.ccPortedTrackingData, `games.${tGameID}.playtime`) || 0;
-        updateTracking(`games.${tGameID}.playtime`, currentPlaytime + minutesElapsed);
+        const currentPlaytime =
+            getDeepValue(window.ccPortedTrackingData, `games.${tGameID}.playtime`) ||
+            0;
+        updateTracking(
+            `games.${tGameID}.playtime`,
+            currentPlaytime + minutesElapsed
+        );
 
         // Update total playtime
         const totalPlaytime = window.ccPortedTrackingData.total_playtime || 0;
-        updateTracking('total_playtime', totalPlaytime + minutesElapsed);
+        updateTracking("total_playtime", totalPlaytime + minutesElapsed);
     }
     await saveTrackingData();
 }
 async function handleUserLoggedIn() {
     // Fetch tracking data if user exists
     const { data, error } = await window.ccSupaClient
-        .from('u_profiles')
-        .select('tracking_data')
-        .eq('id', window.ccPorted.user.id)
+        .from("u_profiles")
+        .select("tracking_data")
+        .eq("id", window.ccPorted.user.id)
         .single();
-    if (error) log('Error fetching tracking data:', error);
+    if (error) log("Error fetching tracking data:", error);
     if (data && data.tracking_data) {
         window.ccPortedTrackingData = data.tracking_data;
     } else {
-        window.ccPortedTrackingData = { games: {}, total_playtime: 0, chat_messages_sent: 0, pages_visited: {} };
+        window.ccPortedTrackingData = {
+            games: {},
+            total_playtime: 0,
+            chat_messages_sent: 0,
+            pages_visited: {},
+        };
     }
     setupTracking();
-    window.ccPorted.stateSync = new GameStateSync(window.ccPorted.user.id, window.ccSupaClient);
+    window.ccPorted.stateSync = new GameStateSync(
+        window.ccPorted.user.id,
+        window.ccSupaClient
+    );
     window.ccPorted.stateSync.initialize();
 }
 async function init() {
-
     if (window.ccPorted.user) {
         handleUserLoggedIn();
     } else if (window.ccPorted.userPromise) {
@@ -797,7 +959,7 @@ function shortcut(keys, cb) {
     }
 }
 try {
-    window.addEventListener('load', init);
+    window.addEventListener("load", init);
 } catch (err) {
     log(err);
 }
