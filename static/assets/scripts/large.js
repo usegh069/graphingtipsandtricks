@@ -142,6 +142,7 @@ class Stats {
         const panels = {
             stats: [
                 "time",
+                "version",
                 "requestInterceptionLoaded",
                 "memory",
                 "cpu",
@@ -363,49 +364,14 @@ class Stats {
             // Handle JSON
             if (contentType === 'application/json') {
                 return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
-            }
-
-            // Handle FormData
-            if (contentType === 'multipart/form-data') {
-                const formEntries = [];
-                for (const [key, value] of body.entries()) {
-                    formEntries.push(`${key}: ${value}`);
+            } else {
+                try {
+                    const json = JSON.parse(body);
+                    return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(json, null, 2)}</pre>`;
+                } catch (e) {
+                    return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${body}</pre>`;
                 }
-                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${formEntries.join('\n')}</pre>`;
             }
-
-            // Handle URL-encoded form data
-            if (contentType === 'application/x-www-form-urlencoded') {
-                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
-            }
-
-            // Handle XML
-            if (contentType.includes('text/xml') || contentType.includes('application/xml')) {
-                const serializer = new XMLSerializer();
-                const formattedXML = serializer.serializeToString(body)
-                    .replace(/></g, '>\n<')
-                    .replace(/(<[^>]+>)/g, (match) => match.trim());
-                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${formattedXML}</pre>`;
-            }
-
-            // Handle PDFs
-            if (contentType === 'application/pdf') {
-                const url = URL.createObjectURL(body);
-                return `
-                    <div style="width: 100%; height: 600px;">
-                        <object data="${url}" type="application/pdf" width="100%" height="100%">
-                            <p>Unable to display PDF. <a href="${url}" target="_blank">Download PDF</a></p>
-                        </object>
-                    </div>`;
-            }
-
-            // Handle plain text and other text-based content types
-            if (typeof body === 'string') {
-                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${body}</pre>`;
-            }
-
-            // Fallback for unknown types
-            return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
         } catch (error) {
             return `<pre style="color: red;">Error formatting body: ${error.message}</pre>`;
         } finally {
@@ -462,6 +428,7 @@ class Stats {
                 }
                 break;
             case "request-complete":
+
                 if (!document.getElementById(`cc_stats_request_${id}`)) {
                     return `
                         <details id = "cc_stats_request_${id}">
@@ -523,7 +490,6 @@ class Stats {
                             ${(() => {
                             const rawResponse = requestt.response;
                             let previewHtml = "";
-                            let dangerous = false;
                             switch (requestt.responseFormat) {
                                 // case "image":
                                 //     previewHtml = rawResponse;
@@ -548,15 +514,12 @@ class Stats {
                                 //     break;
 
                                 default:
-                                    previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(
-                                        rawResponse
-                                    )}</pre>`;
+                                    previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;">${this.formatRawRes(rawResponse)}</pre>`;
                             }
                             return `<div>
                                 <strong>Response:</strong>
                                 <div class="response-content">
                                     <div class="preview-view">${previewHtml}</div>
-                                    // <script>document.getElementById("cc_stats_request_${id}_iframe").srcdoc = "${rawResponse}"</script>
                                 </div>
                             </div>`
                         })()}
@@ -675,6 +638,7 @@ class Stats {
                 (new Date().getTime() - this.initTime) /
                 1000
             ).toFixed(3)} seconds up)`,
+            version: window.ccPorted?.version,
             requestInterceptionLoaded: this.workerLoaded,
             memory: memoryUsage,
             cpu: cpuUsage,
