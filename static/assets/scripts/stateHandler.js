@@ -16,7 +16,7 @@ class StateSyncUtility {
 
         const compressed = new Blob([encodedData]).stream()
             .pipeThrough(new CompressionStream('gzip'));
-        
+
         return new Response(compressed).blob();
     }
     async decompressOldData(compressed) {
@@ -34,7 +34,7 @@ class StateSyncUtility {
     // Decompress data from Blob
     async decompressData(compressed) {
         const stream = compressed.stream();
-        
+
         if (!this.compressionEnabled) {
             const text = await new Response(stream).text();
             return JSON.parse(text);
@@ -202,7 +202,7 @@ class StateSyncUtility {
                 }
 
                 // Always use keys with put operation for maximum compatibility
-                await Promise.all(storeData.map((item, i) => 
+                await Promise.all(storeData.map((item, i) =>
                     new Promise((resolve, reject) => {
                         const request = store.put(item, storeKeys[i]);
                         request.onerror = (error) => {
@@ -223,9 +223,9 @@ class StateSyncUtility {
     async importState(compressedState, compressed = false) {
         try {
             let state;
-            if(!compressed) {
+            if (!compressed) {
                 state = await this.decompressData(compressedState);
-            }else{
+            } else {
                 state = compressedState;
             }
             return {
@@ -237,24 +237,27 @@ class StateSyncUtility {
                 }
             };
         } catch (error) {
-            console.log('[CCPorted State Manager] Error importing state: '+  error);
+            console.log('[CCPorted State Manager] Error importing state: ' + error);
             throw error;
         }
     }
 
     setupAutoSync(callback, interval = 5 * 60 * 1000) {
         setInterval(async () => {
-            try {
-                // preload loading image
-                const img = new Image();
-                img.src = '/assets/images/loading.gif';
+            this.forceSync = async () => {
+                try {
+                    // preload loading image
+                    const img = new Image();
+                    img.src = '/assets/images/loading.gif';
 
-                console.log("[CCPorted State Manager] auto syncing....")
-                const state = await this.exportState();
-                await callback(state.state, state.timestamp);
-            } catch (error) {
-                console.log('[CCPorted State Manager] Auto-sync failed: '+  JSON.stringify(error) + ' ' + error.message + '\n' + error + '\n' + error.stack);
-            }
+                    console.log("[CCPorted State Manager] auto syncing....")
+                    const state = await this.exportState();
+                    await callback(state.state, state.timestamp);
+                } catch (error) {
+                    console.log('[CCPorted State Manager] Auto-sync failed: ' + JSON.stringify(error) + ' ' + error.message + '\n' + error + '\n' + error.stack);
+                }
+            };
+            this.forceSync();
         }, interval);
     }
 }
@@ -270,19 +273,22 @@ class GameStateSync {
 
     async initialize() {
         this.syncUtil.setupAutoSync(async (state, timestamp) => {
-            this.lastSync = timestamp;
-            var notification = showAutoSaveNotification();
-            localStorage.setItem('ccStatelastSave', timestamp);
-            await this.saveToServer(state, timestamp);
-            if(notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') < Date.now()){
-                notification.remove();
-            }else{
-                setTimeout(() => {
-                    notification.remove();
-                }, notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') - Date.now());
-            }
+            await this.saveState(state, timestamp);
         });
         await this.loadFromServer();
+    }
+    async saveState(state, timestamp) {
+        this.lastSync = timestamp;
+        var notification = showAutoSaveNotification();
+        localStorage.setItem('ccStatelastSave', timestamp);
+        await this.saveToServer(state, timestamp);
+        if (notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') < Date.now()) {
+            notification.remove();
+        } else {
+            setTimeout(() => {
+                notification.remove();
+            }, notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') - Date.now());
+        }
     }
 
     async saveToServer(stateBlob, timestamp) {
@@ -296,7 +302,7 @@ class GameStateSync {
                 });
             const { error: error2 } = await this.client
                 .from('u_profiles')
-                .update({ last_save_state: timestamp})
+                .update({ last_save_state: timestamp })
                 .eq('id', this.userId);
 
             if (error) {
@@ -321,18 +327,18 @@ class GameStateSync {
                 throw profileError;
             }
             const lastSave = profile.last_save_state || 0;
-            if(!profile.last_save_state){
+            if (!profile.last_save_state) {
                 console.log('[CCPorted State Manager] No saved state found, checking old save method');
                 // they may be using the old save method
                 const { data: oldSave, error: oldSaveError } = await this.client
                     .from('save_states')
                     .select('*')
                     .eq('user_id', this.userId);
-                if(oldSaveError){
+                if (oldSaveError) {
                     console.log('[CCPorted State Manager] Error loading state: ' + oldSaveError);
                     throw oldSaveError;
                 }
-                if(oldSave.length === 0){
+                if (oldSave.length === 0) {
                     console.log('[CCPorted State Manager] No saved state found (old or new)');
                     return;
                 }
@@ -356,7 +362,7 @@ class GameStateSync {
                         console.log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
                         throw result.error;
                     }
-                }else{
+                } else {
                     console.log('[CCPorted State Manager] Transitioning to new save method');
                     const compressed = await this.syncUtil.compressData(decomp);
                     await this.saveToServer(compressed, timestamp);
@@ -402,7 +408,7 @@ class GameStateSync {
                 }
             }
         } catch (error) {
-            console.log('[CCPorted State Manager] [315] Error loading state: '+ error);
+            console.log('[CCPorted State Manager] [315] Error loading state: ' + error);
             throw error;
         }
     }
