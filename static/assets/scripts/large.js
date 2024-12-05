@@ -352,19 +352,19 @@ class Stats {
         if (!body) {
             return '<pre>Empty body</pre>';
         }
-    
+
         try {
             // Handle images
             if (contentType.includes('image/')) {
                 const url = URL.createObjectURL(body);
                 return `<img src="${url}" alt="Request body image" style="max-width: 100%; height: auto;">`;
             }
-    
+
             // Handle JSON
             if (contentType === 'application/json') {
                 return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
             }
-    
+
             // Handle FormData
             if (contentType === 'multipart/form-data') {
                 const formEntries = [];
@@ -373,12 +373,12 @@ class Stats {
                 }
                 return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${formEntries.join('\n')}</pre>`;
             }
-    
+
             // Handle URL-encoded form data
             if (contentType === 'application/x-www-form-urlencoded') {
                 return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
             }
-    
+
             // Handle XML
             if (contentType.includes('text/xml') || contentType.includes('application/xml')) {
                 const serializer = new XMLSerializer();
@@ -387,7 +387,7 @@ class Stats {
                     .replace(/(<[^>]+>)/g, (match) => match.trim());
                 return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${formattedXML}</pre>`;
             }
-    
+
             // Handle PDFs
             if (contentType === 'application/pdf') {
                 const url = URL.createObjectURL(body);
@@ -398,12 +398,12 @@ class Stats {
                         </object>
                     </div>`;
             }
-    
+
             // Handle plain text and other text-based content types
             if (typeof body === 'string') {
                 return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${body}</pre>`;
             }
-    
+
             // Fallback for unknown types
             return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
         } catch (error) {
@@ -527,12 +527,12 @@ class Stats {
                             </div>
                             <div id="cc_stats_request_body_to_be_${id}">
                                 ${(async () => {
-                                    if(requestt.body){
-                                        await this.formatRequestBody(requestt.body, requestt.bodyType)
-                                    }else{
-                                        return "<i>No request body</i>"
-                                    }
-                                })()}
+                            if (requestt.body) {
+                                await this.formatRequestBody(requestt.body, requestt.bodyType)
+                            } else {
+                                return "<i>No request body</i>"
+                            }
+                        })()}
                             </div>
                             <div>
                                 <strong>Request Data:</strong>
@@ -561,8 +561,8 @@ class Stats {
                 } else {
                     document.getElementById(`cc_stats_request_${id}_status`).textContent =
                         requestt.status;
-                    
-                    document.getElementById("cc_stats_request_body_to_be_"+id).innerHTML =(requestt.body) ? await this.formatRequestBody(requestt.body, requestt.bodyType) : "<i>No request body</i>"
+
+                    document.getElementById("cc_stats_request_body_to_be_" + id).innerHTML = (requestt.body) ? await this.formatRequestBody(requestt.body, requestt.bodyType) : "<i>No request body</i>"
                     document.getElementById(`cc_stats_request_${id}`).innerHTML += `
                             <div>
                                 <strong>Response Headers:</strong>
@@ -656,14 +656,7 @@ class Stats {
                     //     </div>
                     // `;
 
-                    relement.innerHTML += `
-                            <div>
-                                <strong>Response:</strong>
-                                <div class="response-content">
-                                    <div class="preview-view">${previewHtml}</div>
-                                </div>
-                            </div>
-                        `;
+                    
                     if (requestt.responseFormat == "html") {
                         const iframe = document.getElementById(
                             `cc_stats_request_${id}_iframe`
