@@ -428,51 +428,6 @@ class Stats {
         switch (type) {
             case "request-start":
                 try {
-                    // body is of type ReadableStream
-                    // convert to string
-                    let bodyRaw = "";
-                    const body = requestt.body || [];
-                    for await (const chunk of body) {
-                        bodyRaw += chunk;
-                    }
-                    let formatRequest = {
-                        "application/json": (content) => {
-                            try {
-                                const json = JSON.parse(content);
-                                return JSON.stringify(json, null, 2);
-                            } catch (err) {
-                                return content;
-                            }
-                        },
-                        "text/": (content) => content,
-                        "image/": (content) =>
-                            `<img src="${content}" style="max-width:100%; max-height:300px;">`,
-                        "multipart/form-data": (content) => {
-                            // convert to JSON
-                            const formData = new FormData(content);
-                            const object = {};
-                            formData.forEach((value, key) => {
-                                object[key] = value;
-                            });
-                            // return a table
-                            return this.renderTableFromJSON(object);
-                        },
-                    };
-                    let bodyRender = "";
-                    const contentType = requestt.headers["content-type"];
-
-                    if (contentType) {
-                        const format = Object.keys(formatRequest).find((key) =>
-                            contentType.includes(key)
-                        );
-                        if (format) {
-                            bodyRender = formatRequest[format](bodyRaw);
-                        } else {
-                            bodyRender = bodyRaw;
-                        }
-                    } else {
-                        bodyRender = bodyRaw;
-                    }
                     return `
                     <details id = "cc_stats_request_${id}">
                         <summary title="${requestt.url}">[${new Date(
@@ -500,13 +455,6 @@ class Stats {
                             URL: requestt.url,
                         })}
                         <div>
-                        ${bodyRender
-                            ? `
-                            <strong>Request Body:</strong>
-                            <pre>${bodyRender}</pre>`
-                            : ""
-                        }
-                        </div>
                     </details>
                     `;
                 } catch (e) {
@@ -577,9 +525,9 @@ class Stats {
                             let previewHtml = "";
                             let dangerous = false;
                             switch (requestt.responseFormat) {
-                                case "image":
-                                    previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
-                                    break;
+                                // case "image":
+                                //     previewHtml = rawResponse;
+                                //     break;
 
                                 case "json":
                                     try {
@@ -595,9 +543,9 @@ class Stats {
                                     }
                                     break;
 
-                                case "html":
-                                    previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
-                                    break;
+                                // case "html":
+                                //     previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
+                                //     break;
 
                                 default:
                                     previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(
@@ -608,12 +556,11 @@ class Stats {
                                 <strong>Response:</strong>
                                 <div class="response-content">
                                     <div class="preview-view">${previewHtml}</div>
-                                    <script>document.getElementById("cc_stats_request_${id}_iframe").srcdoc = "${rawResponse}"
+                                    // <script>document.getElementById("cc_stats_request_${id}_iframe").srcdoc = "${rawResponse}"</script>
                                 </div>
                             </div>`
                         })()}
                         `;
-                    // add preview as iframe
                     // use srcdoc to prevent CORS issues
                     // get the raw text
                     const relement = document.getElementById(`cc_stats_request_${id}`);
@@ -621,9 +568,9 @@ class Stats {
                     let previewHtml = "";
                     let dangerous = false;
                     switch (requestt.responseFormat) {
-                        case "image":
-                            previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
-                            break;
+                        // case "image":
+                        //     previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
+                        //     break;
 
                         case "json":
                             try {
@@ -639,9 +586,9 @@ class Stats {
                             }
                             break;
 
-                        case "html":
-                            previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
-                            break;
+                        // case "html":
+                        //     previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
+                        //     break;
 
                         default:
                             previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(
