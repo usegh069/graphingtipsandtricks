@@ -90,8 +90,10 @@ class Leaderboard {
             return (score / 1_000_000_000_000_000_000_000_000_000).toFixed(2) + 'O';
         } else if (score < 1_000_000_000_000_000_000_000_000_000_000_000) {
             return (score / 1_000_000_000_000_000_000_000_000_000_000).toFixed(2) + 'N';
-        } else {
+        } else if (score / 1_000_000_000_000_000_000_000_000_000_000_000) {
             return (score / 1_000_000_000_000_000_000_000_000_000_000_000).toFixed(2) + 'D';
+        } else {
+            return score.toExponential(2);
         }
     }
     async addScore(userID, score) {

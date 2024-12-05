@@ -46,6 +46,7 @@ class StateSyncUtility {
 
     // Optimized localStorage data collection
     getLocalStorageData() {
+        log(`[CCPorted State Manager] Getting local storage data.... (length: ${localStorage.length})`)
         return Object.fromEntries(
             Object.entries(localStorage)
                 .filter(([key]) => key !== 'ccStatelastSave')
@@ -73,6 +74,7 @@ class StateSyncUtility {
     // Export state
     async exportState() {
         try {
+            log("[CCPorted State Manager] Exporting state....")
             const time = Date.now();
             const state = {
                 localStorage: this.getLocalStorageData(),
@@ -85,7 +87,7 @@ class StateSyncUtility {
                 timestamp: time
             };
         } catch (error) {
-            console.log('[CCPorted State Manager] Error exporting state: ' + error);
+            log('[CCPorted State Manager] Error exporting state: ' + error);
             throw error;
         }
     }
@@ -119,6 +121,7 @@ class StateSyncUtility {
 
     // Optimized IndexedDB import
     async getAllIndexedDBData() {
+        log(`[CCPorted State Manager] Getting indexedDB data....`)
         const databases = await window.indexedDB.databases();
         const data = {};
 
@@ -163,7 +166,7 @@ class StateSyncUtility {
 
             db.close();
         }));
-
+        log(`[CCPorted State Manager] IndexedDB data collected`)
         return data;
     }
 
@@ -237,26 +240,32 @@ class StateSyncUtility {
                 }
             };
         } catch (error) {
-            console.log('[CCPorted State Manager] Error importing state: ' + error);
+            log('[CCPorted State Manager] Error importing state: ' + error);
             throw error;
         }
     }
 
     setupAutoSync(callback, interval = 5 * 60 * 1000) {
-        setInterval(async () => {
-            this.forceSync = async () => {
-                try {
-                    // preload loading image
-                    const img = new Image();
-                    img.src = '/assets/images/loading.gif';
+        this.forceSync = async () => {
+            try {
+                // preload loading image
+                const img = new Image();
+                img.src = '/assets/images/loading.gif';
 
-                    console.log("[CCPorted State Manager] auto syncing....")
-                    const state = await this.exportState();
-                    await callback(state.state, state.timestamp);
-                } catch (error) {
-                    console.log('[CCPorted State Manager] Auto-sync failed: ' + JSON.stringify(error) + ' ' + error.message + '\n' + error + '\n' + error.stack);
-                }
-            };
+                log("[CCPorted State Manager] auto syncing....");
+                showAutoSaveNotification();
+                const state = await this.exportState();
+                await callback(state.state, state.timestamp);
+            } catch (error) {
+                log('[CCPorted State Manager] Auto-sync failed: ' + JSON.stringify(error) + ' ' + error.message + '\n' + error + '\n' + error.stack);
+                var notif = showAutoSaveNotification();
+                notif.innerText = 'Auto-save failed';
+                setTimeout(() => {
+                    notif.remove();
+                }, 2000);
+            }
+        };
+        setInterval(async () => {
             this.forceSync();
         }, interval);
     }
@@ -279,15 +288,15 @@ class GameStateSync {
     }
     async saveState(state, timestamp) {
         this.lastSync = timestamp;
-        var notification = showAutoSaveNotification();
         localStorage.setItem('ccStatelastSave', timestamp);
+        var notification = window.ccPorted.autoSaveNotification;
         await this.saveToServer(state, timestamp);
         if (notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') < Date.now()) {
             notification.remove();
         } else {
             setTimeout(() => {
                 notification.remove();
-            }, notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') - Date.now());
+            }, parseInt(notification.getAttribute('data-creation-time')) + parseInt(notification.getAttribute('data-min-visible-time')) - Date.now());
         }
     }
 
@@ -306,11 +315,11 @@ class GameStateSync {
                 .eq('id', this.userId);
 
             if (error) {
-                console.log('[CCPorted State Manager] Error saving state: ' + error);
+                log('[CCPorted State Manager] Error saving state: ' + error);
                 throw error;
             }
         } catch (error) {
-            console.log('[CCPorted State Manager] Error saving state: ' + error);
+            log('[CCPorted State Manager] Error saving state: ' + error);
             throw error;
         }
     }
@@ -323,66 +332,67 @@ class GameStateSync {
                 .eq('id', this.userId)
                 .single();
             if (profileError) {
-                console.log('[CCPorted State Manager] Error loading state: ' + profileError);
+                log('[CCPorted State Manager] Error loading state: ' + profileError);
                 throw profileError;
             }
             const lastSave = profile.last_save_state || 0;
             if (!profile.last_save_state) {
-                console.log('[CCPorted State Manager] No saved state found, checking old save method');
+                log('[CCPorted State Manager] No saved state found, checking old save method');
                 // they may be using the old save method
                 const { data: oldSave, error: oldSaveError } = await this.client
                     .from('save_states')
                     .select('*')
                     .eq('user_id', this.userId);
                 if (oldSaveError) {
-                    console.log('[CCPorted State Manager] Error loading state: ' + oldSaveError);
+                    log('[CCPorted State Manager] Error loading state: ' + oldSaveError);
                     throw oldSaveError;
                 }
                 if (oldSave.length === 0) {
-                    console.log('[CCPorted State Manager] No saved state found (old or new)');
+                    log('[CCPorted State Manager] No saved state found (old or new)');
                     return;
                 }
-                console.log('[CCPorted State Manager] Old save found');
+                log('[CCPorted State Manager] Old save found');
                 // old data is of type text
                 const decomp = await this.syncUtil.decompressOldData(oldSave[0].state);
                 const timestamp = decomp.timestamp;
-                console.log('[CCPorted State Manager] [old] Last save timestamp: ' + timestamp);
+                log('[CCPorted State Manager] [old] Last save timestamp: ' + timestamp);
                 const currentSave = localStorage.getItem('ccStatelastSave');
-                console.log('[CCPorted State Manager] [old] Current save timestamp: ' + currentSave);
+                log('[CCPorted State Manager] [old] Current save timestamp: ' + currentSave);
                 if (!currentSave || timestamp > currentSave) {
-                    console.log('[CCPorted State Manager] Game state has been updated');
+                    log('[CCPorted State Manager] Game state has been updated');
                     localStorage.setItem('ccStatelastSave', timestamp);
-                    console.log("[CCPorted State Manager] Importing state....");
+                    log("[CCPorted State Manager] Importing state....");
                     const result = await this.syncUtil.importState(decomp, true);
                     if (result.success) {
-                        console.log('[CCPorted State Manager] State loaded successfully');
+                        log('[CCPorted State Manager] State loaded successfully');
                         await result.import();
                         location.reload();
                     } else {
-                        console.log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
+                        log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
                         throw result.error;
                     }
                 } else {
-                    console.log('[CCPorted State Manager] Transitioning to new save method');
+                    log('[CCPorted State Manager] Transitioning to new save method');
                     const compressed = await this.syncUtil.compressData(decomp);
                     await this.saveToServer(compressed, timestamp);
-                    console.log('[CCPorted State Manager] Old save transitioned');
-                    console.log('[CCPorted State Manager] Deleting old save');
+                    log('[CCPorted State Manager] Old save transitioned');
+                    log('[CCPorted State Manager] Deleting old save');
                     await this.client
                         .from('save_states')
                         .delete()
                         .eq('user_id', this.userId);
-                    console.log('[CCPorted State Manager] Old save deleted');
+                    log('[CCPorted State Manager] Old save deleted');
                     return;
                 }
             }
+
             const { data, error } = await this.client
                 .storage
                 .from('save_states')
                 .download(this.stateFileName + '?timestampbuster=' + lastSave);
             if (error) {
                 if (error.message.includes('Object not found')) {
-                    console.log('[CCPorted State Manager] No saved state found');
+                    log('[CCPorted State Manager] No saved state found');
                     return;
                 }
                 throw error;
@@ -390,25 +400,25 @@ class GameStateSync {
             const decomp = await this.syncUtil.decompressData(data);
 
             const timestamp = decomp.timestamp;
-            console.log('[CCPorted State Manager] Last save timestamp: ' + timestamp);
+            log('[CCPorted State Manager] Last save timestamp: ' + timestamp);
             const currentSave = localStorage.getItem('ccStatelastSave');
-            console.log('[CCPorted State Manager] Current save timestamp: ' + currentSave);
+            log('[CCPorted State Manager] Current save timestamp: ' + currentSave);
             if (!currentSave || timestamp > currentSave) {
-                console.log('[CCPorted State Manager] Game state has been updated');
+                log('[CCPorted State Manager] Game state has been updated');
                 localStorage.setItem('ccStatelastSave', timestamp);
-                console.log('[CCPorted State Manager] Importing state....');
+                log('[CCPorted State Manager] Importing state....');
                 const result = await this.syncUtil.importState(decomp, true);
                 if (result.success) {
-                    console.log('[CCPorted State Manager] State loaded successfully');
+                    log('[CCPorted State Manager] State loaded successfully');
                     await result.import();
                     location.reload();
                 } else {
-                    console.log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
+                    log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
                     throw result.error;
                 }
             }
         } catch (error) {
-            console.log('[CCPorted State Manager] [315] Error loading state: ' + error);
+            log('[CCPorted State Manager] [315] Error loading state: ' + error);
             throw error;
         }
     }
@@ -416,7 +426,8 @@ class GameStateSync {
 
 
 function showAutoSaveNotification() {
-    var notification = document.createElement('div');
+    var notification = window.ccPorted.autoSaveNotification || document.createElement('div');
+    notification.innerHTML = '';
     notification.style.position = 'fixed';
     notification.style.top = '10px';
     notification.style.right = '10px';
@@ -439,5 +450,6 @@ function showAutoSaveNotification() {
     notification.insertBefore(loading, notification.firstChild);
 
     document.body.appendChild(notification);
+    window.ccPorted.autoSaveNotification = notification;
     return notification;
 }
