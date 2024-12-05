@@ -44,7 +44,7 @@ class Leaderboard {
             scores.push({ score: this.guestScore, display_name: 'Guest', id: 'guest' });
             scores.sort((a, b) => b.score - a.score);
         }
-        if (showUserRank && !rp) {
+        if (showUserRank && !rp && window.ccPorted?.user?.id) {
             const { data: rank } = await this.client
                 .rpc('get_lowest_rank', { p_game_id: this.gameID, p_user_id: window.ccPorted?.user?.id });
             if (rank) {
