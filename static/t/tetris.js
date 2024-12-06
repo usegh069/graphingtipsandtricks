@@ -259,12 +259,14 @@ try {
                     this.drop();
                     this.dropCounter = 0;
                 }
-
+                this.dropInterval = Math.max(1000 - this.calculateLevel() * 100, 250);
                 this.draw();
                 requestAnimationFrame(this.update.bind(this));
             }
         }
-
+        calculateLevel() {
+            return Math.floor(this.score / 500);
+        }
         draw() {
             // Clear canvas
             ctx.fillStyle = '#000';
