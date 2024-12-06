@@ -35,6 +35,7 @@ try {
     const ctx = canvas.getContext('2d');
     const nextCtx = nextPieceCanvas.getContext('2d');
     const scoreElement = document.getElementById('score');
+    const levelElement = document.getElementById('level');
 
     canvas.width = COLS * BLOCK_SIZE;
     canvas.height = ROWS * BLOCK_SIZE;
@@ -194,6 +195,7 @@ try {
                 // Classic Tetris scoring
                 this.score += [0, 40, 100, 300, 1200][linesCleared] * (Math.floor(this.score / 500) + 1);
                 scoreElement.textContent = this.score;
+                levelElement.textContent = this.calculateLevel() + 1;
             }
         }
 
