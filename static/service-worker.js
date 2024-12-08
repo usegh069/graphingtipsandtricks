@@ -8,6 +8,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', async (event) => {
+    const clientId = event.clientId;
     const requestId = Math.random().toString(16).slice(2);
     const clone = event.request.clone();
     // Create headers object from request headers
@@ -26,10 +27,8 @@ self.addEventListener('fetch', async (event) => {
         timestamp: Date.now()
     };
 
-    self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-            client.postMessage(requestDetails);
-        });
+    self.clients.get(clientId).then(client => {
+        client.postMessage(requestDetails);
     });
     event.respondWith(
         fetch(event.request)
@@ -92,17 +91,15 @@ self.addEventListener('fetch', async (event) => {
                         responseFormat: responseFormat,
                         method: clone.method
                     };
-                
+
                     if (parsedBody[0]) {
                         console.log(parsedBody)
                         responseDetails.body = parsedBody[0];
                         responseDetails.bodyType = parsedBody[1];
                     }
 
-                    self.clients.matchAll().then(clients => {
-                        clients.forEach(client => {
-                            client.postMessage(responseDetails);
-                        });
+                    self.clients.get(clientId).then(client => {
+                        client.postMessage(responseDetails);
                     });
 
                     return response;
@@ -115,10 +112,8 @@ self.addEventListener('fetch', async (event) => {
                         error: e.message,
                         timestamp: Date.now()
                     };
-                    self.clients.matchAll().then(clients => {
-                        clients.forEach(client => {
-                            client.postMessage(errorDetails);
-                        });
+                    self.clients.get(clientId).then(client => {
+                        client.postMessage(errorDetails);
                     });
                     throw e;
                 }
@@ -133,10 +128,8 @@ self.addEventListener('fetch', async (event) => {
                     timestamp: Date.now()
                 };
 
-                self.clients.matchAll().then(clients => {
-                    clients.forEach(client => {
-                        client.postMessage(errorDetails);
-                    });
+                self.clients.get(clientId).then(client => {
+                    client.postMessage(errorDetails);
                 });
 
                 throw error;
@@ -219,7 +212,7 @@ async function parseBodyStream(body, contentType) {
         }
 
         // Default: return raw text for unknown types
-        return [new TextDecoder().decode(arrayBuffer),"text/plain"];
+        return [new TextDecoder().decode(arrayBuffer), "text/plain"];
     } catch (error) {
         throw new Error(`Failed to parse body stream: ${error.message}`);
     }

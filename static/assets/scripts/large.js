@@ -11,6 +11,7 @@ class Stats {
         this.dom = dom;
         this.workerLoaded = false;
         dom.style.display = "none";
+        this.clientID = Math.random().toString(36).substring(2);
         this.contentBeforeLoad = {
             logs: [],
             requestsIntercepted: [],
