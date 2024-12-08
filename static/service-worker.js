@@ -69,9 +69,6 @@ self.addEventListener('fetch', async (event) => {
                         } catch (e) {
                             responseFormat = 'text';
                         }
-                    } else if (contentType.includes('text/html')) {
-                        responseData = await responseClone.text();
-                        responseFormat = 'html';
                     } else {
                         // Default to text
                         responseData = await responseClone.text();
@@ -91,6 +88,10 @@ self.addEventListener('fetch', async (event) => {
                         responseFormat: responseFormat,
                         method: clone.method
                     };
+                    // if the response length is greater than 1kb, truncate it
+                    if(responseDetails.response.length > 1000 && responseDetails.responseFormat !== 'image') {
+                        responseDetails.response = responseDetails.response.substring(0, 1000) + '...';
+                    }
 
                     if (parsedBody[0]) {
                         console.log(parsedBody)
