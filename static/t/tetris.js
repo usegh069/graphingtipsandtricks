@@ -99,6 +99,9 @@ try {
             this.dropCounter = 0;
             this.dropInterval = 1000;
             this.lastTime = 0;
+            this.paused = 0;
+            this.moving = [0,0];
+            this.lastMove = 0;
             scoreElement.textContent = this.score;
             this.createNewPiece();
         }
@@ -226,6 +229,7 @@ try {
             if (this.collision()) {
                 this.piece.pos.x -= dir;
             } else {
+                this.lastMove = 0;
                 moveSound.play();
             }
         }
@@ -250,6 +254,11 @@ try {
             }
         }
         update(time = 0) {
+            if(this.paused){
+                this.draw();
+                requestAnimationFrame(this.update.bind(this));
+                return;
+            }
             if (this.gameOver) {
                 requestAnimationFrame(this.updateGameOver.bind(this));
             } else {
@@ -260,6 +269,13 @@ try {
                 if (this.dropCounter > this.dropInterval) {
                     this.drop();
                     this.dropCounter = 0;
+                }
+                if(this.moving[0] != 0 || this.moving[1] != 0){
+                    this.lastMove += deltaTime;
+                    // if(this.lastMove > 200){
+                    //     this.move(this.moving[0] + this.moving[1]);
+                    //     this.lastMove = 0;
+                    // }
                 }
                 this.dropInterval = Math.max(1000 - this.calculateLevel() * 100, 250);
                 this.draw();
@@ -382,20 +398,37 @@ try {
                     }
                 });
             });
+            if(this.paused){
+                ctx.fillStyle = "#ffffff";
+                ctx.textAlign = "center";
+                ctx.font = "20px ps2p";
+                ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+            }
         }
     }
 
     let game = new Tetris();
-
+    document.addEventListener('keyup', event => {
+        if (event.keyCode === 37 || event.keyCode === 39) {
+            if(event.keyCode === 37){
+                game.moving[0] = 0;
+            }
+            if(event.keyCode === 39){
+                game.moving[1] = 0;
+            }
+        }
+    });
     document.addEventListener('keydown', event => {
 
         switch (event.keyCode) {
             case 37: // Left arrow
                 if (game.gameOver) break;
+                game.moving[0] = -1;
                 game.move(-1);
                 break;
             case 39: // Right arrow
                 if (game.gameOver) break;
+                game.moving[1] = 1;
                 game.move(1);
                 break;
             case 40: // Down arrow
@@ -421,6 +454,10 @@ try {
                         alert(err);
                     }
                 }
+                break;
+            // p for pause
+            case 80:
+                game.paused = !game.paused;
                 break;
         }
     });

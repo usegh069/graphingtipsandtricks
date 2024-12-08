@@ -333,262 +333,170 @@ class Stats {
         table.style.width = "100%";
         table.style.overflow = "auto";
         table.style.wordBreak = "break-all";
-        return table.outerHTML;
+        return table;
     }
-    formatRawRes(rawResponse) {
-        if (rawResponse.length > 1000) {
-            return rawResponse.slice(0, 1000) + "...";
-        }
-        // test if it's json
+    formatInformation(information, type) {
+        const pre = document.createElement("pre");
+        pre.style.whiteSpace = "pre-wrap";
+        pre.style.maxHeight = "500px";
+        pre.style.overflowY = "auto";
+        pre.style.backgroundColor = "#222";
+        pre.style.color = "#fff";
+        pre.style.border = "1px solid #fff";
+        pre.style.borderRadius = "6px";
+        pre.style.padding = "5px";
         try {
-            const json = JSON.parse(rawResponse);
-            return JSON.stringify(json, null, 2);
+            pre.textContent = JSON.stringify(JSON.parse(information), null, 2);
         } catch (err) {
-            return rawResponse;
+            pre.textContent = information;
+        } finally {
+            return pre;
         }
     }
-    async formatRequestBody(body, contentType) {
-        console.log(contentType)
-        console.log("rendering body")
-        if (!body) {
-            return '<pre>Empty body</pre>';
+    async buildRequest(request) {
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+
+        const url = new URL(request.url);
+        const method = request.method;
+        const headers = request.headers;
+        const requestData = {
+            "Body Used": request.bodyUsed,
+            Cache: request.cache,
+            Credentials: request.credentials,
+            Destination: request.destination,
+            Integrity: request.integrity,
+            Keepalive: request.keepalive,
+            Method: request.method,
+            Mode: request.mode,
+            Referrer: request.referrer,
+            URL: request.url,
+        };
+
+        details.id = `cc_stats_request_${request.id}`;
+        summary.title = request.url;
+        summary.textContent = `[${new Date(request.timestamp).toLocaleTimeString()}] ${url.pathname}: (${method})`;
+
+        const status = document.createElement("span");
+        status.id = `cc_stats_request_${request.id}_status`;
+        summary.appendChild(status);
+
+        details.appendChild(summary);
+
+        const headersDiv = document.createElement("div");
+        const requestBody = document.createElement("div");
+        const requestDataDiv = document.createElement("div");
+        headersDiv.id = `cc_stats_request_${request.id}_headers`;
+        requestBody.id = `cc_stats_request_${request.id}_body`;
+        requestDataDiv.id = `cc_stats_request_${request.id}_requestData`;
+
+        const headersTable = this.renderTableFromJSON(headers);
+        const requestBodyPre = this.formatInformation(request.body, request.bodyType);
+        const requestDataTable = this.renderTableFromJSON(requestData);
+
+        const headersTitle = document.createElement("strong");
+        headersTitle.textContent = "Request Headers:";
+        headersDiv.appendChild(headersTitle);
+
+        const requestBodyTitle = document.createElement("strong");
+        requestBodyTitle.textContent = "Request Body:";
+        requestBody.appendChild(requestBodyTitle);
+
+        const requestDataTitle = document.createElement("strong");
+        requestDataTitle.textContent = "Request Data:";
+        requestDataDiv.appendChild(requestDataTitle);
+
+        headersDiv.appendChild(headersTable);
+        requestBody.appendChild(requestBodyPre);
+        requestDataDiv.appendChild(requestDataTable);
+
+        details.appendChild(headersDiv);
+        details.appendChild(requestBody);
+        details.appendChild(requestDataDiv);
+
+        const responseDataDiv = document.createElement("div");
+        responseDataDiv.id = `cc_stats_request_${request.id}_responseData`;
+        details.appendChild(responseDataDiv);
+
+        return details;
+    }
+    async finishRequest(response) {
+        const responseHeaders = response.headers;
+        const responseRaw = response.response;
+        const responseFormat = response.responseFormat;
+
+        const headersDiv = document.createElement("div");
+        const responseDiv = document.createElement("div");
+
+        headersDiv.id = `cc_stats_request_${response.id}_responseHeaders`;
+        responseDiv.id = `cc_stats_request_${response.id}_response`;
+
+        const headersTable = this.renderTableFromJSON(responseHeaders);
+        const responsePre = this.formatInformation(responseRaw, responseFormat);
+
+        const headersTitle = document.createElement("strong");
+        headersTitle.textContent = "Response Headers:";
+        headersDiv.appendChild(headersTitle);
+
+        const responseTitle = document.createElement("strong");
+        responseTitle.textContent = "Response:";
+        responseDiv.appendChild(responseTitle);
+
+        headersDiv.appendChild(headersTable);
+        responseDiv.appendChild(responsePre);
+
+        const responseDataDiv = document.getElementById(`cc_stats_request_${response.id}_responseData`);
+        responseDataDiv.appendChild(headersDiv);
+        responseDataDiv.appendChild(responseDiv);
+
+        const requestBodyElement = document.getElementById(`cc_stats_request_${response.id}_body`);
+        if (requestBodyElement) {
+            requestBodyElement.appendChild(this.formatInformation(response.body, response.bodyType));
+        }
+        const requestStatus = document.getElementById(`cc_stats_request_${response.id}_status`);
+        if (requestStatus) {
+            requestStatus.textContent = response.status;
         }
 
-        try {
-            // Handle images
-            if (contentType.includes('image/')) {
-                const url = URL.createObjectURL(body);
-                return `<img src="${url}" alt="Request body image" style="max-width: 100%; height: auto;">`;
-            }
-
-            // Handle JSON
-            if (contentType === 'application/json') {
-                return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(body, null, 2)}</pre>`;
-            } else {
-                try {
-                    const json = JSON.parse(body);
-                    return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(json, null, 2)}</pre>`;
-                } catch (e) {
-                    return `<pre style="white-space: pre-wrap; word-wrap: break-word;">${body}</pre>`;
-                }
-            }
-        } catch (error) {
-            return `<pre style="color: red;">Error formatting body: ${error.message}</pre>`;
-        } finally {
-            // Clean up any created object URLs when the content is no longer needed
-            setTimeout(() => {
-                const objectUrls = document.querySelectorAll('img[src^="blob:"], object[data^="blob:"]');
-                objectUrls.forEach(element => {
-                    const url = element.src || element.data;
-                    if (url.startsWith('blob:')) {
-                        URL.revokeObjectURL(url);
-                    }
-                });
-            }, 0);
-        }
+        return;
     }
     async formatRequest(request) {
-        const id = request.id;
-        const requestt = request.request;
-        const type = requestt.type;
-        switch (type) {
-            case "request-start":
-                try {
-                    return `
-                    <details id = "cc_stats_request_${id}">
-                        <summary title="${requestt.url}">[${new Date(
-                        requestt.timestamp
-                    ).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method
-                        }) <span id="cc_stats_request_${id}_status"></span></summary>
-                        <div>
-                            <strong>Request Headers:</strong>
-                            ${this.renderTableFromJSON(requestt.headers)}
-                        </div>
-                        <div id ="cc_stats_request_body_to_be_${id}">
-                        </div>
-                        <div>
-                            <strong>Request Data:</strong>
-                            ${this.renderTableFromJSON({
-                            "Body Used": requestt.bodyUsed,
-                            Cache: requestt.cache,
-                            Credentials: requestt.credentials,
-                            Destination: requestt.destination,
-                            Integrity: requestt.integrity,
-                            Keepalive: requestt.keepalive,
-                            Method: requestt.method,
-                            Mode: requestt.mode,
-                            Referrer: requestt.referrer,
-                            URL: requestt.url,
-                        })}
-                        <div>
-                    </details>
-                    `;
-                } catch (e) {
-                    this.log(e);
-                }
-                break;
-            case "request-complete":
+        try {
+            const id = request.id;
+            const requestt = request.request;
+            const type = requestt.type;
+            switch (type) {
+                case "request-start":
+                    return (await this.buildRequest(requestt)).outerHTML;
+                case "request-complete":
+                    let element = document.getElementById(`cc_stats_request_${id}`);
+                    if (!element) {
+                        const details = await this.buildRequest(requestt);
+                        // add to requests
+                        if(document.getElementById("cc_stats_requestsIntercepted")){
+                            document.getElementById("cc_stats_requestsIntercepted").appendChild(details);
+                        }
+                    };
+                    this.finishRequest(requestt);
+                    break;
 
-                if (!document.getElementById(`cc_stats_request_${id}`)) {
-                    return `
-                        <details id = "cc_stats_request_${id}">
-                            <summary title="${requestt.url}">[${new Date(
-                        requestt.timestamp
-                    ).toLocaleTimeString()}] ${new URL(requestt.url).pathname}: (${requestt.method || "??"
-                        }) <span id="cc_stats_request_${id}_status">${requestt.status}</span></summary>
-                            <div>
-                                <strong>Request Headers:</strong>
-                                ${this.renderTableFromJSON(requestt.headers)}
-                            </div>
-                            <div id="cc_stats_request_body_to_be_${id}">
-                                ${(async () => {
-                            if (requestt.body) {
-                                await this.formatRequestBody(requestt.body, requestt.bodyType)
-                            } else {
-                                return "<i>No request body</i>"
-                            }
-                        })()}
-                            </div>
-                            <div>
-                                <strong>Request Data:</strong>
-                                ${this.renderTableFromJSON({
-                            "Body Used": requestt.bodyUsed,
-                            Cache: requestt.cache,
-                            Credentials: requestt.credentials,
-                            Destination: requestt.destination,
-                            Integrity: requestt.integrity,
-                            Keepalive: requestt.keepalive,
-                            Method: requestt.method,
-                            Mode: requestt.mode,
-                            Referrer: requestt.referrer,
-                            URL: requestt.url,
-                        })}
-                                <div>
-                                    <strong>Response Headers:</strong>
-                                    <pre style = "white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;">${JSON.stringify(
-                            requestt.headers,
-                            null,
-                            2
-                        )}</pre>
-                                </div>
-                            </details>
-                        `;
-                } else {
-                    document.getElementById(`cc_stats_request_${id}_status`).textContent =
-                        requestt.status;
-
-                    document.getElementById("cc_stats_request_body_to_be_" + id).innerHTML = (requestt.body) ? await this.formatRequestBody(requestt.body, requestt.bodyType) : "<i>No request body</i>"
-                    document.getElementById(`cc_stats_request_${id}`).innerHTML += `
-                            <div>
-                                <strong>Response Headers:</strong>
-                                <pre style = "white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #222;">${JSON.stringify(
-                        requestt.headers,
-                        null,
-                        2
-                    )}</pre>
-                            </div>
-                            ${(() => {
-                            const rawResponse = requestt.response;
-                            let previewHtml = "";
-                            switch (requestt.responseFormat) {
-                                // case "image":
-                                //     previewHtml = rawResponse;
-                                //     break;
-
-                                case "json":
-                                    try {
-                                        const formattedJson = JSON.stringify(
-                                            JSON.parse(rawResponse),
-                                            null,
-                                            2
-                                        );
-                                        previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
-                                    } catch (e) {
-                                        this.log(e);
-                                        previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
-                                    }
-                                    break;
-
-                                // case "html":
-                                //     previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
-                                //     break;
-
-                                default:
-                                    previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;">${this.formatRawRes(rawResponse)}</pre>`;
-                            }
-                            return `<div>
-                                <strong>Response:</strong>
-                                <div class="response-content">
-                                    <div class="preview-view">${previewHtml}</div>
-                                </div>
-                            </div>`
-                        })()}
-                        `;
-                    // use srcdoc to prevent CORS issues
-                    // get the raw text
-                    const relement = document.getElementById(`cc_stats_request_${id}`);
-                    const rawResponse = requestt.response;
-                    let previewHtml = "";
-                    let dangerous = false;
-                    switch (requestt.responseFormat) {
-                        // case "image":
-                        //     previewHtml = `<img src="${rawResponse}" style="max-width:100%; max-height:300px;">`;
-                        //     break;
-
-                        case "json":
-                            try {
-                                const formattedJson = JSON.stringify(
-                                    JSON.parse(rawResponse),
-                                    null,
-                                    2
-                                );
-                                previewHtml = `<pre style="white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px;max-height:500px;overflow-y:auto; background-color: #222;padding:5px;padding:5px">FORMATTED: ${formattedJson}</pre>`;
-                            } catch (e) {
-                                this.log(e);
-                                previewHtml = `<pre style="white-space:pre-wrap;">Raw: ${rawResponse}</pre>`;
-                            }
-                            break;
-
-                        // case "html":
-                        //     previewHtml = `<iframe id="cc_stats_request_${id}_iframe" style="width:500px;height:500px;border:1px solid #ccc;background-color: white;"></iframe>`;
-                        //     break;
-
-                        default:
-                            previewHtml = `<pre style="white-space:pre-wrap;white-space:pre-wrap;border:1px solid #ccc; border-radius: 6px; background-color: #22;padding:5px;max-width:100%; overflow-x:scroll;"">${this.formatRawRes(
-                                rawResponse
-                            )}</pre>`;
-                    }
-
-                    // const viewToggle = `
-                    //     <div class="response-toggle" style="margin-bottom:10px;">
-                    //     <button id="view_${id}_preview" data-val="preview">Preview</button>
-                    //     <button id="view_${id}_raw" data-val="raw">Raw</button>
-                    //     </div>
-                    // `;
-
-                    
-                    if (requestt.responseFormat == "html") {
-                        const iframe = document.getElementById(
-                            `cc_stats_request_${id}_iframe`
-                        );
-                        iframe.srcdoc = rawResponse;
-                    }
-                }
-                break;
-
-            case "request-error":
-                if (document.getElementById(`cc_stats_request_${id}`)) {
-                    document.getElementById(`cc_stats_request_${id}_status`).textContent =
-                        requestt.status;
-                    // add headers
-                    document.getElementById(`cc_stats_request_${id}`).innerHTML += `
+                case "request-error":
+                    if (document.getElementById(`cc_stats_request_${id}`)) {
+                        document.getElementById(`cc_stats_request_${id}_status`).textContent =
+                            requestt.status;
+                        // add headers
+                        document.getElementById(`cc_stats_request_${id}`).innerHTML += `
                             <div>Errored</div>
                         `;
-                }
-                return "";
-                break;
+                    }
+                    return "";
+                    break;
+            }
+            return "";
+        } catch (err) {
+            this.log(`Error formatting request (${request.id} - ${new URL(request.request.url).pathname}):`, err);
+            this.log(err.stack)
         }
-        return "";
     }
     getMouse() {
         return [this.mouseX, this.mouseY];
