@@ -4,7 +4,7 @@
             "name": "cookie_clicker",
             "fName": "Cookie Clicker",
             "description": "Addictive idle game where you bake cookies by clicking and upgrading your production",
-            "image": "/assets/images/cookie_clicker.jpg",
+            "image": "/assets/images/game_covers/cookie_clicker.jpg",
             "online": true,
             "links": [
                 {
@@ -22,7 +22,7 @@
             "name": "champion_island",
             "fName": "Google Champion Island",
             "description": "Explore a magical world and compete in mini-games inspired by Japanese folklore.",
-            "image": "/assets/images/champion_island.webp",
+            "image": "/assets/images/game_covers/champion_island.jpg",
             "online": true,
             "links": [
                 {
@@ -40,7 +40,7 @@
             "name": "drift_hunters",
             "fName": "Drift Hunters",
             "description": "Experience thrilling drift racing action with a variety of cars and tracks.",
-            "image": "/assets/images/drift_hunters.jpg",
+            "image": "/assets/images/game_covers/drift_hunters.jpg",
             "online": true,
             "links": [
                 {
@@ -58,7 +58,7 @@
             "name": "tiny_fishing",
             "fName": "Tiny Fishing",
             "description": "Relax and enjoy a simple yet addictive fishing game with charming graphics.",
-            "image": "/assets/images/tiny_fishing.jpg",
+            "image": "/assets/images/game_covers/tiny_fishing.jpg",
             "online": true,
             "links": [
                 {
@@ -76,7 +76,7 @@
             "name": "nes_emulator",
             "fName": "NES Emulator",
             "description": "Experience the nostalgia of classic NES games with this online emulator.",
-            "image": "/assets/images/nes_emulator.png",
+            "image": "/assets/images/game_covers/nes_emulator.jpg",
             "online": true,
             "links": [
                 {
@@ -95,7 +95,7 @@
             "name": "spelunky",
             "fName": "Spelunky",
             "description": "Explore a procedurally generated cave system filled with traps and treasures.",
-            "image": "/assets/images/spelunky.png",
+            "image": "/assets/images/game_covers/spelunky.jpg",
             "online": true,
             "links": [
                 {
@@ -114,7 +114,7 @@
             "name": "slope",
             "fName": "Slope",
             "description": "Navigate a ball through a neon obstacle course in this fast-paced reaction game.",
-            "image": "/assets/images/slope.webp",
+            "image": "/assets/images/game_covers/slope.jpg",
             "online": true,
             "links": [
                 {
@@ -132,7 +132,7 @@
             "name": "minecraft",
             "fName": "Minecraft",
             "description": "Explore and build in a blocky world with this online port of the popular game.",
-            "image": "/assets/images/minecraft1_5_2.jpg",
+            "image": "/assets/images/game_covers/minecraft1_5_2.jpg",
             "online": true,
             "links": [
                 {
@@ -156,7 +156,7 @@
             "name": "2048",
             "fName": "2048",
             "description": "The 2048 game is a simple yet brain-teasting puzzle that revolves around combining tiles on a grid.",
-            "image": "/assets/images/2048.png",
+            "image": "/assets/images/game_covers/2048.jpg",
             "online": true,
             "links": [
                 {
@@ -179,7 +179,7 @@
             "name": "cut_the_rope",
             "fName": "Cut the Rope",
             "description": "Help Om Nom collect stars and candies in this physics-based puzzle game.",
-            "image": "/assets/images/cut_the_rope.webp",
+            "image": "/assets/images/game_covers/cut_the_rope.jpg",
             "online": true,
             "links": [
                 {
@@ -197,7 +197,7 @@
             "name": "papas_freezeria",
             "fName": "Papa's Freezeria",
             "description": "Make ice cream sundaes in this nostalgic Papa's game.",
-            "image": "/assets/images/papas_freezeria.jpg",
+            "image": "/assets/images/game_covers/papas_freezeria.jpg",
             "online": true,
             "links": [
                 {
@@ -216,7 +216,7 @@
             "name": "papas_pizzeria",
             "fName": "Papa's Pizzeria",
             "description": "Run a pizza shop in this iconic fast-paced game.",
-            "image": "/assets/images/papas_pizzeria.jpg",
+            "image": "/assets/images/game_covers/papas_pizzeria.jpg",
             "online": true,
             "links": [
                 {
@@ -235,7 +235,7 @@
             "name": "pacman",
             "fName": "Pac Man",
             "description": "Gobble up ghosts in this hit 1980s arcade game.",
-            "image": "/assets/images/pacman.png",
+            "image": "/assets/images/game_covers/pacman.jpg",
             "online": true,
             "links": [
                 {
@@ -253,7 +253,7 @@
             "name": "getting_over_it",
             "fName": "Getting Over It",
             "description": "Swing a cauldron-bound man up a junk mountain. Prepare for hilarious frustration.",
-            "image": "/assets/images/getting_over_it.png",
+            "image": "/assets/images/game_covers/getting_over_it.jpg",
             "online": true,
             "links": [
                 {
@@ -271,7 +271,7 @@
             "name": "there_is_no_game",
             "fName": "There is no Game",
             "description": "A quirky, fourth-wall-breaking game that defies traditional gameplay.",
-            "image": "/assets/images/there_is_no_game.png",
+            "image": "/assets/images/game_covers/there_is_no_game.jpg",
             "online": true,
             "links": [
                 {
@@ -289,7 +289,7 @@
             "name": "idle_breakout",
             "fName": "Idle Breakout",
             "description": "A unique idle game where you break bricks and upgrade your balls.",
-            "image": "/assets/images/idle_breakout.png",
+            "image": "/assets/images/game_covers/idle_breakout.jpg",
             "online": true,
             "links": [
                 {
@@ -307,7 +307,7 @@
             "name": "ovo",
             "fName": "OVO",
             "description": "A fast-paced platformer where you navigate through challenging levels.",
-            "image": "/assets/images/ovo.jpg",
+            "image": "/assets/images/game_covers/ovo.jpg",
             "online": true,
             "links": [
                 {
@@ -325,7 +325,7 @@
             "name": "chess",
             "fName": "Chess",
             "description": "Chess is a turn based strategy gamewhere you try to take down the opponent's king.",
-            "image": "/assets/images/chess.png",
+            "image": "/assets/images/game_covers/chess.jpg",
             "online": true,
             "links": [
                 {
@@ -342,7 +342,7 @@
             "name": "doodle_jump",
             "fName": "Doodle Jump",
             "description": "Doodle Jump is a vertical platformer where you guide a cute character upwards by jumping on platforms, avoiding obstacles, and collecting power-ups.",
-            "image": "/assets/images/doodle_jump.png",
+            "image": "/assets/images/game_covers/doodle_jump.jpg",
             "online": true,
             "links": [
                 {
@@ -360,7 +360,7 @@
             "name": "gametime_player",
             "fName": "Gametime Player",
             "description": "Run all kinds of retro ROM files with this emulator.",
-            "image": "/assets/images/pokemon_emerald.jpg",
+            "image": "/assets/images/game_covers/pokemon_emerald.jpg",
             "online": true,
             "links": [
                 {
@@ -379,7 +379,7 @@
             "name": "retro_bowl",
             "fName": "Retro Bowl",
             "description": "Retro is an American style football game created by New Star Games. Manage your team's roster, play against rivals, and win the super bowl!",
-            "image": "/assets/images/retro_bowl.jpg",
+            "image": "/assets/images/game_covers/retro_bowl.jpg",
             "online": true,
             "links": [
                 {
@@ -397,7 +397,7 @@
             "name": "basket_random",
             "fName": "Basket Random",
             "description": "An addictive and fun two player game where you try and score as many baskets as you can against your friends!",
-            "image": "/assets/images/basket_random.jpg",
+            "image": "/assets/images/game_covers/basket_random.jpg",
             "online": true,
             "links": [
                 {
@@ -415,7 +415,7 @@
             "name": "soccer_heads",
             "fName": "Soccer Heads",
             "description": "Play soccer with big heads of 13 world-class teams in this fun and funny game. Choose your favorite club and compete in to score the most goals.",
-            "image": "/assets/images/soccer_heads.png",
+            "image": "/assets/images/game_covers/soccer_heads.jpg",
             "online": true,
             "links": [
                 {
@@ -434,7 +434,7 @@
             "name": "flappy_bird",
             "fName": "Flappy Bird",
             "description": "Flappy Bird is a simple yet challenging game where you control a bird and try to navigate through pipes without hitting them.",
-            "image": "/assets/images/flappy_bird.jpg",
+            "image": "/assets/images/game_covers/flappy_bird.jpg",
             "online": true,
             "links": [
                 {
@@ -452,7 +452,7 @@
             "name": "tetris",
             "fName": "Tetris",
             "description": "Tetris is a classic puzzle game where you try to fit different shaped blocks together to create lines and clear the board.",
-            "image": "/assets/images/tetris.png",
+            "image": "/assets/images/game_covers/tetris.jpg",
             "online": true,
             "links": [
                 {
@@ -470,7 +470,7 @@
             "name": "just_one_boss",
             "fName": "Just One Boss",
             "description": "Defeat the boss by collecting glowing tiles without losing all your hearts.",
-            "image": "/assets/images/just_one_boss.png",
+            "image": "/assets/images/game_covers/just_one_boss.jpg",
             "online": true,
             "links": [
                 {
@@ -488,7 +488,7 @@
             "name": "suika_game",
             "fName": "Suika Game",
             "description": "Drop fruits into the field and merge them to create a watermelon.",
-            "image": "/assets/images/suika_game.jpg",
+            "image": "/assets/images/game_covers/suika_game.jpg",
             "online": true,
             "links": [
                 {
@@ -505,7 +505,7 @@
             "name": "sand_boxels",
             "fName": "Sandboxels",
             "description": "A falling sand simulation game, with heat transfer, electricity, density, fire, explosions, and more.",
-            "image": "/assets/images/sand_boxels.png",
+            "image": "/assets/images/game_covers/sand_boxels.jpg",
             "online": true,
             "links": [
                 {
@@ -523,7 +523,7 @@
             "name": "bloons_td_4",
             "fName": "Bloons Tower Defense 4",
             "description": "Bloons Tower Defense 4 is a popular tower defense game where you pop balloons using various towers and upgrades.",
-            "image": "/assets/images/bloons_td_4.png",
+            "image": "/assets/images/game_covers/bloons_td_4.jpg",
             "online": true,
             "links": [
                 {
@@ -541,7 +541,7 @@
             "name": "bloons_td_5",
             "fName": "Bloons Tower Defense 5",
             "description": "Bloons Tower Defense 5 is a popular tower defense game where you pop balloons using various towers and upgrades. (Better than BTD4)",
-            "image": "/assets/images/bloons_td_5.jpg",
+            "image": "/assets/images/game_covers/bloons_td_5.jpg",
             "online": true,
             "links": [
                 {
@@ -559,7 +559,7 @@
             "name": "toss_the_turtle",
             "fName": "Toss The Turtle",
             "description": "Toss the Turtle is a fun and addictive game where you launch a turtle as far as you can using cannons, bombs, and jetpacks.",
-            "image": "/assets/images/toss_the_turtle.jpg",
+            "image": "/assets/images/game_covers/toss_the_turtle.jpg",
             "online": true,
             "links": [
                 {
@@ -577,7 +577,7 @@
             "name": "stickman_hook",
             "fName": "Stickman Hook",
             "description": "Swing through the levels and try not to fall in this fun and challenging game.",
-            "image": "/assets/images/stickman_hook.webp",
+            "image": "/assets/images/game_covers/stickman_hook.jpg",
             "online": true,
             "links": [
                 {
@@ -595,7 +595,7 @@
             "name": "knife_hit",
             "fName": "Knife Hit",
             "description": "Throw knives at spinning targets, try to hit the fruit without hitting the other knives.",
-            "image": "/assets/images/knife_hit.png",
+            "image": "/assets/images/game_covers/knife_hit.jpg",
             "online": true,
             "links": [
                 {
@@ -613,7 +613,7 @@
             "name": "emulator",
             "fName": "Emulator V2",
             "description": "Run any ROM in the ROM library, with custom contrls, quick saves, and more.",
-            "image": "/assets/images/super_mario_bros.png",
+            "image": "/assets/images/game_covers/super_mario_bros.jpg",
             "online": true,
             "links": [
                 {
@@ -631,7 +631,7 @@
             "name": "learn_to_fly_1",
             "fName": "Learn to Fly",
             "description": "Help a penguin achieve his dream of flying through upgrading equipment and perfecting your launch.",
-            "image": "/assets/images/learn_to_fly_1.png",
+            "image": "/assets/images/game_covers/learn_to_fly_1.jpg",
             "online": true,
             "links": [
                 {
@@ -649,7 +649,7 @@
             "name": "learn_to_fly_2",
             "fName": "Learn to Fly 2",
             "description": "The penguin returns with new gadgets, better graphics, and more challenging missions in this sequel.",
-            "image": "/assets/images/learn_to_fly_2.png",
+            "image": "/assets/images/game_covers/learn_to_fly_2.jpg",
             "online": true,
             "links": [
                 {
@@ -667,7 +667,7 @@
             "name": "learn_to_fly_3",
             "fName": "Learn to Fly 3",
             "description": "The epic conclusion to the Learn to Fly trilogy featuring improved mechanics and multiple game modes.",
-            "image": "/assets/images/learn_to_fly_3.png",
+            "image": "/assets/images/game_covers/learn_to_fly_3.jpg",
             "online": true,
             "links": [
                 {
@@ -685,7 +685,7 @@
             "name": "duck_life_4",
             "fName": "Duck Life 4",
             "description": "Train your duck in various activities and compete in tournaments in this engaging training simulation game.",
-            "image": "/assets/images/duck_life_4.png",
+            "image": "/assets/images/game_covers/duck_life_4.jpg",
             "online": true,
             "links": [
                 {
@@ -704,7 +704,7 @@
             "name": "bloxorz",
             "fName": "Bloxorz",
             "description": "Bloxorz is a classic puzzle game where you try to move a block to a hole by rolling it through a series of platforms.",
-            "image": "/assets/images/bloxorz.png",
+            "image": "/assets/images/game_covers/bloxorz.jpg",
             "online": true,
             "links": [
                 {
