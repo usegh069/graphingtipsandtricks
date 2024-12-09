@@ -538,6 +538,24 @@
             ]
         },
         {
+            "name": "bloons_td_5",
+            "fName": "Bloons Tower Defense 5",
+            "description": "Bloons Tower Defense 5 is a popular tower defense game where you pop balloons using various towers and upgrades. (Better than BTD4)",
+            "image": "/assets/images/bloons_td_5.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/btd/5/"
+                }
+            ],
+            "tags": [
+                "towerDefense",
+                "flash",
+                "bloons"
+            ]
+        },
+        {
             "name": "toss_the_turtle",
             "fName": "Toss The Turtle",
             "description": "Toss the Turtle is a fun and addictive game where you launch a turtle as far as you can using cannons, bombs, and jetpacks.",
@@ -680,6 +698,24 @@
                 "training",
                 "simulation",
                 "duckLife"
+            ]
+        },
+        {
+            "name": "bloxorz",
+            "fName": "Bloxorz",
+            "description": "Bloxorz is a classic puzzle game where you try to move a block to a hole by rolling it through a series of platforms.",
+            "image": "/assets/images/bloxorz.png",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/bloxorz/"
+                }
+            ],
+            "tags": [
+                "flash",
+                "puzzle",
+                "strategy"
             ]
         }
     ]
