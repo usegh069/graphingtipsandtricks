@@ -203,6 +203,9 @@ try {
         }
 
         drop() {
+            if(this.paused) {
+                return;
+            }
             this.piece.pos.y++;
             if (this.collision()) {
                 this.piece.pos.y--;
@@ -214,6 +217,9 @@ try {
         }
 
         hardDrop() {
+            if(this.paused){
+                return;
+            }
             while (!this.collision()) {
                 this.piece.pos.y++;
             }
@@ -225,6 +231,9 @@ try {
         }
 
         move(dir) {
+            if(this.paused){
+                return;
+            }
             this.piece.pos.x += dir;
             if (this.collision()) {
                 this.piece.pos.x -= dir;
@@ -423,24 +432,33 @@ try {
         switch (event.keyCode) {
             case 37: // Left arrow
                 if (game.gameOver) break;
+                if (game.paused) break;
                 game.moving[0] = -1;
                 game.move(-1);
                 break;
             case 39: // Right arrow
                 if (game.gameOver) break;
+                if (game.paused) break;
+
                 game.moving[1] = 1;
                 game.move(1);
                 break;
             case 40: // Down arrow
                 if (game.gameOver) break;
+                if (game.paused) break;
+
                 game.drop();
                 break;
             case 38: // Up arrow
                 if (game.gameOver) break;
+                if (game.paused) break;
+
                 game.rotate(game.piece);
                 break;
             case 32: // Space
                 if (game.gameOver) break;
+                if (game.paused) break;
+
                 game.hardDrop();
                 break;
             case 13: // enter
