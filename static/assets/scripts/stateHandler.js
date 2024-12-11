@@ -170,57 +170,150 @@ class StateSyncUtility {
         return data;
     }
 
-    async importIndexedDBState(data) {
-        await Promise.all(Object.entries(data).map(async ([dbName, dbData]) => {
-            // Delete existing database
-            await new Promise((resolve, reject) => {
-                const request = indexedDB.deleteDatabase(dbName);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve();
-            });
-
-            // Create new database with schema
+    async function importIndexedDBState(backupData) {
+        const log = console.log;  // Assuming similar logging setup as getAllIndexedDBData
+        log(`[CCPorted State Manager] Starting IndexedDB import...`);
+        log(`[CCPorted State Manager] Found ${Object.keys(backupData).length} databases to import`);
+    
+        // Delete existing databases first to avoid conflicts
+        const existingDbs = await window.indexedDB.databases();
+        log(`[CCPorted State Manager] Cleaning up ${existingDbs.length} existing databases...`);
+        
+        await Promise.all(existingDbs.map(dbInfo => 
+            new Promise((resolve, reject) => {
+                log(`[CCPorted State Manager] Deleting existing database: ${dbInfo.name}`);
+                const request = window.indexedDB.deleteDatabase(dbInfo.name);
+                request.onerror = () => {
+                    log(`[CCPorted State Manager] ERROR: Failed to delete database ${dbInfo.name}:`, request.error);
+                    reject(request.error);
+                };
+                request.onsuccess = () => {
+                    log(`[CCPorted State Manager] Successfully deleted database: ${dbInfo.name}`);
+                    resolve();
+                };
+            })
+        ));
+    
+        // Import each database
+        await Promise.all(Object.entries(backupData).map(async ([dbName, dbData]) => {
+            log(`[CCPorted State Manager] Creating database: ${dbName} (version ${dbData.version})`);
+            
+            // Create database and object stores
             const db = await new Promise((resolve, reject) => {
-                const request = indexedDB.open(dbName, dbData.version || 1);
-                request.onerror = () => reject(request.error);
+                const request = indexedDB.open(dbName, dbData.version);
+                
+                request.onerror = () => {
+                    log(`[CCPorted State Manager] ERROR: Failed to create database ${dbName}:`, request.error);
+                    reject(request.error);
+                };
+                
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
-                    Object.values(dbData.schema).forEach(storeSchema => {
-                        this.createObjectStore(db, storeSchema);
+                    log(`[CCPorted State Manager] Setting up schema for database: ${dbName}`);
+                    
+                    // Create object stores with their schemas
+                    Object.entries(dbData.schema).forEach(([storeName, schema]) => {
+                        log(`[CCPorted State Manager] Creating object store: ${storeName}`);
+                        const storeOptions = {};
+                        if (schema.keyPath) {
+                            storeOptions.keyPath = schema.keyPath;
+                            log(`[CCPorted State Manager] - Using keyPath: ${schema.keyPath}`);
+                        }
+                        if (schema.autoIncrement) {
+                            storeOptions.autoIncrement = schema.autoIncrement;
+                            log(`[CCPorted State Manager] - Using autoIncrement: ${schema.autoIncrement}`);
+                        }
+                        
+                        const store = db.createObjectStore(storeName, storeOptions);
+                        
+                        // Create indexes
+                        if (schema.indexes) {
+                            schema.indexes.forEach(index => {
+                                log(`[CCPorted State Manager] - Creating index: ${index.name}`);
+                                store.createIndex(index.name, index.keyPath, {
+                                    unique: index.unique,
+                                    multiEntry: index.multiEntry
+                                });
+                            });
+                        }
                     });
                 };
-                request.onsuccess = () => resolve(request.result);
+                
+                request.onsuccess = () => {
+                    log(`[CCPorted State Manager] Successfully created database: ${dbName}`);
+                    resolve(request.result);
+                };
             });
-
+    
             // Import data for each store
-            await Promise.all(Object.entries(dbData.schema).map(async ([storeName, storeSchema]) => {
-                const transaction = db.transaction(storeName, 'readwrite');
-                const store = transaction.objectStore(storeName);
+            const stores = Object.keys(dbData.schema);
+            log(`[CCPorted State Manager] Importing data for ${stores.length} stores in ${dbName}`);
+    
+            await Promise.all(stores.map(async storeName => {
                 const storeData = dbData.stores[storeName];
                 const storeKeys = dbData.stores[`${storeName}_keys`];
-
-                if (!storeData || !storeKeys) {
-                    console.warn(`Missing data or keys for store '${storeName}'`);
+                
+                if (!storeData || storeData.length === 0) {
+                    log(`[CCPorted State Manager] No data to import for store: ${storeName}`);
                     return;
                 }
-
-                // Always use keys with put operation for maximum compatibility
-                await Promise.all(storeData.map((item, i) =>
-                    new Promise((resolve, reject) => {
-                        const request = store.put(item, storeKeys[i]);
-                        request.onerror = (error) => {
-                            console.error(`Error putting data in store '${storeName}':`, error);
+    
+                log(`[CCPorted State Manager] Importing ${storeData.length} records into store: ${storeName}`);
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+    
+                // Import all records
+                let successCount = 0;
+                let errorCount = 0;
+    
+                await Promise.all(storeData.map(async (item, index) => {
+                    return new Promise((resolve, reject) => {
+                        let request;
+                        
+                        // If we have explicit keys and the store doesn't use keyPath
+                        if (!store.keyPath && storeKeys && storeKeys[index]) {
+                            request = store.add(item, storeKeys[index]);
+                        } else {
+                            request = store.add(item);
+                        }
+                        
+                        request.onerror = () => {
+                            errorCount++;
+                            log(`[CCPorted State Manager] ERROR: Failed to import record ${index} in ${storeName}:`, request.error);
                             reject(request.error);
                         };
-                        request.onsuccess = () => resolve();
-                    })
-                ));
+                        request.onsuccess = () => {
+                            successCount++;
+                            // Log progress every 100 records
+                            if (successCount % 100 === 0 || successCount === storeData.length) {
+                                log(`[CCPorted State Manager] Progress: ${successCount}/${storeData.length} records imported in ${storeName}`);
+                            }
+                            resolve();
+                        };
+                    });
+                }));
+    
+                // Wait for transaction to complete
+                await new Promise((resolve, reject) => {
+                    transaction.oncomplete = () => {
+                        log(`[CCPorted State Manager] Completed import for store ${storeName}:`);
+                        log(`[CCPorted State Manager] - Successfully imported: ${successCount} records`);
+                        log(`[CCPorted State Manager] - Failed to import: ${errorCount} records`);
+                        resolve();
+                    };
+                    transaction.onerror = () => {
+                        log(`[CCPorted State Manager] ERROR: Transaction failed for ${storeName}:`, transaction.error);
+                        reject(transaction.error);
+                    };
+                });
             }));
-
+    
+            log(`[CCPorted State Manager] Closing database: ${dbName}`);
             db.close();
         }));
+        
+        log(`[CCPorted State Manager] IndexedDB import completed successfully`);
     }
-
 
     // Import state from blob
     async importState(compressedState, compressed = false) {
