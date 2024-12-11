@@ -56,97 +56,100 @@ try {
     }
     async function testOpenServers() {
         const servers = ["https://dahljrdecyiwfjgklnvz.supabase.co"];
-        const responses = await Promise.all(servers.map(server=>{
+        const responses = await Promise.all(servers.map(server => {
             fetch(server)
         }));
         const json = await Promise.all(responses.map(response => response.json()));
         // expexted response should have "error: requested path is invalid"
         const valid = null;
-        json.forEach((serverRes,i) => {
-            if(serverRes["error"].includes("requested path is invalid")){
+        json.forEach((serverRes, i) => {
+            if (serverRes["error"].includes("requested path is invalid")) {
                 valid = servers[i];
                 return;
             }
         });
         return valid;
     }
-    async function baseRender(){
-        if(window.ccPorted.cardsRendered) return;
-        // const openServers = await testOpenServers();
-        // log(openServers);
-        createNotif({
-            message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
-            cta: false,
-            autoClose: 5
-        })
-        const gamesJson = await importJSON("/games.json");
-        const { games } = gamesJson;
-
-        games.forEach(game => {
-            const card = buildCard(game);
-            const id = card.getAttribute('id');
-            // get links
-            const links = card.querySelectorAll('.card-content .card-links a');
-            card.style.cursor = "pointer";
-            card.setAttribute('data-clicks', 0);
-            card.addEventListener('click', (e) => {
-                if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
-                    // not the card, but an item for which something happens on the card
-                    if (e.target.tagName == "A") {
-                        e.preventDefault();
-                        // if it's a link, open it
-                        window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
-                    }
-                    return;
-                }
-                window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
+    async function baseRender() {
+        try {
+            log("Attempting base render");
+            log("Cards rendered: " + window.ccPorted.cardsRendered)
+            if (window.ccPorted.cardsRendered) return;
+            createNotif({
+                message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
+                cta: false,
+                autoClose: 5
             });
-            checkSeenGame(id, card);
-            markGameSeen(id);
-            cardsCache.push(card);
-            cardsContainer.appendChild(card);
-        });
-        setSort(0);
-        document.querySelector(".cards").classList.remove("loading");
-        let romsJSON = await importJSON("/roms/roms.json");
-        let unseenRoms = []
-        Object.keys(romsJSON).forEach(key => {
-            const romsList = romsJSON[key];
-            romsList.forEach(([romLink, romID]) => {
-                const name = `${key}-${normalize(romID)}`;
-                if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
-                markGameSeen(name);
-            })
-        });
-        if (unseenRoms.length > 0) {
-            if (unseenRoms.length == 1) {
-                document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`
-            } else {
-                document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`
+            const gamesJson = await importJSON("/games.json");
+            const { games } = gamesJson;
+            log(`Games ${games.length} found.`);
+            games.forEach(game => {
+                const card = buildCard(game);
+                const id = card.getAttribute('id');
+                const links = card.querySelectorAll('.card-content .card-links a');
+                card.style.cursor = "pointer";
+                card.setAttribute('data-clicks', 0);
+                card.addEventListener('click', (e) => {
+                    if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
+                        if (e.target.tagName == "A") {
+                            e.preventDefault();
+                            window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
+                        }
+                        return;
+                    }
+                    window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
+                });
+                checkSeenGame(id, card);
+                markGameSeen(id);
+                cardsCache.push(card);
+                cardsContainer.appendChild(card);
+            });
+            setSort(0);
+            log("Loading ROMs")
+            document.querySelector(".cards").classList.remove("loading");
+            let romsJSON = await importJSON("/roms/roms.json");
+            let unseenRoms = [];
+            log(`Roms found (length not calculated - reason: deep)`);
+            Object.keys(romsJSON).forEach(key => {
+                const romsList = romsJSON[key];
+                romsList.forEach(([romLink, romID]) => {
+                    const name = `${key}-${normalize(romID)}`;
+                    if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
+                    markGameSeen(name);
+                })
+            });
+            if (unseenRoms.length > 0) {
+                if (unseenRoms.length == 1) {
+                    document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`;
+                } else {
+                    document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`;
+                }
             }
-        }
-        if (query.has("q")) {
-            if (query.get("q").length > 0) {
-                log(`Search query exists: <${query.get('q')}>`)
-                searchInput.value = query.get("q");
-                openSearch();
-                input();
-            } else {
-                log(`Search query exists but is empty`)
-                query.delete("q");
-                var url = new URL(window.location.href);
-                url.search = query.toString();
-                window.history.pushState({}, '', url);
+            if (query.has("q")) {
+                if (query.get("q").length > 0) {
+                    log(`Search query exists: <${query.get('q')}>`);
+                    searchInput.value = query.get("q");
+                    openSearch();
+                    input();
+                } else {
+                    log(`Search query exists but is empty`);
+                    query.delete("q");
+                    var url = new URL(window.location.href);
+                    url.search = query.toString();
+                    window.history.pushState({}, '', url);
+                }
             }
+        } catch (e) {
+            log("Failed to import manually" + "\n" + e.stack);
         }
     }
     async function init() {
         log("Initializing");
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
-        setTimeout(()=>{
+        setTimeout(() => {
             baseRender();
-        },3000);
+        }, 3000);
         const gamesJson = await importJSON("/games.json");
         const { games } = gamesJson;
         log(`Got ${games.length} games`);
@@ -221,13 +224,13 @@ try {
         loadAds();
     }
     async function incrementClicks(gameID) {
-        try{
+        try {
             log(`Incrementing clicks for game ${gameID}`);
             let { data: game_clicks, error } = await client
                 .from('game_clicks')
                 .select('clicks')
                 .eq('gameID', gameID);
-    
+
             if (error) {
                 console.error('Error getting game clicks:', error.message);
                 return;
@@ -237,35 +240,35 @@ try {
             let { data, error: upsertError } = await client
                 .from('game_clicks')
                 .upsert([{ gameID, clicks }]);
-        }catch(e){
+        } catch (e) {
             log(e);
         }
     }
     async function getGameClicks(gameID) {
-        try{
+        try {
             log(`Getting clicks for game ${gameID}`);
             let { data: game_clicks, error } = await client
                 .from('game_clicks')
                 .select('clicks')
                 .eq('gameID', gameID);
-    
+
             if (error) {
                 console.error('Error getting game clicks:', error.message);
                 return;
             }
             return (game_clicks[0] || { clicks: 0 }).clicks;
-        }catch(e){
+        } catch (e) {
             log(e);
             return 0;
         }
     }
     async function getAllClicks() {
-        try{
+        try {
             log(`Getting all game clicks`);
             let { data: game_clicks, error } = await client
                 .from('game_clicks')
                 .select('gameID, clicks');
-    
+
             if (error) {
                 console.error('Error getting game clicks:', error.message);
                 return;
@@ -275,7 +278,7 @@ try {
                 obj[game.gameID] = game.clicks;
             });
             return obj;
-        }catch(e){
+        } catch (e) {
             log(e);
             return {}
         }
@@ -404,7 +407,7 @@ try {
                 body: JSON.stringify({ name: game_name })
             });
 
-            
+
             log('Game request added:');
         } catch (error) {
             console.error('Error adding game request:', error.message);
