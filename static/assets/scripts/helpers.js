@@ -133,7 +133,7 @@ function createNotif(popupData) {
         border-radius: 10px;
         padding: 25px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
+        z-index: 99999;
         font-family: Arial, sans-serif;
     `;
     if (popupData.autoClose) {

@@ -78,7 +78,7 @@ try {
             createNotif({
                 message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
                 cta: false,
-                autoClose: 5
+                autoClose: 7
             });
             const gamesJson = await importJSON("/games.json");
             const { games } = gamesJson;
