@@ -72,8 +72,8 @@ try {
     }
     async function baseRender(){
         if(window.ccPorted.cardsRendered) return;
-        const openServers = await testOpenServers();
-        log(openServers);
+        // const openServers = await testOpenServers();
+        // log(openServers);
         createNotif({
             message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
             cta: false,
