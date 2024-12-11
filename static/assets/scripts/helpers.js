@@ -1,15 +1,19 @@
 window.ccPorted = window.ccPorted || {};
 if (typeof supabase === "undefined") {
+    log("Supabase script not installed, installing");
     installSupascript().then(() => {
         log("Supabase script loaded");
         postSupaInstall();
     });
 } else {
-
-    if(!window.ccSupaClient) window.ccSupaClient = createClient();
-    postSupaInstall();
+    try {
+        if (!window.ccSupaClient) window.ccSupaClient = createClient();
+        postSupaInstall();
+    } catch (e) {
+        log("Error occured when creating client, or during postSupaInstall"+"\n"+e.stack);
+    }
 }
-async function postSupaInstall(){
+async function postSupaInstall() {
     window.ccPorted.userPromise = new Promise((resolve, reject) => {
         window.ccSupaClient.auth.getUser().then(({ data }) => {
             try {
@@ -30,7 +34,7 @@ async function postSupaInstall(){
 }
 function log(...args) {
     console.log("[CCPORTED]: ", ...args);
-    if(window.ccPorted?.stats){
+    if (window.ccPorted?.stats) {
         window.ccPorted.stats.log(...args);
     }
 }

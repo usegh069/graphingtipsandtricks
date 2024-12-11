@@ -54,9 +54,79 @@ try {
         }
         return res.json() || {};
     }
-    async function init() {
+    async function baseRender(){
+        if(window.ccPorted.cardsRendered) return;
         const gamesJson = await importJSON("/games.json");
         const { games } = gamesJson;
+
+        games.forEach(game => {
+            const card = buildCard(game);
+            const id = card.getAttribute('id');
+            // get links
+            const links = card.querySelectorAll('.card-content .card-links a');
+            card.style.cursor = "pointer";
+            card.setAttribute('data-clicks', 0);
+            card.addEventListener('click', (e) => {
+                if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
+                    // not the card, but an item for which something happens on the card
+                    if (e.target.tagName == "A") {
+                        e.preventDefault();
+                        // if it's a link, open it
+                        window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
+                    }
+                    return;
+                }
+                window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
+            });
+            checkSeenGame(id, card);
+            markGameSeen(id);
+            cardsCache.push(card);
+            cardsContainer.appendChild(card);
+        });
+        setSort(0);
+        document.querySelector(".cards").classList.remove("loading");
+        let romsJSON = await importJSON("/roms/roms.json");
+        let unseenRoms = []
+        Object.keys(romsJSON).forEach(key => {
+            const romsList = romsJSON[key];
+            romsList.forEach(([romLink, romID]) => {
+                const name = `${key}-${normalize(romID)}`;
+                if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
+                markGameSeen(name);
+            })
+        });
+        if (unseenRoms.length > 0) {
+            if (unseenRoms.length == 1) {
+                document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`
+            } else {
+                document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`
+            }
+        }
+        if (query.has("q")) {
+            if (query.get("q").length > 0) {
+                log(`Search query exists: <${query.get('q')}>`)
+                searchInput.value = query.get("q");
+                openSearch();
+                input();
+            } else {
+                log(`Search query exists but is empty`)
+                query.delete("q");
+                var url = new URL(window.location.href);
+                url.search = query.toString();
+                window.history.pushState({}, '', url);
+            }
+        }
+    }
+    async function init() {
+        log("Initializing");
+        window.ccPorted = window.ccPorted || {};
+        window.ccPorted.cardsRendered = false;
+        setTimeout(()=>{
+            baseRender();
+        },3000);
+        const gamesJson = await importJSON("/games.json");
+        const { games } = gamesJson;
+        log(`Got ${games.length} games`);
         let clicks;
         try {
             clicks = await getAllClicks();
@@ -92,6 +162,7 @@ try {
         });
         setSort(0);
         document.querySelector(".cards").classList.remove("loading");
+        window.ccPorted.cardsRendered = true;
         let romsJSON = await importJSON("/roms/roms.json");
         let unseenRoms = []
         Object.keys(romsJSON).forEach(key => {
@@ -101,7 +172,7 @@ try {
                 if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
                 markGameSeen(name);
             })
-        })
+        });
         if (unseenRoms.length > 0) {
             if (unseenRoms.length == 1) {
                 document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`
