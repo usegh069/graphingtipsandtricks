@@ -120,3 +120,123 @@ function decamelize(string) {
     denormalized = denormalized[0].toUpperCase() + denormalized.slice(1);
     return denormalized;
 }
+function createNotif(popupData) {
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        max-width: 800px;
+        min-width: 500px;
+        background-color: rgb(37,37,37);
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1000;
+        font-family: Arial, sans-serif;
+    `;
+    if (popupData.autoClose) {
+        const meter = document.createElement("div");
+        meter.classList.add("meter");
+        meter.style.cssText = `
+            margin: 0;
+            width: 100%;
+            height: 10px;
+            background-color: rgba(0,0,255,1);
+            display: block;
+            position: absolute;
+            border-radius: 10px;
+            z-index: 9;
+            top: 0;
+            left: 0;
+            animation: meter-animation ${popupData.autoClose}s linear forwards;
+        `;
+        popup.appendChild(meter);
+
+        setTimeout(() => {
+            popup.style.animation = `fade 0.5s`;
+            setTimeout(() => {
+                popup.remove()
+            }, 500);
+        }, popupData.autoClose * 1000)
+    }
+    const popupContent = document.createElement("div");
+    const message = document.createElement('p');
+    message.textContent = popupData.message;
+    message.style.marginBottom = '10px';
+    message.style.color = 'white';
+    let link;
+    if (popupData.cta) {
+        link = document.createElement('a');
+        link.href = popupData.cta.link;
+        link.textContent = popupData.cta.text;
+        link.style.cssText = `
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+    }
+    if (!popupData.autoClose) {
+        const closeButton = document.createElement('a');
+        closeButton.href = 'javascript:void(0)';
+        closeButton.textContent = 'Close';
+        closeButton.style.cssText = `
+            display: inline-block;
+            background-color: rgb(248,0,0);
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+        closeButton.onclick = () => popup.remove();
+    }
+    const linkRow = document.createElement('div');
+    linkRow.style.display = 'flex';
+    linkRow.style.justifyContent = 'space-between';
+    const actionContainer = document.createElement("div");
+    for (const action of popupData.actions) {
+        const [actionName, actionFunc, color] = action;
+        let button = document.createElement("button");
+        button.style.cssText = `
+            display: inline-block;
+            background-color: ${(color) ? color : '#4CAF50'};
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid ${(color) ? color : '#4CAF50'};
+            margin: 5px;
+            cursor: pointer;
+        `;
+        button.onclick = () => {
+            popup.remove();
+            actionFunc();
+        };
+        button.innerText = actionName;
+        actionContainer.appendChild(button);
+    }
+    if (popupData.actions && popupData.actions.length > 0) {
+        linkRow.appendChild(actionContainer);
+    }
+    if (popupData.cta) {
+        linkRow.appendChild(link);
+    }
+    if (!popupData.autoClose) {
+        linkRow.appendChild(closeButton);
+    }
+    if (popupData.fullLink) {
+        popup.style.cursor = "pointer";
+        popup.addEventListener("click", () => {
+            window.location.assign(popupData.fullLink);
+        })
+    }
+
+    popupContent.appendChild(message);
+    popupContent.appendChild(linkRow);
+    popup.appendChild(popupContent);
+    document.body.appendChild(popup);
+}

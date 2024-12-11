@@ -54,8 +54,31 @@ try {
         }
         return res.json() || {};
     }
+    async function testOpenServers() {
+        const servers = ["https://dahljrdecyiwfjgklnvz.supabase.co"];
+        const responses = await Promise.all(servers.map(server=>{
+            fetch(server)
+        }));
+        const json = await Promise.all(responses.map(response => response.json()));
+        // expexted response should have "error: requested path is invalid"
+        const valid = null;
+        json.forEach((serverRes,i) => {
+            if(serverRes["error"].includes("requested path is invalid")){
+                valid = servers[i];
+                return;
+            }
+        });
+        return valid;
+    }
     async function baseRender(){
         if(window.ccPorted.cardsRendered) return;
+        const openServers = await testOpenServers();
+        log(openServers);
+        createNotif({
+            message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
+            cta: false,
+            autoClose: 5
+        })
         const gamesJson = await importJSON("/games.json");
         const { games } = gamesJson;
 
