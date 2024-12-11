@@ -1,18 +1,18 @@
 // sw.js
 const CACHE_NAME = 'trex-game-cache-v1';
 const ASSETS_TO_CACHE = [
-  '/trr/',
-  '/trr/index.html',
-  '/trr/index.css',
-  '/trr/index.js',
-  '/trr/assets/default_100_percent/100-offline-sprite.png',
-  '/trr/assets/default_200_percent/200-offline-sprite.png',
-  '/trr/assets/default_100_percent/100-disabled.png',
-  '/trr/assets/default_100_percent/100-error-offline.png',
-  '/trr/assets/default_200_percent/200-disabled.png',
-  '/trr/assets/default_200_percent/200-error-offline.png',
-  '/trr/assets/offline-sprite-1x.png',
-  '/trr/assets/offline-sprite-2x.png'
+  '/dg/',
+  '/dg/index.html',
+  '/dg/index.css',
+  '/dg/index.js',
+  '/dg/assets/default_100_percent/100-offline-sprite.png',
+  '/dg/assets/default_200_percent/200-offline-sprite.png',
+  '/dg/assets/default_100_percent/100-disabled.png',
+  '/dg/assets/default_100_percent/100-error-offline.png',
+  '/dg/assets/default_200_percent/200-disabled.png',
+  '/dg/assets/default_200_percent/200-error-offline.png',
+  '/dg/assets/offline-sprite-1x.png',
+  '/dg/assets/offline-sprite-2x.png'
 ];
 
 // Install event - cache all static assets

@@ -2,16 +2,18 @@
 <html>
 
 <head>
+    <gtag_events gameID = "dinosuar_game" />
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
-    <title>chrome easter egg: t-rex runner</title>
+    <title>Chrome Dinosuar Game</title>
+    <meta name = "description" content = "The Chrome Dinosuar Game, free to play and unblocked for when you have no internet">
     <link rel="stylesheet" href="index.css">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <script src="index.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/trr/sw.js')
+                navigator.serviceWorker.register('/dg/sw.js')
                     .then(registration => {
                         console.log('ServiceWorker registration successful');
                     })
@@ -19,12 +21,14 @@
                         console.log('ServiceWorker registration failed: ', err);
                     });
             });
-        }    </script>
+        }    
+    </script>
 </head>
 
 <body id="t" class="offline">
     <div id="messageBox" class="sendmessage">
         <h1 style="text-align: center;font-family: 'Open Sans', sans-serif;">Press Space to start</h1>
+        <p>Bookmark this page (CTRL+D) for when you have no internet.</p>
         <div class="niokbutton" onclick="okbuttonsend()"></div>
     </div>
     <div id="main-frame-error" class="interstitial-wrapper">
