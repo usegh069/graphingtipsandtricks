@@ -10,7 +10,7 @@ if (typeof supabase === "undefined") {
         if (!window.ccSupaClient) window.ccSupaClient = createClient();
         postSupaInstall();
     } catch (e) {
-        log("Error occured when creating client, or during postSupaInstall"+"\n"+e.stack);
+        log("Error occured when creating client, or during postSupaInstall" + "\n" + e.stack);
     }
 }
 async function postSupaInstall() {
@@ -197,11 +197,12 @@ function createNotif(popupData) {
     const linkRow = document.createElement('div');
     linkRow.style.display = 'flex';
     linkRow.style.justifyContent = 'space-between';
-    const actionContainer = document.createElement("div");
-    for (const action of popupData.actions) {
-        const [actionName, actionFunc, color] = action;
-        let button = document.createElement("button");
-        button.style.cssText = `
+    if (popupData.actions && popupData.actions.length >= 1) {
+        const actionContainer = document.createElement("div");
+        for (const action of popupData.actions) {
+            const [actionName, actionFunc, color] = action;
+            let button = document.createElement("button");
+            button.style.cssText = `
             display: inline-block;
             background-color: ${(color) ? color : '#4CAF50'};
             color: white;
@@ -212,14 +213,13 @@ function createNotif(popupData) {
             margin: 5px;
             cursor: pointer;
         `;
-        button.onclick = () => {
-            popup.remove();
-            actionFunc();
-        };
-        button.innerText = actionName;
-        actionContainer.appendChild(button);
-    }
-    if (popupData.actions && popupData.actions.length > 0) {
+            button.onclick = () => {
+                popup.remove();
+                actionFunc();
+            };
+            button.innerText = actionName;
+            actionContainer.appendChild(button);
+        }
         linkRow.appendChild(actionContainer);
     }
     if (popupData.cta) {
