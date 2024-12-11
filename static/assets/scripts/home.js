@@ -62,7 +62,7 @@ try {
             clicks = await getAllClicks();
         } catch (e) {
             log(e);
-            return;
+            clicks = {};
         }
         games.forEach(game => {
             const card = buildCard(game);
@@ -127,50 +127,64 @@ try {
         loadAds();
     }
     async function incrementClicks(gameID) {
-        log(`Incrementing clicks for game ${gameID}`);
-        let { data: game_clicks, error } = await client
-            .from('game_clicks')
-            .select('clicks')
-            .eq('gameID', gameID);
-
-        if (error) {
-            console.error('Error getting game clicks:', error.message);
-            return;
+        try{
+            log(`Incrementing clicks for game ${gameID}`);
+            let { data: game_clicks, error } = await client
+                .from('game_clicks')
+                .select('clicks')
+                .eq('gameID', gameID);
+    
+            if (error) {
+                console.error('Error getting game clicks:', error.message);
+                return;
+            }
+            const clicks = (game_clicks[0] || { clicks: 0 }).clicks + 1;
+            // upsert
+            let { data, error: upsertError } = await client
+                .from('game_clicks')
+                .upsert([{ gameID, clicks }]);
+        }catch(e){
+            log(e);
         }
-        const clicks = (game_clicks[0] || { clicks: 0 }).clicks + 1;
-        // upsert
-        let { data, error: upsertError } = await client
-            .from('game_clicks')
-            .upsert([{ gameID, clicks }]);
     }
     async function getGameClicks(gameID) {
-        log(`Getting clicks for game ${gameID}`);
-        let { data: game_clicks, error } = await client
-            .from('game_clicks')
-            .select('clicks')
-            .eq('gameID', gameID);
-
-        if (error) {
-            console.error('Error getting game clicks:', error.message);
-            return;
+        try{
+            log(`Getting clicks for game ${gameID}`);
+            let { data: game_clicks, error } = await client
+                .from('game_clicks')
+                .select('clicks')
+                .eq('gameID', gameID);
+    
+            if (error) {
+                console.error('Error getting game clicks:', error.message);
+                return;
+            }
+            return (game_clicks[0] || { clicks: 0 }).clicks;
+        }catch(e){
+            log(e);
+            return 0;
         }
-        return (game_clicks[0] || { clicks: 0 }).clicks;
     }
     async function getAllClicks() {
-        log(`Getting all game clicks`);
-        let { data: game_clicks, error } = await client
-            .from('game_clicks')
-            .select('gameID, clicks');
-
-        if (error) {
-            console.error('Error getting game clicks:', error.message);
-            return;
+        try{
+            log(`Getting all game clicks`);
+            let { data: game_clicks, error } = await client
+                .from('game_clicks')
+                .select('gameID, clicks');
+    
+            if (error) {
+                console.error('Error getting game clicks:', error.message);
+                return;
+            }
+            let obj = {};
+            game_clicks.forEach(game => {
+                obj[game.gameID] = game.clicks;
+            });
+            return obj;
+        }catch(e){
+            log(e);
+            return {}
         }
-        let obj = {};
-        game_clicks.forEach(game => {
-            obj[game.gameID] = game.clicks;
-        });
-        return obj;
     }
     async function sortCardsByClicks() {
         log(`Sorting cards by clicks`);
@@ -301,7 +315,6 @@ try {
         } catch (error) {
             console.error('Error adding game request:', error.message);
             log(error);
-            throw error;
         }
     };
     function showAds() {
