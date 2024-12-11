@@ -421,7 +421,7 @@ class Stats {
 
         return details;
     }
-    async finishRequest(response) {
+    async finishRequest(response, detailsContext) {
         const responseHeaders = response.headers;
         const responseRaw = response.response;
         const responseFormat = response.responseFormat;
@@ -446,20 +446,28 @@ class Stats {
         headersDiv.appendChild(headersTable);
         responseDiv.appendChild(responsePre);
 
-        const responseDataDiv = document.getElementById(`cc_stats_request_${response.id}_responseData`);
+        const responseDataDiv = this.contextualize(`cc_stats_request_${response.id}_responseData`, detailsContext)
         responseDataDiv.appendChild(headersDiv);
         responseDataDiv.appendChild(responseDiv);
 
-        const requestBodyElement = document.getElementById(`cc_stats_request_${response.id}_body`);
+        const requestBodyElement = this.contextualize(`cc_stats_request_${response.id}_body`, detailsContext)
         if (requestBodyElement) {
             requestBodyElement.appendChild(this.formatInformation(response.body, response.bodyType));
         }
-        const requestStatus = document.getElementById(`cc_stats_request_${response.id}_status`);
+        const requestStatus =  this.contextualize(`cc_stats_request_${response.id}_status`, detailsContext)
         if (requestStatus) {
             requestStatus.textContent = response.status;
         }
 
         return;
+    }
+    contextualize(id,context){
+        if(context){
+            console.log(context);
+            return context.querySelector("#"+id);
+        }else{
+            return document.getElementById(id);
+        }
     }
     async formatRequest(request) {
         try {
@@ -473,12 +481,15 @@ class Stats {
                     let element = document.getElementById(`cc_stats_request_${id}`);
                     if (!element) {
                         const details = await this.buildRequest(requestt);
+                        this.finishRequest(requestt, details)
+
                         // add to requests
                         if(document.getElementById("cc_stats_requestsIntercepted")){
                             document.getElementById("cc_stats_requestsIntercepted").appendChild(details);
                         }
-                    };
-                    this.finishRequest(requestt);
+                    }else{
+                        this.finishRequest(requestt)
+                    }
                     break;
 
                 case "request-error":

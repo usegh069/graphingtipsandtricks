@@ -170,7 +170,7 @@ class StateSyncUtility {
         return data;
     }
 
-    async function importIndexedDBState(backupData) {
+    async importIndexedDBState(backupData) {
         const log = console.log;  // Assuming similar logging setup as getAllIndexedDBData
         log(`[CCPorted State Manager] Starting IndexedDB import...`);
         log(`[CCPorted State Manager] Found ${Object.keys(backupData).length} databases to import`);
