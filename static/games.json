@@ -727,13 +727,31 @@
             "links": [
                 {
                     "name":"CCPorted",
-                    "link":"https://ccported.github.io/dg"
+                    "link":"https://ccported.github.io/dg/"
                 }
             ],
             "tags": [
                 "offline",
                 "endless",
                 "runner"
+            ]
+        },
+        {
+            "name":"iron_snout",
+            "fName":"Iron Snout",
+            "description":"Punch, kick, and flip your way through an endless horde of wolves. Dodge axes and throw them right back to the wolves to show them who is boss.",
+            "image":"/assets/images/game_covers/iron_snout.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/is/"
+                }
+            ],
+            "tags": [
+                "skill",
+                "action",
+                "animal"
             ]
         }
     ]
