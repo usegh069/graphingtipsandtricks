@@ -6,6 +6,7 @@ try {
     const searchInput = document.getElementById("searchBox");
     const allTags = document.querySelectorAll(".tag");
     const sortButton = document.getElementById("sort");
+    const shuffleButton = document.getElementById("shuffle");
     const addGameRequestButton = document.getElementById("addGameRequestButton");
     const sortDirectionText = document.getElementById("order");
     const header = document.querySelector('header');
@@ -72,6 +73,7 @@ try {
     }
     async function baseRender() {
         try {
+            window.ccPorted.serverBlocked = true
             log("Attempting base render");
             log("Cards rendered: " + window.ccPorted.cardsRendered)
             if (window.ccPorted.cardsRendered) return;
@@ -283,7 +285,20 @@ try {
             return {}
         }
     }
+
+    function sortCardsRandomly() {
+        let cardsArray = Array.from(document.querySelectorAll(".card"));
+        shuffle(cardsArray);
+        let cardsContainer = document.querySelector(".cards");
+        removeCards();
+        cardsArray.forEach(card => {
+            cardsContainer.appendChild(card);
+        });
+    }
     async function sortCardsByClicks() {
+        if (window.ccPorted?.serverBlocked) {
+            return sortCardsRandomly();
+        }
         log(`Sorting cards by clicks`);
         let cardsArray = Array.from(document.querySelectorAll(".card"));
         cardsArray.sort((a, b) => {
@@ -707,6 +722,9 @@ try {
             closePopup();
         });
 
+    });
+    shuffleButton.addEventListener("click",(e)=>{
+        sortCardsRandomly();
     })
     sortButton.addEventListener("click", () => {
         searchInput.value = "";
