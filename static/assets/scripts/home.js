@@ -314,6 +314,9 @@ try {
         log(`Searching for ${searchInput.value}`);
         if (searchInput.value.length <= 0) {
             setSort(0);
+            var url = new URL(window.location);
+            url.searchParams.delete("q");
+            window.history.pushState({}, '', url);
             return;
         }
         // update query parameters
@@ -759,22 +762,21 @@ try {
             }
         });
     });
-    searchInput.addEventListener("click", (e) => {
+    // searchInput.addEventListener("click", (e) => {
+    //     // only clear if the click is on the "x" button
+    //     var rect = searchInput.getBoundingClientRect();
+    //     var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
+    //     if (e.clientX > x) {
+    //         log("Clearing search input");
+    //         searchInput.value = "";
+    //         var url = new URL(window.location);
+    //         url.searchParams.delete("q");
+    //         window.history.pushState({}, '', url);
+    //         setSort(sortState)
+    //         searchInput.type = "hidden";
+    //     }
 
-        // only clear if the click is on the "x" button
-        var rect = searchInput.getBoundingClientRect();
-        var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
-        if (e.clientX > x) {
-            log("Clearing search input");
-            searchInput.value = "";
-            var url = new URL(window.location);
-            url.searchParams.delete("q");
-            window.history.pushState({}, '', url);
-            setSort(sortState)
-            searchInput.type = "hidden";
-        }
-
-    });
+    // });
     searchInput.addEventListener("mousemove", (e) => {
         // only set if the click is on the "x" button
         var rect = searchInput.getBoundingClientRect();

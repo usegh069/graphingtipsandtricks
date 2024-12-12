@@ -292,7 +292,7 @@ a:visited {
     width: fit-content;
 }
 
-button#sort {
+button#sort, button#shuffle {
     padding: 10px;
     border: none;
     background-color: transparent;
