@@ -232,6 +232,25 @@
             ]
         },
         {
+            "name": "papas_sushiria",
+            "fName": "Papa's Sushiria",
+            "description": "Make sushi in this nostalgic Papa's game.",
+            "image": "/assets/images/game_covers/papas_sushiria.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/papas/sushiria/"
+                }
+            ],
+            "tags": [
+                "cooking",
+                "simulation",
+                "papa's",
+                "flash"
+            ]
+        },
+        {
             "name": "pacman",
             "fName": "Pac Man",
             "description": "Gobble up ghosts in this hit 1980s arcade game.",
