@@ -6,19 +6,60 @@ try {
     const searchInput = document.getElementById("searchBox");
     const allTags = document.querySelectorAll(".tag");
     const sortButton = document.getElementById("sort");
-    const shuffleButton = document.getElementById("shuffle");
+    const pickForMe = document.getElementById("pickforme");
     const addGameRequestButton = document.getElementById("addGameRequestButton");
     const sortDirectionText = document.getElementById("order");
     const header = document.querySelector('header');
     const scrollThreshold = 0;
     const sortStates = [
-        [sortCardsByClicks, "Hot"],
         [() => {
-            sortCardsAlphabetically(1);
+            sortCardsByClicks((cards)=>{
+                cards.sort((a, b) => {
+                    const aPinned = a.hasAttribute("data-pinned");
+                    const bPinned = b.hasAttribute("data-pinned");
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    return 0;
+                });
+                return cards;
+            })
+        }, "Hot"],
+        [() => {
+            sortCardsAlphabetically(1,(cards)=>{
+                cards.sort((a, b) => {
+                    const aPinned = a.hasAttribute("data-pinned");
+                    const bPinned = b.hasAttribute("data-pinned");
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    return 0;
+                });
+                return cards;
+            });
         }, "A-Z"],
         [() => {
-            sortCardsAlphabetically(-1);
-        }, "Z-A"]
+            sortCardsAlphabetically(-1,(cards)=>{
+                cards.sort((a, b) => {
+                    const aPinned = a.hasAttribute("data-pinned");
+                    const bPinned = b.hasAttribute("data-pinned");
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    return 0;
+                });
+                return cards;
+            });
+        }, "Z-A"],
+        [() => {
+            sortCardsRandomly((cards)=>{
+                cards.sort((a, b) => {
+                    const aPinned = a.hasAttribute("data-pinned");
+                    const bPinned = b.hasAttribute("data-pinned");
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    return 0;
+                });
+                return cards;
+            })
+        },"Random"]
     ]
     let showingAds = true;
     let needToLoadAds = false;
@@ -36,7 +77,7 @@ try {
     async function importJSON(path) {
         let url;
         if (path.startsWith("/") && !path.startsWith("//")) {
-            url = new URL(path, window.location.origin);
+            url = new URL(path, window.location);
         } else {
             url = new URL(path);
         }
@@ -73,10 +114,11 @@ try {
     }
     async function baseRender() {
         try {
-            window.ccPorted.serverBlocked = true
             log("Attempting base render");
             log("Cards rendered: " + window.ccPorted.cardsRendered)
             if (window.ccPorted.cardsRendered) return;
+            window.ccPorted.serverBlocked = true
+
             createNotif({
                 message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
                 cta: false,
@@ -189,6 +231,7 @@ try {
             cardsContainer.appendChild(card);
         });
         setSort(0);
+        loadPinnedStates();
         document.querySelector(".cards").classList.remove("loading");
         window.ccPorted.cardsRendered = true;
         let romsJSON = await importJSON("/roms/roms.json");
@@ -234,7 +277,7 @@ try {
                 .eq('gameID', gameID);
 
             if (error) {
-                console.error('Error getting game clicks:', error.message);
+                log('Error getting game clicks:', error.message);
                 return;
             }
             const clicks = (game_clicks[0] || { clicks: 0 }).clicks + 1;
@@ -255,7 +298,7 @@ try {
                 .eq('gameID', gameID);
 
             if (error) {
-                console.error('Error getting game clicks:', error.message);
+                log('Error getting game clicks:', error.message);
                 return;
             }
             return (game_clicks[0] || { clicks: 0 }).clicks;
@@ -272,7 +315,7 @@ try {
                 .select('gameID, clicks');
 
             if (error) {
-                console.error('Error getting game clicks:', error.message);
+                log('Error getting game clicks:', error.message);
                 return;
             }
             let obj = {};
@@ -285,35 +328,40 @@ try {
             return {}
         }
     }
+    function pickRandomCard(){
+        return cardsCache[Math.floor(Math.random() * cardsCache.length)]
 
-    function sortCardsRandomly() {
+    }
+    function sortCardsRandomly(middle = () => {}) {
         let cardsArray = Array.from(document.querySelectorAll(".card"));
         shuffle(cardsArray);
         let cardsContainer = document.querySelector(".cards");
+        cardsArray = middle(cardsArray)
         removeCards();
         cardsArray.forEach(card => {
             cardsContainer.appendChild(card);
         });
     }
-    async function sortCardsByClicks() {
+    async function sortCardsByClicks(middle = () => {}) {
         if (window.ccPorted?.serverBlocked) {
-            return sortCardsRandomly();
+            return sortCardsRandomly(middle);
         }
         log(`Sorting cards by clicks`);
         let cardsArray = Array.from(document.querySelectorAll(".card"));
         cardsArray.sort((a, b) => {
             return parseInt(b.getAttribute('data-clicks')) - parseInt(a.getAttribute('data-clicks'));
         });
+        cardsArray = middle(cardsArray);
         let cardsContainer = document.querySelector(".cards");
         removeCards();
         cardsArray.forEach(card => {
             cardsContainer.appendChild(card);
         });
     }
-    async function input() {
+    async function input(sortState = 0) {
         log(`Searching for ${searchInput.value}`);
         if (searchInput.value.length <= 0) {
-            setSort(0);
+            setSort(sortState);
             var url = new URL(window.location);
             url.searchParams.delete("q");
             window.history.pushState({}, '', url);
@@ -428,8 +476,7 @@ try {
 
             log('Game request added:');
         } catch (error) {
-            console.error('Error adding game request:', error.message);
-            log(error);
+            log('Error adding game request:', error.message);
         }
     };
     function showAds() {
@@ -497,7 +544,7 @@ try {
         document.querySelector(".popup").remove();
         window.gameRQPopupOpen = false;
     }
-    function sortCardsAlphabetically(direction) {
+    function sortCardsAlphabetically(direction, middle = () => {}) {
         log(`Sorting cards alphabetically`);
         let cardsArray = Array.from(document.querySelectorAll(".card"));
         cardsArray.sort((a, b) => {
@@ -505,6 +552,7 @@ try {
             let bText = b.querySelector(".card-content .card-title").innerText;
             return compareAlpha(aText, bText) * direction;
         });
+        cardsArray = middle(cardsArray)
         let cardsContainer = document.querySelector(".cards");
         removeCards();
         cardsArray.forEach(card => {
@@ -618,18 +666,32 @@ try {
         const card = document.createElement("div");
         card.classList.add("card");
         card.id = game.name;
+        
+        // Add star icon
+        const star = document.createElement("span");
+        star.classList.add("star-icon");
+        star.innerHTML = "★";
+        star.addEventListener("click", (e) => {
+            e.stopPropagation();
+            togglePin(card, star);
+        });
+        
         const bg = document.createElement("div");
         bg.classList.add("card-bg");
         bg.style.backgroundImage = `url('${game.image}')`;
+        
         const content = document.createElement("div");
         content.classList.add("card-content");
+        
         const contentInner = document.createElement("div");
         const title = document.createElement("h2");
         title.classList.add("card-title");
         title.textContent = game.fName;
+        
         const description = document.createElement("p");
         description.classList.add("card-description");
         description.textContent = game.description;
+        
         const tags = document.createElement("div");
         tags.classList.add("card-tags");
         game.tags.forEach(tag => {
@@ -640,9 +702,10 @@ try {
             tagElement.addEventListener("click", () => {
                 searchInput.value = tagElement.innerText;
                 input();
-            })
+            });
             tags.appendChild(tagElement);
         });
+        
         const links = document.createElement("div");
         links.classList.add("card-links");
         game.links.forEach(link => {
@@ -651,15 +714,73 @@ try {
             linkElement.textContent = `${link.action ? link.action : "Play"} ${(link.pre) ? link.pre : game.fName} on ${link.name}`;
             links.appendChild(linkElement);
         });
+        
         contentInner.appendChild(title);
         contentInner.appendChild(description);
         contentInner.appendChild(tags);
         content.appendChild(contentInner);
         content.appendChild(links);
+        
+        card.appendChild(star);
         card.appendChild(bg);
         card.appendChild(content);
-
+        
         return card;
+    }
+    function togglePin(card, star) {
+        const isPinned = card.hasAttribute("data-pinned");
+        if (!isPinned) {
+            card.setAttribute("data-pinned", "true");
+            star.classList.add("pinned");
+            savePinnedState(card.id, true);
+        } else {
+            card.removeAttribute("data-pinned");
+            star.classList.remove("pinned");
+            savePinnedState(card.id, false);
+        }
+        sortPinnedCards();
+    }
+    function savePinnedState(cardId, isPinned) {
+        const pinnedCards = getPinnedCards();
+        if (isPinned) {
+            pinnedCards.add(cardId);
+        } else {
+            pinnedCards.delete(cardId);
+        }
+        localStorage.setItem('ccported-pinnedCards', JSON.stringify([...pinnedCards]));
+    }
+    function getPinnedCards() {
+        const saved = localStorage.getItem('ccported-pinnedCards');
+        return new Set(saved ? JSON.parse(saved) : []);
+    }
+    function loadPinnedStates() {
+        const pinnedCards = getPinnedCards();
+        pinnedCards.forEach(cardId => {
+            const card = document.getElementById(cardId);
+            if (card) {
+                const star = card.querySelector('.star-icon');
+                card.setAttribute("data-pinned", "true");
+                star.classList.add("pinned");
+            }
+        });
+        sortPinnedCards();
+    }
+
+    function sortPinnedCards() {
+        let cardsArray = Array.from(document.querySelectorAll(".card"));
+
+        
+        cardsArray.sort((a, b) => {
+            const aPinned = a.hasAttribute("data-pinned");
+            const bPinned = b.hasAttribute("data-pinned");
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return 0;
+        });
+        
+        let cardsContainer = document.querySelector(".cards");
+        removeCards();
+        cardsArray.forEach(card => cardsContainer.appendChild(card));        
     }
     function loadAds(num = 3) {
         log(`Loading ${num} ads`);
@@ -726,16 +847,17 @@ try {
         });
 
     });
-    shuffleButton.addEventListener("click",(e)=>{
-        sortCardsRandomly();
+    pickForMe.addEventListener("click",(e)=>{
+        var card = pickRandomCard();
+        card.click();
     })
     sortButton.addEventListener("click", () => {
         searchInput.value = "";
-        input();
         sortState++;
         if (sortState >= sortStates.length) {
             sortState = 0;
         }
+        input(sortState);
         setSort(sortState);
     });
     window.addEventListener('scroll', () => {

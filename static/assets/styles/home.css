@@ -83,7 +83,6 @@ header.shadow {
 .card.loading {
     display: none;
 }
-
 .card {
     width: 500px;
     height: 325px;
@@ -123,7 +122,7 @@ header.shadow {
     color: #fff;
     display: flex;
     flex-direction: column;
-    z-index: 5555;
+    z-index: 1;
     justify-content: space-between;
 }
 
@@ -162,6 +161,7 @@ header.shadow {
     text-decoration: underline;
 }
 
+
 .card-tags .tag {
     background-color: #333;
     color: #fff;
@@ -170,6 +170,29 @@ header.shadow {
     margin-right: 5px;
     font-size: 14px;
     cursor: pointer;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.star-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.card:hover .star-icon {
+    opacity: 1;
+}
+
+.star-icon.pinned {
+    opacity: 1;
+    color: gold;
 }
 
 #searchBox {
@@ -292,7 +315,7 @@ a:visited {
     width: fit-content;
 }
 
-button#sort, button#shuffle {
+button#sort, button#pickforme {
     padding: 10px;
     border: none;
     background-color: transparent;
