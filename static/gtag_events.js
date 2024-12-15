@@ -42,7 +42,7 @@ importJSON("/games.json").then(games => {
         string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
     });
     createPopup(string + tail);
-    localStorage.setItem("ccported-popup", "yes")
+    localStorage.setItem("ccported-popup", "yes",true)
 });
 shortcut([
     "Control", "m"
@@ -194,9 +194,9 @@ async function muteManager() {
         el.addEventListener("click", async (e) => {
             const channelID = el.getAttribute("data-channelid");
             if (localStorage.getItem(`channel-muted-${channelID}`) == 1) {
-                localStorage.setItem(`channel-muted-${channelID}`, 0);
+                localStorage.setItem(`channel-muted-${channelID}`, 0, true);
             } else {
-                localStorage.setItem(`channel-muted-${channelID}`, 1);
+                localStorage.setItem(`channel-muted-${channelID}`, 1, true);
             }
             el.innerHTML = `<i class="fa-solid fa-bell${isChannelMuted({ channel_id: channelID }) ? "-slash" : ""}"></i>`;
         });
@@ -289,7 +289,7 @@ function hasSeenGame(gameID) {
     return localStorage.getItem(`seen-${gameID}`) == "yes";
 }
 function markGameSeen(gameID) {
-    localStorage.setItem(`seen-${gameID}`, "yes");
+    localStorage.setItem(`seen-${gameID}`, "yes", true);
 }
 function createNotif(popupData) {
     const popup = document.createElement('div');
@@ -489,7 +489,7 @@ function createPopup(text = "Check out more awesome games like Spelunky, Minecra
     popup.appendChild(linkRow);
 
     document.body.appendChild(popup);
-    localStorage.setItem("ccported-popup", "yes")
+    localStorage.setItem("ccported-popup", "yes", true)
 }
 
 init();

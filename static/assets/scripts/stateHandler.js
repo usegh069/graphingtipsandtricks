@@ -46,11 +46,14 @@ class StateSyncUtility {
 
     // Optimized localStorage data collection
     getLocalStorageData() {
-        log(`[CCPorted State Manager] Getting local storage data.... (length: ${localStorage.length})`)
-        return Object.fromEntries(
-            Object.entries(localStorage)
-                .filter(([key]) => key !== 'ccStatelastSave')
-        );
+        log(`[CCPorted State Manager] Getting local storage data.... (length: ${localStorage.globalLength})`)
+        const data = {};
+        for (let i = 0; i < localStorage.globalLength; i++) {
+            const key = localStorage.key(i, true);
+            if(key === 'ccStateLastSave') continue;
+            data[key] = localStorage.getItem(key);
+        }
+        return data;
     }
 
     // Optimized schema extraction
@@ -94,9 +97,7 @@ class StateSyncUtility {
 
     // Optimized localStorage import
     async importLocalStorageState(data) {
-        const ccStatelastSave = localStorage.getItem('ccStatelastSave');
-        localStorage.clear();
-        localStorage.setItem('ccStatelastSave', ccStatelastSave);
+        localStorage.clear(true);
         Object.entries(data).forEach(([key, value]) => {
             localStorage.setItem(key, value);
         });
@@ -171,7 +172,6 @@ class StateSyncUtility {
     }
 
     async importIndexedDBState(backupData) {
-        const log = console.log;  // Assuming similar logging setup as getAllIndexedDBData
         log(`[CCPorted State Manager] Starting IndexedDB import...`);
         log(`[CCPorted State Manager] Found ${Object.keys(backupData).length} databases to import`);
     
@@ -324,6 +324,7 @@ class StateSyncUtility {
             } else {
                 state = compressedState;
             }
+            log('[329]',state);
             return {
                 success: true,
                 timestamp: state.timestamp,
@@ -362,8 +363,7 @@ class StateSyncUtility {
             this.forceSync();
         }, interval);
     }
-}
-
+}   
 class GameStateSync {
     constructor(userId, client) {
         this.userId = userId;
@@ -381,7 +381,7 @@ class GameStateSync {
     }
     async saveState(state, timestamp) {
         this.lastSync = timestamp;
-        localStorage.setItem('ccStatelastSave', timestamp);
+        localStorage.setItem('ccStateLastSave', timestamp);
         var notification = window.ccPorted.autoSaveNotification;
         await this.saveToServer(state, timestamp);
         if (notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') < Date.now()) {
@@ -394,6 +394,7 @@ class GameStateSync {
     }
 
     async saveToServer(stateBlob, timestamp) {
+        console.log(stateBlob)
         try {
             const { error } = await this.client
                 .storage
@@ -419,6 +420,7 @@ class GameStateSync {
 
     async loadFromServer() {
         try {
+            log("Starting load from server")
             const { data: profile, error: profileError } = await this.client
                 .from('u_profiles')
                 .select('last_save_state')
@@ -449,14 +451,14 @@ class GameStateSync {
                 const decomp = await this.syncUtil.decompressOldData(oldSave[0].state);
                 const timestamp = decomp.timestamp;
                 log('[CCPorted State Manager] [old] Last save timestamp: ' + timestamp);
-                const currentSave = localStorage.getItem('ccStatelastSave');
+                const currentSave = localStorage.getItem('ccStateLastSave');
                 log('[CCPorted State Manager] [old] Current save timestamp: ' + currentSave);
                 if (!currentSave || timestamp > currentSave) {
                     log('[CCPorted State Manager] Game state has been updated');
-                    localStorage.setItem('ccStatelastSave', timestamp);
                     log("[CCPorted State Manager] Importing state....");
                     const result = await this.syncUtil.importState(decomp, true);
                     if (result.success) {
+                        localStorage.setItem('ccStateLastSave', timestamp);
                         log('[CCPorted State Manager] State loaded successfully');
                         await result.import();
                         location.reload();
@@ -478,7 +480,6 @@ class GameStateSync {
                     return;
                 }
             }
-
             const { data, error } = await this.client
                 .storage
                 .from('save_states')
@@ -490,25 +491,29 @@ class GameStateSync {
                 }
                 throw error;
             }
+            log('[CCPorted State Manager] State downloaded successfully');
             const decomp = await this.syncUtil.decompressData(data);
-
+            log(`[CCPorted State Manager] State decompressed successfully`);
             const timestamp = decomp.timestamp;
             log('[CCPorted State Manager] Last save timestamp: ' + timestamp);
-            const currentSave = localStorage.getItem('ccStatelastSave');
+            const currentSave = localStorage.getItem('ccStateLastSave');
             log('[CCPorted State Manager] Current save timestamp: ' + currentSave);
             if (!currentSave || timestamp > currentSave) {
                 log('[CCPorted State Manager] Game state has been updated');
-                localStorage.setItem('ccStatelastSave', timestamp);
+                localStorage.setItem('ccStateLastSave', timestamp);
                 log('[CCPorted State Manager] Importing state....');
                 const result = await this.syncUtil.importState(decomp, true);
                 if (result.success) {
                     log('[CCPorted State Manager] State loaded successfully');
                     await result.import();
+                    localStorage.setItem('ccStateLastSave', timestamp);
                     location.reload();
                 } else {
                     log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
                     throw result.error;
                 }
+            }else{
+                log('[CCPorted State Manager] Game state is up to date');
             }
         } catch (error) {
             log('[CCPorted State Manager] [315] Error loading state: ' + error);

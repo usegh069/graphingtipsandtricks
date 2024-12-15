@@ -2,82 +2,164 @@ shortcut([17, 81], toggleStats);
 
 function createGameStorageSandbox(gameId = "ccported") {
     // Create a unique namespace for this game
-    const namespace = `ns_${gameId}`;
+    const namespace = `[ns_${gameId}]`;
 
     // Save original storage APIs
     const originalLocalStorage = window.localStorage;
     const originalIndexedDB = window.indexedDB;
+    const namespaceRegex = new RegExp(`^\[ns_[a-zA-Z0-9_-]+\]_`);
+
 
     // Create localStorage proxy
-    const localStorageProxy = {
-        setItem: function (key, value) {
-            if (originalLocalStorage.getItem(`ns_ccported_${key}`)) {
-                // global key
-                return originalLocalStorage.setItem(`ns_ccported_${key}`, value);
-            } else {
-                // not a global key
-                return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+    const localStorageProxy = new Proxy(localStorage, {
+        get: function (target, prop) {
+            switch (prop) {
+                case 'setItem':
+                    return function (key, value, global = false) {
+                        if (global) {
+                            return originalLocalStorage.setItem('[ns_ccported]_' + key, value);
+                        }
+                        // check global namespace first
+                        if (originalLocalStorage.getItem(`ns_ccported_${key}`)) {
+                            return originalLocalStorage.setItem(`[ns_ccported]_${key}`, value);
+                        }
+                        // check game namespace
+                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
+                            return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+                        }
+                        // check if it's already namespaced
+                        if (namespaceRegex.test(key)) {
+                            return originalLocalStorage.setItem(key, value);
+                        }
+                        // if not, set it in the game's namespace
+                        return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+                    }
+                case 'getItem':
+                    return function (key) {
+                        // check global namespace first
+                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
+                            return originalLocalStorage.getItem(`[ns_ccported]_${key}`);
+                        }
+                        // check game namespace
+                        if(originalLocalStorage.getItem(`${namespace}_${key}`)){
+                            return originalLocalStorage.getItem(`${namespace}_${key}`);
+                        }
+                        // check if it's already namespaced
+                        if (namespaceRegex.test(key)) {
+                            return originalLocalStorage.getItem(key);
+                        }
+                        // return undefined if not found
+                        return originalLocalStorage.getItem(`${namespace}_${key}`);
+                    }
+                case 'removeItem':
+                    return function (key) {
+                        // check global namespace first
+                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
+                            return originalLocalStorage.removeItem(`[ns_ccported]_${key}`);
+                        }
+                        // check game namespace
+                        if(originalLocalStorage.getItem(`${namespace}_${key}`)){
+                            return originalLocalStorage.removeItem(`${namespace}_${key}`);
+                        }
+                        // check if it's already namespaced
+                        if (namespaceRegex.test(key)) {
+                            return originalLocalStorage.removeItem(key);
+                        }
+                        // no perms, just return
+                        return;
+                    }
+                case 'clear':
+                    return function (global = false) {
+                        if (global) {
+                            return originalLocalStorage.clear();
+                        }
+                        // Only clear items for this game
+                        for (let i = originalLocalStorage.length - 1; i >= 0; i--) {
+                            const key = originalLocalStorage.key(i);
+                            if (key.startsWith(`${namespace}_`)) {
+                                originalLocalStorage.removeItem(key);
+                            }
+                        }
+                    }
+                case 'key':
+                    return function (index, global = false) {
+                        if (global) {
+                            return originalLocalStorage.key(index);
+                        }
+                        // Get all keys for this game
+                        const gameKeys = [];
+                        for (let i = 0; i < originalLocalStorage.length; i++) {
+                            const key = originalLocalStorage.key(i);
+                            if (key.startsWith(`${namespace}_`)) {
+                                gameKeys.push(key.slice(namespace.length + 1));
+                            }
+                        }
+                        return gameKeys[index];
+                    }
+                case 'length':
+                    let count = 0;
+                    for (let i = 0; i < originalLocalStorage.length; i++) {
+                        if (originalLocalStorage.key(i).startsWith(`${namespace}_`)) {
+                            count++;
+                        }
+                    }
+                    return count;
+                case 'globalLength':
+                    return originalLocalStorage.length;
+                default:
+                    // probably trying to access property stored in localStorage
+                    // check if it's in the global namespace
+                    if (originalLocalStorage.getItem(`[ns_ccported]_${prop}`)) {
+                        return originalLocalStorage.getItem(`[ns_ccported]_${prop}`);
+                    }
+                    // check if it's in the game's namespace
+                    if (originalLocalStorage.getItem(`${namespace}_${prop}`)) {
+                        return originalLocalStorage.getItem(`${namespace}_${prop}`);
+                    }
+                    // check if it's already namespaced
+                    if (namespaceRegex.test(prop)) {
+                        return originalLocalStorage.getItem(prop);
+                    }
             }
         },
-        getItem: function (key) {
-            if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
-                return originalLocalStorage.getItem(`${namespace}_${key}`);
-            } else {
-                // check if in global ns
-                if (originalLocalStorage.getItem(`ns_ccported_${key}`)) {
-                    return originalLocalStorage.getItem(`ns_ccported_${key}`);
+        set: function (target, prop, value) {
+            // check to see if overwriting getters
+            ['getItem', 'setItem', 'removeItem', 'clear', 'key', 'length', 'globalLength'].forEach((method) => {
+                if (prop === method) {
+                    throw new Error(`Cannot overwrite localStorage method ${method}`);
                 }
-                var oldItem = originalLocalStorage.getItem(key);
-                if (oldItem) {
-                    // transfer to new naming scheme, and return the old item
-                    originalLocalStorage.removeItem(key);
-                    originalLocalStorage.setItem(`${namespace}_${key}`, oldItem);
-                    return oldItem;
-                } else {
-                    return oldItem;
-                }
+            });
+            // probably trying to set a property in localStorage
+            // check if it's in the global namespace
+            if (originalLocalStorage.getItem(`[ns_ccported]_${prop}`)) {
+                return originalLocalStorage.setItem(`[ns_ccported]_${prop}`, value);
             }
-        },
-        removeItem: function (key) {
-            return originalLocalStorage.removeItem(`${namespace}_${key}`);
-        },
-        clear: function () {
-            // Only clear items for this game
-            for (let i = originalLocalStorage.length - 1; i >= 0; i--) {
-                const key = originalLocalStorage.key(i);
-                if (key.startsWith(`${namespace}_`)) {
-                    originalLocalStorage.removeItem(key);
-                }
+            // check if it's in the game's namespace
+            if (originalLocalStorage.getItem(`${namespace}_${prop}`)) {
+                return originalLocalStorage.setItem(`${namespace}_${prop}`, value);
             }
-        },
-        key: function (index) {
-            // Get all keys for this game
-            const gameKeys = [];
-            for (let i = 0; i < originalLocalStorage.length; i++) {
-                const key = originalLocalStorage.key(i);
-                if (key.startsWith(`${namespace}_`)) {
-                    gameKeys.push(key.slice(namespace.length + 1));
-                }
+            // check if it's already namespaced
+            if (namespaceRegex.test(prop)) {
+                return originalLocalStorage.setItem(prop, value);
             }
-            return gameKeys[index];
-        },
-        get length() {
-            // Count only items for this game
-            let count = 0;
-            for (let i = 0; i < originalLocalStorage.length; i++) {
-                if (originalLocalStorage.key(i).startsWith(`${namespace}_`)) {
-                    count++;
-                }
-            }
-            return count;
+            // if not, set it in the game's namespace
+            return originalLocalStorage.setItem(`${namespace}_${prop}`, value);
         }
-    };
+    });
 
     // Create IndexedDB proxy
-    const indexedDBProxy = new Proxy({}, {
+    const indexedDBProxy = new Proxy(window.indexedDB, {
         get: function (target, prop) {
             if (prop === 'open') {
                 return function (dbName, version) {
+                    // check if db is already namespaced or global
+                    const isNamespaced = namespaceRegex.test(dbName);
+                    if (isNamespaced) {
+                        return originalIndexedDB.open(dbName, version);
+                    }
+                    if (dbName.startsWith("ns_ccported_")) {
+                        return originalIndexedDB.open(dbName, version);
+                    }
                     // Namespace the database name
                     const namespacedDBName = `${namespace}_${dbName}`;
 
@@ -219,8 +301,13 @@ function createGameStorageSandbox(gameId = "ccported") {
                     const namespacedDBName = `${namespace}_${dbName}`;
                     return originalIndexedDB.deleteDatabase(namespacedDBName);
                 };
+            } else if (prop === 'databases') {
+                // Bind the databases method to the original indexedDB
+                return originalIndexedDB.databases.bind(originalIndexedDB);
             } else {
-                return originalIndexedDB[prop];
+                // For all other properties, bind them to the original indexedDB if they're functions
+                const value = originalIndexedDB[prop];
+                return typeof value === 'function' ? value.bind(originalIndexedDB) : value;
             }
         }
     });
@@ -228,61 +315,61 @@ function createGameStorageSandbox(gameId = "ccported") {
         const namespacedDBName = `${namespace}_${dbName}`;
         const databases = await originalIndexedDB.databases();
         const oldDBExists = databases.some(db => db.name === dbName);
-        
+
         if (oldDBExists) {
             console.log(`Manually migrating database: ${dbName}`);
-            
+
             return new Promise((resolve, reject) => {
                 const request = originalIndexedDB.open(namespacedDBName, version || 1);
-                
-                request.onerror = function(event) {
+
+                request.onerror = function (event) {
                     console.error(`Error opening namespaced database ${namespacedDBName}:`, event.target.error);
                     reject(event.target.error);
                 };
-    
-                request.onsuccess = function(event) {
+
+                request.onsuccess = function (event) {
                     const newDB = event.target.result;
                     console.log(`Successfully opened namespaced database '${namespacedDBName}'`);
-                    
+
                     // Open the old database
                     const oldDBRequest = originalIndexedDB.open(dbName);
-                    
-                    oldDBRequest.onerror = function(event) {
+
+                    oldDBRequest.onerror = function (event) {
                         console.error(`Error opening old database ${dbName}:`, event.target.error);
                         reject(event.target.error);
                     };
-    
-                    oldDBRequest.onsuccess = function(event) {
+
+                    oldDBRequest.onsuccess = function (event) {
                         const oldDB = event.target.result;
                         console.log(`Successfully opened old database '${dbName}'`);
-                        
+
                         const storeNames = Array.from(oldDB.objectStoreNames);
                         console.log('Object stores found:', storeNames);
-    
+
                         if (storeNames.length === 0) {
                             console.log(`No object stores found in old database '${dbName}'`);
                             oldDB.close();
                             resolve();
                             return;
                         }
-    
+
                         // Keep track of completed stores
                         let completedStores = 0;
-                        
+
                         // Create a version change request to set up stores if needed
                         const upgradeRequest = originalIndexedDB.open(namespacedDBName, (version || 1) + 1);
-                        
-                        upgradeRequest.onupgradeneeded = function(event) {
+
+                        upgradeRequest.onupgradeneeded = function (event) {
                             const upgradedDB = event.target.result;
-                            
+
                             storeNames.forEach(storeName => {
                                 if (!upgradedDB.objectStoreNames.contains(storeName)) {
                                     const oldStore = oldDB.transaction(storeName).objectStore(storeName);
-                                    const newStore = upgradedDB.createObjectStore(storeName, 
-                                        oldStore.keyPath ? { keyPath: oldStore.keyPath } : 
-                                        { autoIncrement: oldStore.autoIncrement }
+                                    const newStore = upgradedDB.createObjectStore(storeName,
+                                        oldStore.keyPath ? { keyPath: oldStore.keyPath } :
+                                            { autoIncrement: oldStore.autoIncrement }
                                     );
-                                    
+
                                     // Copy indexes
                                     Array.from(oldStore.indexNames).forEach(indexName => {
                                         const index = oldStore.index(indexName);
@@ -294,10 +381,10 @@ function createGameStorageSandbox(gameId = "ccported") {
                                 }
                             });
                         };
-    
-                        upgradeRequest.onsuccess = function(event) {
+
+                        upgradeRequest.onsuccess = function (event) {
                             const upgradedDB = event.target.result;
-                            
+
                             // Transfer data for each store
                             storeNames.forEach(storeName => {
                                 console.log(`Transferring object store: ${storeName}`);
@@ -305,15 +392,15 @@ function createGameStorageSandbox(gameId = "ccported") {
                                     const transaction = oldDB.transaction(storeName, 'readonly');
                                     const store = transaction.objectStore(storeName);
                                     const getAllRequest = store.getAll();
-                                    
-                                    getAllRequest.onsuccess = function() {
+
+                                    getAllRequest.onsuccess = function () {
                                         try {
                                             const items = getAllRequest.result;
                                             console.log(`Transferring ${items.length} items for store ${storeName}`);
-                                            
+
                                             const newTransaction = upgradedDB.transaction(storeName, 'readwrite');
                                             const newStore = newTransaction.objectStore(storeName);
-                                            
+
                                             items.forEach(item => {
                                                 try {
                                                     newStore.add(item);
@@ -321,31 +408,31 @@ function createGameStorageSandbox(gameId = "ccported") {
                                                     console.error(`Error adding item to ${storeName}:`, error);
                                                 }
                                             });
-                                            
-                                            newTransaction.oncomplete = function() {
+
+                                            newTransaction.oncomplete = function () {
                                                 console.log(`Completed transfer for store: ${storeName}`);
                                                 completedStores++;
-                                                
+
                                                 // Check if all stores are completed
                                                 if (completedStores === storeNames.length) {
                                                     console.log('All stores transferred successfully');
                                                     oldDB.close();
                                                     upgradedDB.close();
-                                                    
+
                                                     // Delete the old database
                                                     const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
-                                                    deleteRequest.onsuccess = function() {
+                                                    deleteRequest.onsuccess = function () {
                                                         console.log(`Successfully deleted old database: ${dbName}`);
                                                         resolve();
                                                     };
-                                                    deleteRequest.onerror = function(event) {
+                                                    deleteRequest.onerror = function (event) {
                                                         console.error(`Error deleting old database ${dbName}:`, event.target.error);
                                                         reject(event.target.error);
                                                     };
                                                 }
                                             };
-    
-                                            newTransaction.onerror = function(event) {
+
+                                            newTransaction.onerror = function (event) {
                                                 console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
                                                 reject(event.target.error);
                                             };
@@ -354,8 +441,8 @@ function createGameStorageSandbox(gameId = "ccported") {
                                             reject(error);
                                         }
                                     };
-    
-                                    getAllRequest.onerror = function(event) {
+
+                                    getAllRequest.onerror = function (event) {
                                         console.error(`Error getting data from ${storeName}:`, event.target.error);
                                         reject(event.target.error);
                                     };
@@ -365,8 +452,8 @@ function createGameStorageSandbox(gameId = "ccported") {
                                 }
                             });
                         };
-    
-                        upgradeRequest.onerror = function(event) {
+
+                        upgradeRequest.onerror = function (event) {
                             console.error(`Error upgrading database ${namespacedDBName}:`, event.target.error);
                             reject(event.target.error);
                         };
@@ -967,11 +1054,11 @@ class Stats {
             lastAutoSync: `${lastAutoSync} (${this.timeAgo(lastAutoSync)} ago)`,
             currentStateFrom:
                 new Date(
-                    parseInt(localStorage.getItem("ccStatelastSave"))
+                    parseInt(localStorage.getItem("ccStateLastSave"))
                 ).toLocaleDateString() +
                 " " +
                 new Date(
-                    parseInt(localStorage.getItem("ccStatelastSave"))
+                    parseInt(localStorage.getItem("ccStateLastSave"))
                 ).toLocaleTimeString(),
             mouse: this.getMouse()[0] + "|" + this.getMouse()[1],
             mouseCovering: this.objectHovering
