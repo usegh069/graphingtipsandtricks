@@ -10,16 +10,28 @@ function createGameStorageSandbox(gameId = "ccported") {
 
     // Create localStorage proxy
     const localStorageProxy = {
-        setItem: function(key, value) {
+        setItem: function (key, value) {
             return originalLocalStorage.setItem(`${namespace}_${key}`, value);
         },
-        getItem: function(key) {
-            return originalLocalStorage.getItem(`${namespace}_${key}`);
+        getItem: function (key) {
+            if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
+                return originalLocalStorage.getItem(`${namespace}_${key}`);
+            }else{
+                var oldItem = originalLocalStorage.getItem(key);
+                if(oldItem) {
+                    // transfer to new naming scheme, and return the old item
+                    originalLocalStorage.removeItem(key);
+                    originalLocalStorage.setItem(`${namespace}_${key}`,oldItem);    
+                    return oldItem;
+                }else{
+                    return oldItem;
+                }
+            }
         },
-        removeItem: function(key) {
+        removeItem: function (key) {
             return originalLocalStorage.removeItem(`${namespace}_${key}`);
         },
-        clear: function() {
+        clear: function () {
             // Only clear items for this game
             for (let i = originalLocalStorage.length - 1; i >= 0; i--) {
                 const key = originalLocalStorage.key(i);
@@ -28,7 +40,7 @@ function createGameStorageSandbox(gameId = "ccported") {
                 }
             }
         },
-        key: function(index) {
+        key: function (index) {
             // Get all keys for this game
             const gameKeys = [];
             for (let i = 0; i < originalLocalStorage.length; i++) {
@@ -53,15 +65,15 @@ function createGameStorageSandbox(gameId = "ccported") {
 
     // Create IndexedDB proxy
     const indexedDBProxy = new Proxy({}, {
-        get: function(target, prop) {
+        get: function (target, prop) {
             if (prop === 'open') {
-                return function(dbName, version) {
+                return function (dbName, version) {
                     // Namespace the database name
                     const namespacedDBName = `${namespace}_${dbName}`;
                     return originalIndexedDB.open(namespacedDBName, version);
                 };
             } else if (prop === 'deleteDatabase') {
-                return function(dbName) {
+                return function (dbName) {
                     const namespacedDBName = `${namespace}_${dbName}`;
                     return originalIndexedDB.deleteDatabase(namespacedDBName);
                 };
@@ -543,18 +555,18 @@ class Stats {
         if (requestBodyElement) {
             requestBodyElement.appendChild(this.formatInformation(response.body, response.bodyType));
         }
-        const requestStatus =  this.contextualize(`cc_stats_request_${response.id}_status`, detailsContext)
+        const requestStatus = this.contextualize(`cc_stats_request_${response.id}_status`, detailsContext)
         if (requestStatus) {
             requestStatus.textContent = response.status;
         }
 
         return;
     }
-    contextualize(id,context){
-        if(context){
+    contextualize(id, context) {
+        if (context) {
             console.log(context);
-            return context.querySelector("#"+id);
-        }else{
+            return context.querySelector("#" + id);
+        } else {
             return document.getElementById(id);
         }
     }
@@ -573,10 +585,10 @@ class Stats {
                         this.finishRequest(requestt, details)
 
                         // add to requests
-                        if(document.getElementById("cc_stats_requestsIntercepted")){
+                        if (document.getElementById("cc_stats_requestsIntercepted")) {
                             document.getElementById("cc_stats_requestsIntercepted").appendChild(details);
                         }
-                    }else{
+                    } else {
                         this.finishRequest(requestt)
                     }
                     break;
