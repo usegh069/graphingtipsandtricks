@@ -51,7 +51,8 @@
             "tags": [
                 "racing",
                 "drifting",
-                "cars"
+                "cars",
+                "driving"
             ]
         },
         {
@@ -789,6 +790,24 @@
                 "skill",
                 "action",
                 "twoPlayer"
+            ]
+        },
+        {
+            "name":"slow_roads",
+            "fName":"Slow Roads",
+            "description":"Endless driving zen.",
+            "image":"/assets/images/game_covers/slow_roads.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/sr/"
+                }
+            ],
+            "tags": [
+                "zen",
+                "idle",
+                "driving"
             ]
         }
     ]
