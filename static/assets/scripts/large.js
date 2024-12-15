@@ -11,19 +11,29 @@ function createGameStorageSandbox(gameId = "ccported") {
     // Create localStorage proxy
     const localStorageProxy = {
         setItem: function (key, value) {
-            return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+            if (originalLocalStorage.getItem(`ns_ccported_${key}`)) {
+                // global key
+                return originalLocalStorage.setItem(`ns_ccported_${key}`, value);
+            } else {
+                // not a global key
+                return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+            }
         },
         getItem: function (key) {
             if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
                 return originalLocalStorage.getItem(`${namespace}_${key}`);
-            }else{
+            } else {
+                // check if in global ns
+                if (originalLocalStorage.getItem(`ns_ccported_${key}`)) {
+                    return originalLocalStorage.getItem(`ns_ccported_${key}`);
+                }
                 var oldItem = originalLocalStorage.getItem(key);
-                if(oldItem) {
+                if (oldItem) {
                     // transfer to new naming scheme, and return the old item
                     originalLocalStorage.removeItem(key);
-                    originalLocalStorage.setItem(`${namespace}_${key}`,oldItem);    
+                    originalLocalStorage.setItem(`${namespace}_${key}`, oldItem);
                     return oldItem;
-                }else{
+                } else {
                     return oldItem;
                 }
             }
@@ -70,7 +80,139 @@ function createGameStorageSandbox(gameId = "ccported") {
                 return function (dbName, version) {
                     // Namespace the database name
                     const namespacedDBName = `${namespace}_${dbName}`;
-                    return originalIndexedDB.open(namespacedDBName, version);
+
+                    // Create a promise to check existing databases
+                    const checkDatabases = async () => {
+                        try {
+                            const databases = await originalIndexedDB.databases();
+                            const oldDBExists = databases.some(db => db.name === dbName);
+                            console.log(`Checking for database '${dbName}': ${oldDBExists}`);
+                            return oldDBExists;
+                        } catch (error) {
+                            console.error('Error checking databases:', error);
+                            return false;
+                        }
+                    };
+
+                    // First try to open the namespaced database
+                    const request = originalIndexedDB.open(namespacedDBName, version);
+
+                    request.onerror = function (event) {
+                        console.error(`Error opening database ${namespacedDBName}:`, event.target.error);
+                    };
+
+                    // Handle the case where the namespaced DB needs setup
+                    request.onupgradeneeded = function (event) {
+                        console.log(`Upgrade needed for ${namespacedDBName}`);
+                        const newDB = event.target.result;
+
+                        // Immediately check for old database
+                        checkDatabases().then(oldDBExists => {
+                            if (oldDBExists) {
+                                console.log(`Found old database '${dbName}', initiating transfer`);
+                                const oldDBRequest = originalIndexedDB.open(dbName);
+
+                                oldDBRequest.onerror = function (event) {
+                                    console.error(`Error opening old database ${dbName}:`, event.target.error);
+                                };
+
+                                oldDBRequest.onsuccess = function (event) {
+                                    const oldDB = event.target.result;
+                                    console.log(`Successfully opened old database '${dbName}'`);
+                                    console.log('Object stores found:', Array.from(oldDB.objectStoreNames));
+
+                                    // Get all object store names from old DB
+                                    const storeNames = Array.from(oldDB.objectStoreNames);
+
+                                    if (storeNames.length === 0) {
+                                        console.log(`No object stores found in old database '${dbName}'`);
+                                        oldDB.close();
+                                        return;
+                                    }
+
+                                    // Transfer each object store
+                                    storeNames.forEach(storeName => {
+                                        console.log(`Transferring object store: ${storeName}`);
+                                        try {
+                                            const transaction = oldDB.transaction(storeName, 'readonly');
+                                            const store = transaction.objectStore(storeName);
+                                            const getAllRequest = store.getAll();
+
+                                            getAllRequest.onsuccess = function () {
+                                                try {
+                                                    // Create new store in namespaced DB if it doesn't exist
+                                                    if (!newDB.objectStoreNames.contains(storeName)) {
+                                                        console.log(`Creating new object store: ${storeName}`);
+                                                        const newStore = newDB.createObjectStore(storeName,
+                                                            store.keyPath ? { keyPath: store.keyPath } :
+                                                                { autoIncrement: store.autoIncrement });
+
+                                                        // Copy indexes
+                                                        Array.from(store.indexNames).forEach(indexName => {
+                                                            const index = store.index(indexName);
+                                                            newStore.createIndex(indexName, index.keyPath, {
+                                                                unique: index.unique,
+                                                                multiEntry: index.multiEntry
+                                                            });
+                                                        });
+                                                    }
+
+                                                    // Transfer data
+                                                    const newTransaction = newDB.transaction(storeName, 'readwrite');
+                                                    const newStore = newTransaction.objectStore(storeName);
+                                                    const items = getAllRequest.result;
+                                                    console.log(`Transferring ${items.length} items for store ${storeName}`);
+
+                                                    items.forEach(item => {
+                                                        try {
+                                                            newStore.add(item);
+                                                        } catch (error) {
+                                                            console.error(`Error adding item to ${storeName}:`, error);
+                                                        }
+                                                    });
+
+                                                    newTransaction.oncomplete = function () {
+                                                        console.log(`Completed transfer for store: ${storeName}`);
+                                                    };
+
+                                                    newTransaction.onerror = function (event) {
+                                                        console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
+                                                    };
+                                                } catch (error) {
+                                                    console.error(`Error processing store ${storeName}:`, error);
+                                                }
+                                            };
+
+                                            getAllRequest.onerror = function (event) {
+                                                console.error(`Error getting data from ${storeName}:`, event.target.error);
+                                            };
+
+                                            transaction.oncomplete = function () {
+                                                console.log(`Old database transaction complete for: ${storeName}`);
+                                                // Only delete the old database after all transfers are complete
+                                                if (storeName === storeNames[storeNames.length - 1]) {
+                                                    oldDB.close();
+                                                    const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
+                                                    deleteRequest.onsuccess = function () {
+                                                        console.log(`Successfully deleted old database: ${dbName}`);
+                                                    };
+                                                    deleteRequest.onerror = function (event) {
+                                                        console.error(`Error deleting old database ${dbName}:`, event.target.error);
+                                                    };
+                                                }
+                                            };
+                                        } catch (error) {
+                                            console.error(`Error in store transfer process for ${storeName}:`, error);
+                                        }
+                                    });
+                                };
+                            } else {
+                                console.log(`No old database found for '${dbName}'`);
+                            }
+                        });
+                    };
+
+                    return request;
                 };
             } else if (prop === 'deleteDatabase') {
                 return function (dbName) {
@@ -82,7 +224,160 @@ function createGameStorageSandbox(gameId = "ccported") {
             }
         }
     });
-
+    async function migrateDatabase(dbName, version) {
+        const namespacedDBName = `${namespace}_${dbName}`;
+        const databases = await originalIndexedDB.databases();
+        const oldDBExists = databases.some(db => db.name === dbName);
+        
+        if (oldDBExists) {
+            console.log(`Manually migrating database: ${dbName}`);
+            
+            return new Promise((resolve, reject) => {
+                const request = originalIndexedDB.open(namespacedDBName, version || 1);
+                
+                request.onerror = function(event) {
+                    console.error(`Error opening namespaced database ${namespacedDBName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+    
+                request.onsuccess = function(event) {
+                    const newDB = event.target.result;
+                    console.log(`Successfully opened namespaced database '${namespacedDBName}'`);
+                    
+                    // Open the old database
+                    const oldDBRequest = originalIndexedDB.open(dbName);
+                    
+                    oldDBRequest.onerror = function(event) {
+                        console.error(`Error opening old database ${dbName}:`, event.target.error);
+                        reject(event.target.error);
+                    };
+    
+                    oldDBRequest.onsuccess = function(event) {
+                        const oldDB = event.target.result;
+                        console.log(`Successfully opened old database '${dbName}'`);
+                        
+                        const storeNames = Array.from(oldDB.objectStoreNames);
+                        console.log('Object stores found:', storeNames);
+    
+                        if (storeNames.length === 0) {
+                            console.log(`No object stores found in old database '${dbName}'`);
+                            oldDB.close();
+                            resolve();
+                            return;
+                        }
+    
+                        // Keep track of completed stores
+                        let completedStores = 0;
+                        
+                        // Create a version change request to set up stores if needed
+                        const upgradeRequest = originalIndexedDB.open(namespacedDBName, (version || 1) + 1);
+                        
+                        upgradeRequest.onupgradeneeded = function(event) {
+                            const upgradedDB = event.target.result;
+                            
+                            storeNames.forEach(storeName => {
+                                if (!upgradedDB.objectStoreNames.contains(storeName)) {
+                                    const oldStore = oldDB.transaction(storeName).objectStore(storeName);
+                                    const newStore = upgradedDB.createObjectStore(storeName, 
+                                        oldStore.keyPath ? { keyPath: oldStore.keyPath } : 
+                                        { autoIncrement: oldStore.autoIncrement }
+                                    );
+                                    
+                                    // Copy indexes
+                                    Array.from(oldStore.indexNames).forEach(indexName => {
+                                        const index = oldStore.index(indexName);
+                                        newStore.createIndex(indexName, index.keyPath, {
+                                            unique: index.unique,
+                                            multiEntry: index.multiEntry
+                                        });
+                                    });
+                                }
+                            });
+                        };
+    
+                        upgradeRequest.onsuccess = function(event) {
+                            const upgradedDB = event.target.result;
+                            
+                            // Transfer data for each store
+                            storeNames.forEach(storeName => {
+                                console.log(`Transferring object store: ${storeName}`);
+                                try {
+                                    const transaction = oldDB.transaction(storeName, 'readonly');
+                                    const store = transaction.objectStore(storeName);
+                                    const getAllRequest = store.getAll();
+                                    
+                                    getAllRequest.onsuccess = function() {
+                                        try {
+                                            const items = getAllRequest.result;
+                                            console.log(`Transferring ${items.length} items for store ${storeName}`);
+                                            
+                                            const newTransaction = upgradedDB.transaction(storeName, 'readwrite');
+                                            const newStore = newTransaction.objectStore(storeName);
+                                            
+                                            items.forEach(item => {
+                                                try {
+                                                    newStore.add(item);
+                                                } catch (error) {
+                                                    console.error(`Error adding item to ${storeName}:`, error);
+                                                }
+                                            });
+                                            
+                                            newTransaction.oncomplete = function() {
+                                                console.log(`Completed transfer for store: ${storeName}`);
+                                                completedStores++;
+                                                
+                                                // Check if all stores are completed
+                                                if (completedStores === storeNames.length) {
+                                                    console.log('All stores transferred successfully');
+                                                    oldDB.close();
+                                                    upgradedDB.close();
+                                                    
+                                                    // Delete the old database
+                                                    const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
+                                                    deleteRequest.onsuccess = function() {
+                                                        console.log(`Successfully deleted old database: ${dbName}`);
+                                                        resolve();
+                                                    };
+                                                    deleteRequest.onerror = function(event) {
+                                                        console.error(`Error deleting old database ${dbName}:`, event.target.error);
+                                                        reject(event.target.error);
+                                                    };
+                                                }
+                                            };
+    
+                                            newTransaction.onerror = function(event) {
+                                                console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
+                                                reject(event.target.error);
+                                            };
+                                        } catch (error) {
+                                            console.error(`Error processing store ${storeName}:`, error);
+                                            reject(error);
+                                        }
+                                    };
+    
+                                    getAllRequest.onerror = function(event) {
+                                        console.error(`Error getting data from ${storeName}:`, event.target.error);
+                                        reject(event.target.error);
+                                    };
+                                } catch (error) {
+                                    console.error(`Error in store transfer process for ${storeName}:`, error);
+                                    reject(error);
+                                }
+                            });
+                        };
+    
+                        upgradeRequest.onerror = function(event) {
+                            console.error(`Error upgrading database ${namespacedDBName}:`, event.target.error);
+                            reject(event.target.error);
+                        };
+                    };
+                };
+            });
+        } else {
+            console.log(`No old database found for '${dbName}'`);
+            return Promise.resolve();
+        }
+    }
     return function setupGameEnvironment() {
         // Override storage APIs in the game's context
         Object.defineProperty(window, 'localStorage', {
@@ -96,6 +391,7 @@ function createGameStorageSandbox(gameId = "ccported") {
             writable: false,
             configurable: true
         });
+        window.ccPorted.migrateDatabase = migrateDatabase;
     };
 }
 createGameStorageSandbox(window.gameID || "ccported")();
@@ -564,7 +860,6 @@ class Stats {
     }
     contextualize(id, context) {
         if (context) {
-            console.log(context);
             return context.querySelector("#" + id);
         } else {
             return document.getElementById(id);
