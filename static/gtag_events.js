@@ -1,9 +1,6 @@
-window.ccPorted = window.ccPorted || {};
 window.ccPorted.muteManagerPopupOpen = false;
 const link = document.createElement("link");
 const script = document.currentScript;
-const gameID = script.getAttribute("data-gameid");
-window.gameID = gameID;
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
 const glocation = window.location.hostname;
 const framed = pageInIframe();
