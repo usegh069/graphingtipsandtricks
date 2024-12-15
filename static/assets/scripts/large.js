@@ -20,7 +20,7 @@ function createGameStorageSandbox(gameId = "ccported") {
                             return originalLocalStorage.setItem('[ns_ccported]_' + key, value);
                         }
                         // check global namespace first
-                        if (originalLocalStorage.getItem(`ns_ccported_${key}`)) {
+                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
                             return originalLocalStorage.setItem(`[ns_ccported]_${key}`, value);
                         }
                         // check game namespace
@@ -157,7 +157,7 @@ function createGameStorageSandbox(gameId = "ccported") {
                     if (isNamespaced) {
                         return originalIndexedDB.open(dbName, version);
                     }
-                    if (dbName.startsWith("ns_ccported_")) {
+                    if (dbName.startsWith("[ns_ccported]_")) {
                         return originalIndexedDB.open(dbName, version);
                     }
                     // Namespace the database name
