@@ -1,6 +1,13 @@
 {% if (showAds == "true") %}
 <script async src="https://ss.mrmnd.com/interstitial.js" data-mndintid="26d09c2c-6d2a-4c22-bd80-4f36b8ed40a6"></script>
 {% endif %}
+<script>
+    window.ccPorted = {
+        ...(window.ccPorted || {}),
+        gameID: (("{{gameID}}").length > 0) ? "{{gameID}}" : "ccported"
+    }
+    window.gameID = window.ccPorted.gameID;
+</script>
 
 <gtag />
 

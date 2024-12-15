@@ -1,4 +1,93 @@
 shortcut([17, 81], toggleStats);
+
+function createGameStorageSandbox(gameId = "ccported") {
+    // Create a unique namespace for this game
+    const namespace = `ns_${gameId}`;
+
+    // Save original storage APIs
+    const originalLocalStorage = window.localStorage;
+    const originalIndexedDB = window.indexedDB;
+
+    // Create localStorage proxy
+    const localStorageProxy = {
+        setItem: function(key, value) {
+            return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+        },
+        getItem: function(key) {
+            return originalLocalStorage.getItem(`${namespace}_${key}`);
+        },
+        removeItem: function(key) {
+            return originalLocalStorage.removeItem(`${namespace}_${key}`);
+        },
+        clear: function() {
+            // Only clear items for this game
+            for (let i = originalLocalStorage.length - 1; i >= 0; i--) {
+                const key = originalLocalStorage.key(i);
+                if (key.startsWith(`${namespace}_`)) {
+                    originalLocalStorage.removeItem(key);
+                }
+            }
+        },
+        key: function(index) {
+            // Get all keys for this game
+            const gameKeys = [];
+            for (let i = 0; i < originalLocalStorage.length; i++) {
+                const key = originalLocalStorage.key(i);
+                if (key.startsWith(`${namespace}_`)) {
+                    gameKeys.push(key.slice(namespace.length + 1));
+                }
+            }
+            return gameKeys[index];
+        },
+        get length() {
+            // Count only items for this game
+            let count = 0;
+            for (let i = 0; i < originalLocalStorage.length; i++) {
+                if (originalLocalStorage.key(i).startsWith(`${namespace}_`)) {
+                    count++;
+                }
+            }
+            return count;
+        }
+    };
+
+    // Create IndexedDB proxy
+    const indexedDBProxy = new Proxy({}, {
+        get: function(target, prop) {
+            if (prop === 'open') {
+                return function(dbName, version) {
+                    // Namespace the database name
+                    const namespacedDBName = `${namespace}_${dbName}`;
+                    return originalIndexedDB.open(namespacedDBName, version);
+                };
+            } else if (prop === 'deleteDatabase') {
+                return function(dbName) {
+                    const namespacedDBName = `${namespace}_${dbName}`;
+                    return originalIndexedDB.deleteDatabase(namespacedDBName);
+                };
+            } else {
+                return originalIndexedDB[prop];
+            }
+        }
+    });
+
+    return function setupGameEnvironment() {
+        // Override storage APIs in the game's context
+        Object.defineProperty(window, 'localStorage', {
+            value: localStorageProxy,
+            writable: false,
+            configurable: true
+        });
+
+        Object.defineProperty(window, 'indexedDB', {
+            value: indexedDBProxy,
+            writable: false,
+            configurable: true
+        });
+    };
+}
+createGameStorageSandbox(window.gameID || "ccported")();
+
 class Stats {
     constructor() {
         this.isOpen = false;
