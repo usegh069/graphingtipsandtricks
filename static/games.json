@@ -772,6 +772,24 @@
                 "action",
                 "animal"
             ]
+        },
+        {
+            "name":"getaway_shootout",
+            "fName":"Getaway Shootout",
+            "description":"Shoot and jump your way through the map to get to the objective before your friends.",
+            "image":"/assets/images/game_covers/getaway_shootout.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/gas/"
+                }
+            ],
+            "tags": [
+                "skill",
+                "action",
+                "twoPlayer"
+            ]
         }
     ]
 }
