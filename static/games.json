@@ -809,6 +809,63 @@
                 "idle",
                 "driving"
             ]
+        },
+        {
+            "name":"papas_bakeria",
+            "fName":"Papa's Bakeria",
+            "description":"Run a bakery and serve delicious pies to customers in this fun cooking game.",
+            "image":"/assets/images/game_covers/papas_bakeria.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/bakeria/"
+                }
+            ],
+            "tags": [
+                "cooking",
+                "simulation",
+                "papa's",
+                "flash"
+            ]
+        },
+        {
+            "name":"papas_pastaria",
+            "fName":"Papa's Pastaria",
+            "description":"Run a pasta restaurant and serve delicious dishes to customers in this fun cooking game.",
+            "image":"/assets/images/game_covers/papas_pastaria.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/pastaria/"
+                }
+            ],
+            "tags": [
+                "cooking",
+                "simulation",
+                "papa's",
+                "flash"
+            ]
+        },
+        {
+            "name":"papas_wingeria",
+            "fName":"Papa's Wingeria",
+            "description":"Manage your own chicken wing restaurant and serve delicious meals to customers in this fun cooking game.",
+            "image":"/assets/images/game_covers/papas_wingeria.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/wingeria/"
+                }
+            ],
+            "tags": [
+                "cooking",
+                "simulation",
+                "papa's",
+                "flash"
+            ]
         }
     ]
 }
