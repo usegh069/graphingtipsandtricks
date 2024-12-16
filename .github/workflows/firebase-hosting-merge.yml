@@ -2,9 +2,8 @@ name: Deploy to Firebase Hosting on merge
 on:
   push:
     branches:
-      - gh-pages
+      - gh-pages   
   workflow_dispatch:
-
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
