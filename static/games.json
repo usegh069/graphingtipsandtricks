@@ -866,6 +866,25 @@
                 "papa's",
                 "flash"
             ]
+        },
+        {
+            "name":"worlds_hardest_game",
+            "fName":"The World's Hardest Game",
+            "description":"The World's Hardest Game is a challenging puzzle game where you try to move a red square through a series of mazes without touching the blue circles.",
+            "image":"/assets/images/game_covers/worlds_hardest_game.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/worlds_hardest_game/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "strategy",
+                "skill",
+                "flash"
+            ]
         }
     ]
 }

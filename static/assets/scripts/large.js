@@ -48,7 +48,7 @@ function createGameStorageSandbox(gameId = "ccported") {
                         if (namespaceRegex.test(key)) {
                             return originalLocalStorage.getItem(key);
                         }
-                        // return undefined if not found
+                        // return obj if not found
                         return originalLocalStorage.getItem(`${namespace}_${key}`);
                     }
                 case 'removeItem':
