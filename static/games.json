@@ -890,6 +890,7 @@
             "name":"friday_night_funkin",
             "fName":"Friday Night Funkin'",
             "description":"Friday Night Funkin' is a rhythm game where you play as Boyfriend and try to impress Girlfriend's family with your singing skills.",
+            "image":"/assets/images/game_covers/friday_night_funkin.jpg",
             "online":true,
             "links":[
                 {
