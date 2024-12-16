@@ -885,6 +885,23 @@
                 "skill",
                 "flash"
             ]
+        },
+        {
+            "name":"friday_night_funkin",
+            "fName":"Friday Night Funkin'",
+            "description":"Friday Night Funkin' is a rhythm game where you play as Boyfriend and try to impress Girlfriend's family with your singing skills.",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/fnf/"
+                }
+            ],
+            "tags": [
+                "rhythm",
+                "music",
+                "skill"
+            ]
         }
     ]
 }
