@@ -99,6 +99,8 @@ async function installGTAG() {
 
 // Modified init function
 async function init() {
+    emit();
+    setInterval(emit, 1000 * 60 * 10);
     const { data: { user } } = await window.ccSupaClient.auth.getUser();
     window.ccPorted.user = user;
     if (localStorage.getItem("chat-convo-all-muted") !== 1 && user) {
@@ -283,6 +285,7 @@ function emit() {
         data["parentDomainHost"] = (window.parent.location.hostname.length > 0) ? window.parent.location.hostname : "unknown";
         data["parentDomain"] = window.parent.location;
     }
+    log(data);
     gtag("event", "play_game", data);
 }
 function hasSeenGame(gameID) {
