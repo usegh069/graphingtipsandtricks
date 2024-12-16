@@ -149,6 +149,7 @@ try {
                 cardsContainer.appendChild(card);
             });
             setSort(0);
+            loadPinnedStates();
             log("Loading ROMs")
             document.querySelector(".cards").classList.remove("loading");
             let romsJSON = await importJSON("/roms/roms.json");
