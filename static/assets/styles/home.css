@@ -107,7 +107,7 @@ header.shadow {
     margin-top: 0px;
     margin-bottom: 0px;
     overflow: hidden;
-    border-radius: 0px;
+    border-radius: 18px;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: row;

@@ -903,6 +903,24 @@
                 "music",
                 "skill"
             ]
+        },
+        {
+            "name":"block_blast",
+            "fName":"Block Blast",
+            "description":"Block Blast is a fun and addictive puzzle game where you try to clear the board by matching blocks of the same color.",
+            "image":"/assets/images/game_covers/block_blast.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/bb/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "strategy",
+                "match"
+            ]
         }
     ]
 }
