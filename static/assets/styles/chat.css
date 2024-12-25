@@ -102,6 +102,7 @@ body {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
+    margin-top: 20vh;
 }
 
 h1 {
@@ -329,4 +330,154 @@ input:focus {
 
 .message-content {
     width: 100%;
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+    /* General Layout */
+    .container {
+        padding: 10px;
+        margin: 0px;
+        margin-top: 100px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .hamburger {
+        order: -1;
+    }
+
+    /* Sidebar Modifications */
+    .sidebar {
+        width: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        background-color: #fff;
+        z-index: 8000;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar.active {
+        width: 80%;
+        box-shadow: 0px 0px 5px #000000;
+        z-index: 8000;
+
+    }
+
+    .sidebar-content {
+        width: 100%;
+        padding: 15px;
+        box-sizing: border-box;
+    }
+    .sidebar.active .arrow{
+        display: none;
+    }
+    .sidebar.active .sidebar-content {
+        opacity: 1;
+    }
+
+
+    /* Main Content Adjustments */
+    .main-content {
+        margin-left: 0;
+    }
+
+    /* Chat Interface */
+    #chat-messages {
+        height: 55vh;
+        margin-bottom: 15px;
+    }
+
+    .message {
+        padding: 8px;
+    }
+
+    .message-header {
+        flex-direction: column;
+    }
+    .message-text{
+        margin-left: 10px;
+    }
+
+    .author-time {
+        flex-direction: column;
+        margin: 0px;
+        font-style: italic
+    }
+
+    /* Form Elements */
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+        padding: 12px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    button {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    /* Popup Modifications */
+    .popup-content {
+        width: 90%;
+        height: auto;
+        padding: 20px;
+    }
+
+    .popup-buttons {
+        flex-direction: column;
+    }
+
+    .popup-buttons button {
+        margin: 5px 0;
+    }
+
+    /* Invite Box Modifications */
+    .invite-emailInputContainer {
+        flex-direction: column;
+    }
+
+    .invite-add,
+    .invite-remove {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .bottomActions {
+        flex-direction: column;
+    }
+
+    .bottomActions button {
+        margin: 5px 0 !important;
+        width: 100%;
+    }
+
+    /* Profile Picture */
+    .profile-picture {
+        width: 35px;
+        height: 35px;
+    }
+
+    form{
+        width: 100%;
+        max-height: 20%;
+    }
+}
+
+/* Additional styles for very small screens */
+@media screen and (max-width: 320px) {
+    .container {
+        padding: 5px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .popup-content {
+        width: 95%;
+    }
 }

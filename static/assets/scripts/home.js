@@ -10,7 +10,8 @@ try {
     const addGameRequestButton = document.getElementById("addGameRequestButton");
     const sortDirectionText = document.getElementById("order");
     const header = document.querySelector('header');
-    const scrollThreshold = 0;
+    const toggleBtn = document.querySelector('.toggle-btn');
+
     const sortStates = [
         [() => {
             sortCardsByClicks((cards)=>{
@@ -663,9 +664,11 @@ try {
             card.remove();
         });
     }
+    
     function buildCard(game) {
         const card = document.createElement("div");
         card.classList.add("card");
+        card.classList.add("grid");
         card.id = game.name;
         
         // Add star icon
@@ -812,8 +815,18 @@ try {
             log("Ads loaded");
         }
     }
-
-
+    function rerenderCards(layout) {
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.toggle('rows', layout === 'rows');
+            card.classList.toggle('grid', layout === 'grid');
+        });
+    }
+    toggleBtn.addEventListener('click', () => {
+        const currentLayout = toggleBtn.getAttribute('data-current');
+        const newLayout = currentLayout === 'grid' ? 'rows' : 'grid';
+        toggleBtn.setAttribute('data-current', newLayout);
+        rerenderCards(newLayout);
+    });
     document.addEventListener("keydown", (e) => {
         if (e.key == "Escape" && window.gameRQPopupOpen) {
             closePopup();
@@ -860,30 +873,6 @@ try {
         }
         input(sortState);
         setSort(sortState);
-    });
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > scrollThreshold) {
-            header.classList.add('shadow');
-        } else {
-            header.classList.remove('shadow');
-        }
-        // check if ad is visible
-        const ads = document.querySelectorAll(".tad");
-        ads.forEach(ad => {
-            if (ad.getAttribute("data-loaded-check") == "true") return;
-            if (ad.getBoundingClientRect().top < window.innerHeight) {
-                // allow a 5s loading grace period
-                setTimeout(() => {
-                    // check if ad loaded (will have Iframe)
-                    if (ad.querySelector("iframe")) {
-                        ad.setAttribute("data-loaded-check", "true");
-                        ad.style.backgroundImage = "none";
-                    } else {
-                        ad.remove();
-                    }
-                }, 5000)
-            }
-        });
     });
     // searchInput.addEventListener("click", (e) => {
     //     // only clear if the click is on the "x" button

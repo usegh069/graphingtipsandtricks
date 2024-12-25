@@ -20,8 +20,11 @@ async function postSupaInstall() {
                 const { user } = data;
                 window.user = user;
                 window.ccPorted.user = user;
-                if (user && document.getElementById("loggedInReplacable")) {
-                    document.getElementById("loggedInReplacable").innerHTML = `<a href="/profile/" class="cc">${user.user_metadata.display_name}</a>`;
+                if (user && document.querySelectorAll(".loggedInReplacable").length > 0) {
+                    document.querySelectorAll(".loggedInReplacable").forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    document.querySelector(".loggedInAddable").innerHTML = `<a href="/profile/" class="cc">${user.user_metadata.display_name}</a>`
                 }
                 resolve(user);
             } catch (err) {

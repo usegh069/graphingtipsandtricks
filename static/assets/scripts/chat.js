@@ -25,17 +25,15 @@ let displayNameCache = new Map();
 let messagesSent = 0;
 
 window.createChannelPopupOpen = false;
-if (!/Mobi|Android/i.test(navigator.userAgent)) {
-    sidebar.addEventListener("mouseover", (e) => {
-        sidebar.classList.add("expanded");
-    });
-    sidebar.addEventListener("mouseout", (e) => {
-        sidebar.classList.remove("expanded");
-    });
-}
-if (navigator.userAgent.includes("Mobi")) {
-    sArrow.classList.add("expander");
-}
+sidebar.addEventListener("mouseover", (e) => {
+    if(window.innerWidth < 768) return;
+    sidebar.classList.add("expanded");
+});
+sidebar.addEventListener("mouseout", (e) => {
+    if(window.innerWidth < 768) return;
+    sidebar.classList.remove("expanded");
+});
+
 
 async function init() {
     log(`Initializing chat`)
@@ -161,15 +159,15 @@ async function loadPFP(user_id) {
 }
 async function loadDisplayName(user_id) {
     log(`Loading display name for user <${user_id}>`);
-    if(displayNameCache.has(user_id)){
+    if (displayNameCache.has(user_id)) {
         return displayNameCache.get(user_id);
     }
     const { data, error } = await window.ccSupaClient
-        .rpc('get_user_display_name',{
+        .rpc('get_user_display_name', {
             user_id
         });
-    if(error) log(error);
-    displayNameCache.set(user_id,data);
+    if (error) log(error);
+    displayNameCache.set(user_id, data);
     return displayNameCache.get(user_id);
 }
 async function handleNewMessage(payload) {
