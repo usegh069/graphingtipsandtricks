@@ -607,6 +607,10 @@ button#sort, button#pickforme {
     .card-tags .tag {
         font-size: 12px;
         padding: 3px 8px;
+        display: none;
+    }
+    .card-links {
+        display: none;
     }
 
     /* Popup adjustments */
