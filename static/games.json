@@ -921,6 +921,42 @@
                 "strategy",
                 "match"
             ]
+        },
+        {
+            "name":"rooftop_snipers",
+            "fName":"Rooftop Snipers",
+            "description":"Rooftop Snipers is a two player shooting game where you try to shoot your opponent off the roof with a variety of weapons.",
+            "image":"/assets/images/game_covers/rooftop_snipers.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/rs/"
+                }
+            ],
+            "tags": [
+                "twoPlayer",
+                "shooting",
+                "action"
+            ]
+        },
+        {
+            "name":"gladihoppers",
+            "fName":"Gladihoppers",
+            "description":"Gladihoppers is a physics-based fighting game where you control a gladiator and try to defeat your opponents in the arena.",
+            "image":"/assets/images/game_covers/gladihoppers.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/gh/"
+                }
+            ],
+            "tags": [
+                "action",
+                "fighting",
+                "skill"
+            ]
         }
     ]
 }
