@@ -957,6 +957,24 @@
                 "fighting",
                 "skill"
             ]
+        },
+        {
+            "name":"drive_mad",
+            "fName":"Drive Mad",
+            "description":"Drive silly cars at high speeds in dangerous terrain. Oh, and you can't steer. Good luck!",
+            "image":"/assets/images/game_covers/drive_mad.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/dm/"
+                }
+            ],
+            "tags": [
+                "driving",
+                "timing",
+                "skill"
+            ]
         }
     ]
 }
