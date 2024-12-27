@@ -9,7 +9,6 @@ function createGameStorageSandbox(gameId = "ccported") {
     const originalIndexedDB = window.indexedDB;
     const namespaceRegex = new RegExp(`^\[ns_[a-zA-Z0-9_-]+\]_`);
 
-
     // Create localStorage proxy
     const localStorageProxy = new Proxy(localStorage, {
         get: function (target, prop) {
@@ -298,12 +297,24 @@ function createGameStorageSandbox(gameId = "ccported") {
                 };
             } else if (prop === 'deleteDatabase') {
                 return function (dbName) {
+                    // Check if the database is already namespaced
+                    if (namespaceRegex.test(dbName)) {
+                        return originalIndexedDB.deleteDatabase(dbName);
+                    }
+                    // Namespace the database name
                     const namespacedDBName = `${namespace}_${dbName}`;
                     return originalIndexedDB.deleteDatabase(namespacedDBName);
                 };
             } else if (prop === 'databases') {
-                // Bind the databases method to the original indexedDB
-                return originalIndexedDB.databases.bind(originalIndexedDB);
+                // remove the current namespace name from the list of databases
+                // eg: [ns_slope]_/idbfs -> /idbfs
+                return async function () {
+                    const databases = await originalIndexedDB.databases();
+                    return databases.map(db => {
+                        db.name = db.name.replace(namespace + "_", '');
+                        return db;
+                    });
+                };
             } else {
                 // For all other properties, bind them to the original indexedDB if they're functions
                 const value = originalIndexedDB[prop];
