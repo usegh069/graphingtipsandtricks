@@ -975,6 +975,24 @@
                 "timing",
                 "skill"
             ]
+        },
+        {
+            "name":"papas_tacomia",
+            "fName":"Papa's Tacomia",
+            "description":"Run a taco restaurant and serve delicious dishes to customers in this fun cooking game.",
+            "image":"/assets/images/game_covers/papas_tacomia.jpg",
+            "online":true,
+            "links":[
+                {
+                    "name":"CCPorted",
+                    "link":"https://ccported.github.io/flash/papas/tacomia/"
+                }
+            ],
+            "tags": [
+                "flash",
+                "papa's",
+                "cooking"
+            ]
         }
     ]
 }
