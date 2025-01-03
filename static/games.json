@@ -993,6 +993,101 @@
                 "papa's",
                 "cooking"
             ]
+        },
+        {
+            "name": "riddle_school",
+            "fName": "Riddle School",
+            "description": "Escape the school in this classic point-and-click adventure game.",
+            "image": "/assets/images/game_covers/riddle_school.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/riddleschool/1/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "adventure",
+                "flash",
+                "riddleSchool"
+            ]
+        },
+        {
+            "name": "riddle_school_2",
+            "fName": "Riddle School 2",
+            "description": "Continue the adventure and escape the school once again in this sequel.",
+            "image": "/assets/images/game_covers/riddle_school_2.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/riddleschool/2/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "adventure",
+                "flash",
+                "riddleSchool"
+            ]
+        },
+        {
+            "name": "riddle_school_3",
+            "fName": "Riddle School 3",
+            "description": "The third installment of the Riddle School series, with more puzzles and challenges.",
+            "image": "/assets/images/game_covers/riddle_school_3.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/riddleschool/3/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "adventure",
+                "flash",
+                "riddleSchool"
+            ]
+        },
+        {
+            "name": "riddle_school_4",
+            "fName": "Riddle School 4",
+            "description": "The next sequel in the Riddle School series, try to bust out of the school once again.",
+            "image": "/assets/images/game_covers/riddle_school_4.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/riddleschool/4/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "adventure",
+                "flash",
+                "riddleSchool"
+            ]
+        },
+        {
+            "name": "riddle_school_5",
+            "fName": "Riddle School 5",
+            "description": "The fifth and last installment of the Riddle School series, with a much longer playthrough and more puzzles.",
+            "image": "/assets/images/game_covers/riddle_school_5.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/riddleschool/5/"
+                }
+            ],
+            "tags": [
+                "puzzle",
+                "adventure",
+                "flash",
+                "riddleSchool"
+            ]
         }
     ]
 }
