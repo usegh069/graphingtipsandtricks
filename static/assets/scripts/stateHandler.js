@@ -381,7 +381,7 @@ class GameStateSync {
     }
     async saveState(state, timestamp) {
         this.lastSync = timestamp;
-        localStorage.setItem('ccStateLastSave', timestamp);
+        localStorage.setItem('ccStateLastSave', timestamp, true);
         var notification = window.ccPorted.autoSaveNotification;
         await this.saveToServer(state, timestamp);
         if (notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') < Date.now()) {
@@ -458,7 +458,7 @@ class GameStateSync {
                     log("[CCPorted State Manager] Importing state....");
                     const result = await this.syncUtil.importState(decomp, true);
                     if (result.success) {
-                        localStorage.setItem('ccStateLastSave', timestamp);
+                        localStorage.setItem('ccStateLastSave', timestamp, true);
                         log('[CCPorted State Manager] State loaded successfully');
                         await result.import();
                         location.reload();
@@ -500,13 +500,13 @@ class GameStateSync {
             log('[CCPorted State Manager] Current save timestamp: ' + currentSave);
             if (!currentSave || timestamp > currentSave) {
                 log('[CCPorted State Manager] Game state has been updated');
-                localStorage.setItem('ccStateLastSave', timestamp);
+                localStorage.setItem('ccStateLastSave', timestamp, true);
                 log('[CCPorted State Manager] Importing state....');
                 const result = await this.syncUtil.importState(decomp, true);
                 if (result.success) {
                     log('[CCPorted State Manager] State loaded successfully');
                     await result.import();
-                    localStorage.setItem('ccStateLastSave', timestamp);
+                    localStorage.setItem('ccStateLastSave', timestamp, true);
                     location.reload();
                 } else {
                     log('[CCPorted State Manager] [310] Error loading state: ' + result.error);

@@ -1088,6 +1088,24 @@
                 "flash",
                 "riddleSchool"
             ]
+        },
+        {
+            "name": "learn_to_fly_idle",
+            "fName": "Learn to Fly Idle",
+            "description": "An idle game based on the popular Learn to Fly series, where you use your cannon to launch snowballs and earn money to upgrade.",
+            "image": "/assets/images/game_covers/learn_to_fly_idle.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/learn_to_fly/idle/"
+                }
+            ],
+            "tags": [
+                "flash",
+                "idle",
+                "learnToFly"
+            ]
         }
     ]
 }
