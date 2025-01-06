@@ -128,7 +128,7 @@ function decamelize(string) {
     // should end up as "Camel Case"
     let denormalized = "";
     for (let i = 0; i < string.length; i++) {
-        if (string[i] === string[i].toUpperCase()) {
+        if (string[i] === string[i].toUpperCase() && ((string[i+1] && string[i+1] === string[i+1].toUpperCase()) || !string[i+1])) {
             denormalized += " " + string[i];
         } else {
             denormalized += string[i];

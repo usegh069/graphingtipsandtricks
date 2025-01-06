@@ -1106,6 +1106,44 @@
                 "idle",
                 "learnToFly"
             ]
+        },
+        {
+            "name": "doom",
+            "fName": "DOOM",
+            "description": "DOOM is a classic first-person shooter game where you fight against demons from Hell.",
+            "image": "/assets/images/game_covers/doom.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/emulator/dos/doom/"
+                }
+            ],
+            "tags": [
+                "emulator",
+                "retro",
+                "FPS",
+                "classic",
+                "action"
+            ]
+        },
+        {
+            "name": "age_of_empires_2",
+            "fName": "Age of Empires II",
+            "description": "Age of Empires II is a classic real-time strategy game where you build an empire, train an army, and conquer your enemies.",
+            "image": "/assets/images/game_covers/age_of_empires_2.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/emulator/dos/aoe2/"
+                }
+            ],
+            "tags": [
+                "classic",
+                "strategy",
+                "civilization"
+            ]
         }
     ]
 }

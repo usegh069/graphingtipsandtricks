@@ -28,6 +28,9 @@ self.addEventListener('fetch', async (event) => {
     };
 
     self.clients.get(clientId).then(client => {
+        if(!client) {
+            return;
+        }
         client.postMessage(requestDetails);
     });
     event.respondWith(
@@ -100,6 +103,9 @@ self.addEventListener('fetch', async (event) => {
                     }
 
                     self.clients.get(clientId).then(client => {
+                        if(!client) {
+                            return;
+                        }
                         client.postMessage(responseDetails);
                     });
 

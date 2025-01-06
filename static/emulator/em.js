@@ -72,6 +72,7 @@ function formatCategoryName(category) {
         'atari2600': 'Atari 2600',
         'arcade': 'Arcade',
         'vb': 'Virtual Boy',
+        'dos': 'DOS',
     };
     return `${names[category]} (${category.toUpperCase()})` || category.toUpperCase();
 }
@@ -89,6 +90,7 @@ async function createSelect() {
 
     // Create optgroups for each category
     Object.keys(romsJSON).forEach((category) => {
+        if(cetegory === "dos") return;
         const group = document.createElement('optgroup');
         group.label = formatCategoryName(category);
         allGroups[category] = group;

@@ -340,19 +340,19 @@ class StateSyncUtility {
     }
 
     setupAutoSync(callback, interval = 5 * 60 * 1000) {
-        this.forceSync = async () => {
+        this.forceSync = async (customMessage = 'Auto-saving...') => {
             try {
                 // preload loading image
                 const img = new Image();
                 img.src = '/assets/images/loading.gif';
 
                 log("[CCPorted State Manager] auto syncing....");
-                showAutoSaveNotification();
+                showAutoSaveNotification(customMessage);
                 const state = await this.exportState();
                 await callback(state.state, state.timestamp);
             } catch (error) {
                 log('[CCPorted State Manager] Auto-sync failed: ' + JSON.stringify(error) + ' ' + error.message + '\n' + error + '\n' + error.stack);
-                var notif = showAutoSaveNotification();
+                var notif = showAutoSaveNotification(customMessage);
                 notif.innerText = 'Auto-save failed';
                 setTimeout(() => {
                     notif.remove();
@@ -523,7 +523,7 @@ class GameStateSync {
 }
 
 
-function showAutoSaveNotification() {
+function showAutoSaveNotification(text = 'Auto-saving...') {
     var notification = window.ccPorted.autoSaveNotification || document.createElement('div');
     notification.innerHTML = '';
     notification.style.position = 'fixed';
@@ -535,7 +535,11 @@ function showAutoSaveNotification() {
     notification.style.borderRadius = '5px';
     notification.style.textAlign = 'center';
     notification.style.zIndex = '9999';
-    notification.innerText = 'Auto-saving...';
+    notification.style.display = "flex";
+    notification.style.alignItems = "center";
+    notification.style.justifyContent = "center";
+    notification.style.flexDirection = "row";
+    notification.innerText = text;
     notification.setAttribute('data-creation-time', Date.now());
     notification.setAttribute('data-min-visible-time', '3000');
 
