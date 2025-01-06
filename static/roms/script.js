@@ -63,14 +63,14 @@
      container.innerHTML = Object.entries(roms)
          .map(([console, romList]) => `
              <div class="determiner">
-                 <h2 id="${console}">${console.toUpperCase()} ROMs</h2>
+                 <h2 id="${console}">${console.toUpperCase()} ${(console !== "dos") ? "ROMs" : "Files"}</h2>
                  <ul>
                      ${romList.map(([filename, title]) => `
                          <li>
                              <div class="name">${title}</div>
                              <div class="links">
                                  <a href="https://ccportedroms.s3-us-west-2.amazonaws.com/${console}/${filename}" target="_blank">Download</a>
-                                 <a href="/emulator/?core=${console}&rom=${filename}" target="_blank">Play</a>
+                                 ${(console != "dos") ? `<a href="/emulator/?core=${console}&rom=${filename}" target="_blank">Play</a>` : ''}
                              </div>
                          </li>
                      `).join('')}

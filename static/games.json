@@ -936,7 +936,7 @@
             ],
             "tags": [
                 "twoPlayer",
-                "shooting",
+                "shooter",
                 "action"
             ]
         },
@@ -1196,7 +1196,7 @@
             "tags": [
                 "action",
                 "classic",
-                "shooting",
+                "shooter",
                 "scroller"
             ]
         },
@@ -1216,6 +1216,24 @@
                 "firstPerson",
                 "sports",
                 "retro"
+            ]
+        },
+        {
+            "name": "quake2",
+            "fName": "Quake 2",
+            "description": "The original Quake 2 game, a classic first-person shooter game where you fight against the Strogg, humanity's alien enemy.",
+            "image": "/assets/images/game_covers/quake2.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/emulator/dos/quake2/"
+                }
+            ],
+            "tags": [
+                "firstPerson",
+                "shooting",
+                "FPS"
             ]
         }
     ]
