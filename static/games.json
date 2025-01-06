@@ -1199,6 +1199,24 @@
                 "shooting",
                 "scroller"
             ]
+        },
+        {
+            "name": "cyber_puck",
+            "fName": "Cyber Puck",
+            "description": "Play first-person air hockey and try and score against your opponent in this rocket league esque game.",
+            "image": "/assets/images/game_covers/cyber_puck.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/emulator/dos/cyber_puck/"
+                }
+            ],
+            "tags": [
+                "firstPerson",
+                "sports",
+                "retro"
+            ]
         }
     ]
 }
