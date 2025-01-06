@@ -1180,6 +1180,25 @@
                 "snow",
                 "flash"
             ]
+        },
+        {
+            "name": "raptor_call_of_the_shadows",
+            "fName": "Raptor: Call of the Shadows",
+            "description": "Kill for cash! In the future as a mercenary flying the super-tech Raptor, you'll be sent on interplanetary missions to knock off top competitors of MegaCorp.",
+            "image": "/assets/images/game_covers/raptor_call_of_the_shadows.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/emulator/dos/raptor_call_of_the_shadows/"
+                }
+            ],
+            "tags": [
+                "action",
+                "classic",
+                "shooting",
+                "scroller"
+            ]
         }
     ]
 }
