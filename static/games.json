@@ -1162,6 +1162,24 @@
                 "platformer",
                 "action"
             ]
+        },
+        {
+            "name": "skidoo_tt",
+            "fName": "Skidoo TT",
+            "description": "Skid and slide your way through the snow in this fast-paced racing game.",
+            "image": "/assets/images/game_covers/skidoo_tt.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/skidoo-tt/"
+                }
+            ],
+            "tags": [
+                "racing",
+                "snow",
+                "flash"
+            ]
         }
     ]
 }
