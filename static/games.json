@@ -1144,6 +1144,24 @@
                 "strategy",
                 "civilization"
             ]
+        },
+        {
+            "name": "jazz_jackrabbit",
+            "fName": "Jazz Jackrabbit",
+            "description": "Created by the makers of Fortnite, Jazz Jackrabbit is a classic platformer game where you play as a green rabbit who fights his nemesis, the turtle, Devan Shell.",
+            "image": "/assets/images/game_covers/jazz_jackrabbit.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/emulator/dos/jazz_jackrabbit/"
+                }
+            ],
+            "tags": [
+                "classic",
+                "platformer",
+                "action"
+            ]
         }
     ]
 }
