@@ -1253,6 +1253,24 @@
                 "driving",
                 "skill"
             ]
+        },
+        {
+            "name": "soccer_random",
+            "fName": "Soccer Random",
+            "description": "Another game by twoplayergames, try to score as many goals as you can against your friends or the computer.",
+            "image": "/assets/images/game_covers/polytrack.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/sor/"
+                }
+            ],
+            "tags": [
+                "sports",
+                "soccer",
+                "twoPlayer"
+            ]
         }
     ]
 }

@@ -8,7 +8,6 @@ const absLinks = [
     "/login/",
     "/",
     "/chat/",
-    "/status/",
     "/profile/",
     "/roms/"
 ]
