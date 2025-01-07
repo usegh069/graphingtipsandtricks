@@ -231,7 +231,7 @@ header.shadow {
     opacity: 1;
 }
 
-.star-icon.pinned {
+.card.grid .star-icon.pinned {
     opacity: 1;
     color: gold;
 }
