@@ -1258,7 +1258,7 @@
             "name": "soccer_random",
             "fName": "Soccer Random",
             "description": "Another game by twoplayergames, try to score as many goals as you can against your friends or the computer.",
-            "image": "/assets/images/game_covers/polytrack.jpg",
+            "image": "/assets/images/game_covers/soccer_random.jpg",
             "online": true,
             "links": [
                 {
