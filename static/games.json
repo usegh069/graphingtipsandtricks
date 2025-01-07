@@ -1235,6 +1235,24 @@
                 "shooting",
                 "FPS"
             ]
+        },
+        {
+            "name": "polytrack",
+            "fName": "Polytrack",
+            "description": "Polytrack is a fast-paced racing game similar to Trackmania.",
+            "image": "/assets/images/game_covers/polytrack.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/pt/"
+                }
+            ],
+            "tags": [
+                "racing",
+                "driving",
+                "skill"
+            ]
         }
     ]
 }
