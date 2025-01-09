@@ -23,7 +23,7 @@ jobs:
           node-version: '20'
           
       - name: Install htmlc globally
-        run: npm install -g @sojs_coder/htmlc
+        run: npm install -g @sojs_coder/htmlc@1.3.5
         
       - name: Build Sitemap
         run: node generate_sitemap.js
