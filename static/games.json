@@ -1289,6 +1289,24 @@
                 "life",
                 "strategy"
             ]
+        },
+        {
+            "name": "dungeons_and_degenerate_gamblers",
+            "fName": "Dungeons & Degenerate Gamblers",
+            "description": "Battle seedy gambling addicted townspeople through blackjack in this twist of a classic card game.",
+            "image": "/assets/images/game_covers/dungeons_and_degenerate_gamblers.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/dadg/"
+                }
+            ],
+            "tags": [
+                "gambling",
+                "cards",
+                "roguelike"
+            ]
         }
     ]
 }
