@@ -472,6 +472,7 @@ try {
                     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI',
                     'Content-Type': 'application/json'
                 },
+                cors: 'no-cors',
                 body: JSON.stringify({ name: game_name })
             });
 
@@ -852,6 +853,12 @@ try {
         sendButton.addEventListener("click", async () => {
             const input = document.getElementById("gameRequestInput");
             try {
+
+                if(input.value.toLowerCase().includes("roblox")){
+                    alert("20 game requests for roblox are submitted every day. Please no more. Thanks");
+                    closePopup();
+                    return;
+                }
                 await addGameRequest(input.value);
             } catch (e) {
                 // alert("An error occurred while sending your request. Please try again later.")
