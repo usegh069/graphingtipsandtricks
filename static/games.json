@@ -1307,6 +1307,42 @@
                 "cards",
                 "roguelike"
             ]
+        },
+        {
+            "name": "happy_wheels",
+            "fName": "Happy Wheels",
+            "description": "Happy Wheels is a side-scrolling physics based game where you try to reach the finish line without dying.",
+            "image": "/assets/images/game_covers/happy_wheels.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/happy_wheels/"
+                }
+            ],
+            "tags": [
+                "physics",
+                "skill",
+                "flash"
+            ]
+        },
+        {
+            "name": "tic_tac_toe",
+            "fName": "Tic Tac Toe",
+            "description": "Tic tac toe.",
+            "image": "/assets/images/game_covers/tic_tac_toe.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/ttt/"
+                }
+            ],
+            "tags": [
+                "twoPlayer",
+                "classic",
+                "strategy"
+            ]
         }
     ]
 }
