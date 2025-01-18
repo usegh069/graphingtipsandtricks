@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+      runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,6 +39,9 @@ jobs:
         
       - name: Build static site
         run: htmlc static --out=build
+      
+      - name: Copy .gitattributes
+        run: cp .gitattributes build/.gitattributes
         
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v3
