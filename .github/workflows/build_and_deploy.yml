@@ -2,9 +2,12 @@
 name: Build and Deploy
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["gh-pages"]
+  # Run after the build workflow is complete
+  workflow_run:
+    workflows: ["Deploy to gh-pages branch"]
+    types:
+      - completed
+  
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -24,6 +27,7 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -32,6 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          branch: gh-pages
           lfs: true
       - name: Setup Pages
         uses: actions/configure-pages@v5
