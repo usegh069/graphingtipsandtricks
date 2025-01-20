@@ -50,7 +50,7 @@ jobs:
       
       - name: Copy and Modify .gitattributes
         run: |
-          node modify_gitattr.js.js
+          node modify_gitattr.js
           cp .gitattributes build/.gitattributes
         
       - name: Deploy to gh-pages branch
