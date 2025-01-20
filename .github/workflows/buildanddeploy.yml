@@ -48,8 +48,10 @@ jobs:
       - name: Build static site
         run: htmlc static --out=build
       
-      - name: Copy .gitattributes
-        run: cp .gitattributes build/.gitattributes
+      - name: Copy and Modify .gitattributes
+        run: |
+          node modify_gitattributes.js
+          cp .gitattributes build/.gitattributes
         
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v3
