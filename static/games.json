@@ -1360,6 +1360,24 @@
                 "clicker",
                 "idle"
             ]
+        },
+        {
+            "name": "nighttime_visitor",
+            "fName": "Nighttime Visitor",
+            "description": "You're working late at the office tonight....",
+            "image": "/assets/images/game_covers/nighttime_visitor.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/nv/"
+                }
+            ],
+            "tags": [
+                "horror",
+                "adventure",
+                "survival"
+            ]
         }
     ]
 }
