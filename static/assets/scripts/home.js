@@ -14,7 +14,7 @@ try {
 
     const sortStates = [
         [() => {
-            sortCardsByClicks((cards)=>{
+            sortCardsByClicks((cards) => {
                 cards.sort((a, b) => {
                     const aPinned = a.hasAttribute("data-pinned");
                     const bPinned = b.hasAttribute("data-pinned");
@@ -26,7 +26,7 @@ try {
             })
         }, "Hot"],
         [() => {
-            sortCardsAlphabetically(1,(cards)=>{
+            sortCardsAlphabetically(1, (cards) => {
                 cards.sort((a, b) => {
                     const aPinned = a.hasAttribute("data-pinned");
                     const bPinned = b.hasAttribute("data-pinned");
@@ -38,7 +38,7 @@ try {
             });
         }, "A-Z"],
         [() => {
-            sortCardsAlphabetically(-1,(cards)=>{
+            sortCardsAlphabetically(-1, (cards) => {
                 cards.sort((a, b) => {
                     const aPinned = a.hasAttribute("data-pinned");
                     const bPinned = b.hasAttribute("data-pinned");
@@ -50,7 +50,7 @@ try {
             });
         }, "Z-A"],
         [() => {
-            sortCardsRandomly((cards)=>{
+            sortCardsRandomly((cards) => {
                 cards.sort((a, b) => {
                     const aPinned = a.hasAttribute("data-pinned");
                     const bPinned = b.hasAttribute("data-pinned");
@@ -60,7 +60,7 @@ try {
                 });
                 return cards;
             })
-        },"Random"]
+        }, "Random"]
     ]
     let showingAds = true;
     let needToLoadAds = false;
@@ -138,10 +138,22 @@ try {
                     if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
                         if (e.target.tagName == "A") {
                             e.preventDefault();
-                            window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
+                            const protocol = window.location.protocol;
+                            const hostname = window.location.hostname;
+                            const fullURL = e.target.href;
+                            let x = fullURL.replace("ccported.github.io", hostname);
+                            console.log(protocol);
+                            x = x.replace("https://", protocol + "//");
+                            window.open(x, '_blank');
                         }
                         return;
                     }
+                    const protocol = window.location.protocol;
+                    const hostname = window.location.hostname;
+                    const fullURL = links[0].href;
+                    let x = fullURL.replace("ccported.github.io", hostname + "//");
+                    console.log(protocol);
+                    x = x.replace("https://", protocol);
                     window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
                 });
                 checkSeenGame(id, card);
@@ -220,12 +232,24 @@ try {
                         e.preventDefault();
                         // if it's a link, open it
                         incrementClicks(id);
+                        const protocol = window.location.protocol;
+                        const hostname = window.location.hostname;
+                        const fullURL = e.target.href;
+                        let x = fullURL.replace("ccported.github.io", hostname);
+                        console.log(protocol);
+                        x = x.replace("https://", protocol + "//");
                         window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
                     }
                     return;
                 }
                 incrementClicks(id);
-                window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                const fullURL = links[0].href;
+                let x = fullURL.replace("ccported.github.io", hostname);
+                console.log(protocol);
+                x = x.replace("https://", protocol + "//");
+                window.open(x, '_blank');
             });
             checkSeenGame(id, card);
             markGameSeen(id);
@@ -330,11 +354,11 @@ try {
             return {}
         }
     }
-    function pickRandomCard(){
+    function pickRandomCard() {
         return cardsCache[Math.floor(Math.random() * cardsCache.length)]
 
     }
-    function sortCardsRandomly(middle = () => {}) {
+    function sortCardsRandomly(middle = () => { }) {
         let cardsArray = Array.from(document.querySelectorAll(".card"));
         shuffle(cardsArray);
         let cardsContainer = document.querySelector(".cards");
@@ -344,7 +368,7 @@ try {
             cardsContainer.appendChild(card);
         });
     }
-    async function sortCardsByClicks(middle = () => {}) {
+    async function sortCardsByClicks(middle = () => { }) {
         if (window.ccPorted?.serverBlocked) {
             return sortCardsRandomly(middle);
         }
@@ -547,7 +571,7 @@ try {
         document.querySelector(".popup").remove();
         window.gameRQPopupOpen = false;
     }
-    function sortCardsAlphabetically(direction, middle = () => {}) {
+    function sortCardsAlphabetically(direction, middle = () => { }) {
         log(`Sorting cards alphabetically`);
         let cardsArray = Array.from(document.querySelectorAll(".card"));
         cardsArray.sort((a, b) => {
@@ -665,13 +689,13 @@ try {
             card.remove();
         });
     }
-    
+
     function buildCard(game) {
         const card = document.createElement("div");
         card.classList.add("card");
         card.classList.add("grid");
         card.id = game.name;
-        
+
         // Add star icon
         const star = document.createElement("span");
         star.classList.add("star-icon");
@@ -680,23 +704,23 @@ try {
             e.stopPropagation();
             togglePin(card, star);
         });
-        
+
         const bg = document.createElement("div");
         bg.classList.add("card-bg");
         bg.style.backgroundImage = `url('${game.image}')`;
-        
+
         const content = document.createElement("div");
         content.classList.add("card-content");
-        
+
         const contentInner = document.createElement("div");
         const title = document.createElement("h2");
         title.classList.add("card-title");
         title.textContent = game.fName;
-        
+
         const description = document.createElement("p");
         description.classList.add("card-description");
         description.textContent = game.description;
-        
+
         const tags = document.createElement("div");
         tags.classList.add("card-tags");
         game.tags.forEach(tag => {
@@ -710,7 +734,7 @@ try {
             });
             tags.appendChild(tagElement);
         });
-        
+
         const links = document.createElement("div");
         links.classList.add("card-links");
         game.links.forEach(link => {
@@ -719,17 +743,17 @@ try {
             linkElement.textContent = `${link.action ? link.action : "Play"} ${(link.pre) ? link.pre : game.fName} on ${link.name}`;
             links.appendChild(linkElement);
         });
-        
+
         contentInner.appendChild(title);
         contentInner.appendChild(description);
         contentInner.appendChild(tags);
         content.appendChild(contentInner);
         content.appendChild(links);
-        
+
         card.appendChild(star);
         card.appendChild(bg);
         card.appendChild(content);
-        
+
         return card;
     }
     function togglePin(card, star) {
@@ -774,7 +798,7 @@ try {
     function sortPinnedCards() {
         let cardsArray = Array.from(document.querySelectorAll(".card"));
 
-        
+
         cardsArray.sort((a, b) => {
             const aPinned = a.hasAttribute("data-pinned");
             const bPinned = b.hasAttribute("data-pinned");
@@ -782,10 +806,10 @@ try {
             if (!aPinned && bPinned) return 1;
             return 0;
         });
-        
+
         let cardsContainer = document.querySelector(".cards");
         removeCards();
-        cardsArray.forEach(card => cardsContainer.appendChild(card));        
+        cardsArray.forEach(card => cardsContainer.appendChild(card));
     }
     function loadAds(num = 3) {
         log(`Loading ${num} ads`);
@@ -854,7 +878,7 @@ try {
             const input = document.getElementById("gameRequestInput");
             try {
 
-                if(input.value.toLowerCase().includes("roblox")){
+                if (input.value.toLowerCase().includes("roblox")) {
                     alert("20 game requests for roblox are submitted every day. Please no more. Thanks");
                     closePopup();
                     return;
@@ -868,7 +892,7 @@ try {
         });
 
     });
-    pickForMe.addEventListener("click",(e)=>{
+    pickForMe.addEventListener("click", (e) => {
         var card = pickRandomCard();
         card.click();
     })

@@ -1293,7 +1293,7 @@
         {
             "name": "dungeons_and_degenerate_gamblers",
             "fName": "Dungeons & Degenerate Gamblers",
-            "description": "Battle seedy gambling addicted townspeople through blackjack in this twist of a classic card game.",
+            "description": "Battle seedy gambling addicted townspeople through blackjack in this twist of a classic card game. (note: this only works on ccported.github.io)",
             "image": "/assets/images/game_covers/dungeons_and_degenerate_gamblers.jpg",
             "online": true,
             "links": [
@@ -1342,6 +1342,23 @@
                 "twoPlayer",
                 "classic",
                 "strategy"
+            ]
+        },
+        {
+            "name": "spacebar_clicker",
+            "fName": "Spacebar Clicker",
+            "description": "A game similar to Cookie Clicker, except you're not baking cookies, you're mashing the spacebar.",
+            "image": "/assets/images/game_covers/spacebar_clicker.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/sc/"
+                }
+            ],
+            "tags": [
+                "clicker",
+                "idle"
             ]
         }
     ]
