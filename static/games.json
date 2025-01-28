@@ -1414,6 +1414,24 @@
                 "casual",
                 "dice"
             ]
+        },
+        {
+            "name": "the_impossible_quiz",
+            "fName": "The Impossible Quiz",
+            "description": "The Impossible Quiz is a fun and challenging quiz game where you try to answer a series of questions without running out of lives.",
+            "image": "/assets/images/game_covers/the_impossible_quiz.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/tiq/"
+                }
+            ],
+            "tags": [
+                "flash",
+                "classic",
+                "puzzle"
+            ]
         }
     ]
 }
