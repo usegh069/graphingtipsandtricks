@@ -1378,6 +1378,24 @@
                 "adventure",
                 "survival"
             ]
+        },
+        {
+            "name": "idle_superpowers",
+            "fName": "Idle Superpowers",
+            "description": "Idle Superpowers is a fun idle game where you try to become the most powerful superhero in the world.",
+            "image": "/assets/images/game_covers/idle_superpowers.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/isu/"
+                }
+            ],
+            "tags": [
+                "idle",
+                "casual",
+                "superhero"
+            ]
         }
     ]
 }
