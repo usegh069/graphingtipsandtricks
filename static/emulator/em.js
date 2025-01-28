@@ -33,7 +33,7 @@ async function init() {
     }
 }
 async function findDataCDN() {
-    var cdns = ["https://ccported.github.io/emdata", "https://emdata.onrender.com", "https://sojs-coder.github.io/emdata", "https://d0136284.ccportedemdata.pages.dev"];
+    var cdns = ["https://ccported.github.io/emdata", "https://emdata.onrender.com", "https://sojs-coder.github.io/emdata", "https://d0136284.ccportedemdata.pages.dev", "https://main.dtbdx4d2gvp5v.amplifyapp.com/"];
     for (var i = 0; i < cdns.length; i++) {
         try {
             const response = await fetch(cdns[i] + '/blocked_res.txt', {

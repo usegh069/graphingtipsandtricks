@@ -1396,6 +1396,24 @@
                 "casual",
                 "superhero"
             ]
+        },
+        {
+            "name": "idle_dice",
+            "fName": "Idle Dice",
+            "description": "Idle dice is a dice rolling game where you try to earn as much money as you can by rolling dice and upgrading your dice.",
+            "image": "/assets/images/game_covers/idle_dice.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/id/"
+                }
+            ],
+            "tags": [
+                "idle",
+                "casual",
+                "dice"
+            ]
         }
     ]
 }
