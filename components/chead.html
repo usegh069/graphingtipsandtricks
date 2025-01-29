@@ -9,10 +9,7 @@
 <script src = "/assets/scripts/navigation.js"></script>
 
 
-{% if (ads == "true") %}
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2096280583430267" crossorigin="anonymous"></script>
 <script src="/assets/scripts/adblockdetect.js"></script>
-<link href="/assets/styles/a.css" rel="stylesheet"/>
 <script>
     window.onload = () => {
         // Create the enabledEl element
@@ -94,6 +91,11 @@
             );
         }
     }
+</script>
+{% if (ads == "true") %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2096280583430267" crossorigin="anonymous"></script>
+<link href="/assets/styles/a.css" rel="stylesheet"/>
+<script>
     window.adsEnabled = true;
 </script>
 {% else %}
