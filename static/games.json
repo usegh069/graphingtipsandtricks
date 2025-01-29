@@ -1450,6 +1450,24 @@
                 "adventure",
                 "strategy"
             ]
+        },
+        {
+            "name": "jetpack_joyride",
+            "fName": "Jetpack Joyride",
+            "description": "Fire bullets out of your jetpack in this fast-paced side-scrolling game.",
+            "image": "/assets/images/game_covers/jetpack_joyride.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/jj/"
+                }
+            ],
+            "tags": [
+                "action",
+                "shooter",
+                "jetpack"
+            ]
         }
     ]
 }
