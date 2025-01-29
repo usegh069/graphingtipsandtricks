@@ -502,6 +502,7 @@ class Stats {
         this.ableToDrag = false;
         this.logs = [];
         this.requests = [];
+        this.interceptRequests = (localStorage.getItem('[ns_ccported]_statsConfig_interceptRequests') ? true : false);
         const [dom] = this.generateDom();
         this.dom = dom;
         this.workerLoaded = false;
@@ -562,7 +563,12 @@ class Stats {
                 `;
             document.head.appendChild(style);
         });
-        this.setupRequestInterception();
+        if(this.interceptRequests){
+            this.log(`Request interception is on. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a falsy value to turn off.`)
+            this.setupRequestInterception();
+        }else{
+            this.log(`Request interception is off. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a true value to turn on.`)
+        }
     }
     getPanel(panel = 0) {
         return this.dom.children[panel];
