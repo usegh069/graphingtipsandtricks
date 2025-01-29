@@ -1424,13 +1424,31 @@
             "links": [
                 {
                     "name": "CCPorted",
-                    "link": "https://ccported.github.io/flash/tiq/"
+                    "link": "https://ccported.github.io/flash/the_impossible_quiz/"
                 }
             ],
             "tags": [
                 "flash",
                 "classic",
                 "puzzle"
+            ]
+        },
+        {
+            "name": "jacksmith",
+            "fName": "Jacksmith",
+            "description": "Build weapons and fight off enemies in this fun and addictive strategy game.",
+            "image": "/assets/images/game_covers/jacksmith.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/flash/jacksmith/"
+                }
+            ],
+            "tags": [
+                "flash",
+                "adventure",
+                "strategy"
             ]
         }
     ]
