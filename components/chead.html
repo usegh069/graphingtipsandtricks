@@ -1,110 +1,170 @@
 <gtag />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, maximum-scale=1"
+/>
 <link rel="stylesheet" href="/assets/styles/home.css" />
-<link rel='stylesheet' href='/assets/styles/master.css' />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/assets/styles/master.css" />
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+  integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
 <title>{{title}}</title>
-<script src = "/assets/scripts/navigation.js"></script>
+<script src="/assets/scripts/navigation.js"></script>
 
-
-<script src="/assets/scripts/adblockdetect.js"></script>
 <script>
-    window.addEventListener('load',()=>{
-        log("Window loaded, running adblock check");
-        // Create the enabledEl element
-        var enabledEl = document.createElement('div');
-        enabledEl.classList.add('adb-enabled');
-        enabledEl.innerHTML = `
-        <div class="adb-enabled-overlay">
-            <div class="adb-enabled-content">
-                <h2>Ad blocker detected</h2>
-                <p>Please disable your AdBlock to continue.</p>
-                <button class="adb-continue-btn">Continue without supporting (10s)</button>
-            </div>
-        </div>
+  window.adsBlocked = false;
+ window.addEventListener("load", () => {
+  function log(msg) {
+    console.log(msg);
+  }
+  
+  log("Window loaded, running adblock check");
+  
+  // Create elements programmatically
+  function createOverlay() {
+    const enabledEl = document.createElement("div");
+    enabledEl.classList.add("adb-enabled");
+    
+    const overlay = document.createElement("div");
+    overlay.classList.add("adb-enabled-overlay");
+    
+    const content = document.createElement("div");
+    content.classList.add("adb-enabled-content");
+    
+    const title = document.createElement("h2");
+    title.textContent = "Ad blocker detected";
+    
+    const message = document.createElement("p");
+    message.textContent = "Please disable your AdBlock to continue.";
+    
+    const continueBtn = document.createElement("button");
+    continueBtn.classList.add("adb-continue-btn");
+    continueBtn.textContent = "Continue without supporting (10s)";
+    
+    // Build DOM structure
+    content.appendChild(title);
+    content.appendChild(message);
+    content.appendChild(continueBtn);
+    overlay.appendChild(content);
+    enabledEl.appendChild(overlay);
+    enabledEl.style.display = (window.adsBlocked ? "block" : "none");
+    
+    // Add styles
+    const styles = document.createElement("style");
+    styles.textContent = `
+      .adb-enabled-overlay {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        color: white;
+        background-color: #ee3030;
+        z-index: 99999;
+        padding: 70px;
+      }
+      .adb-continue-btn {
+        cursor: pointer;
+        padding: 5px;
+        border: 1px solid white;
+        background-color: transparent;
+        color: white;
+        transition: 500ms;
+      }
+      .adb-continue-btn:hover {
+        background-color: white;
+        color: #ee3030;
+        transition: 500ms;
+      }
+      body {
+        margin-right: 150px;
+      }
+      header .r-side-nav {
+        padding-right: 150px !important;
+      }
     `;
+    document.head.appendChild(styles);
+    
+    return { enabledEl, continueBtn };
+  }
+  
+  const { enabledEl, continueBtn } = createOverlay();
+  document.body.appendChild(enabledEl);
+
+  function adBlockDetected() {
+    log("adBlockDetected()");
+    window.adsBlocked = true;
+    let ax = false;
+    enabledEl.style.display = "block";
+
+    // Adblock delay countdown
+    let countdown = 10;
+    const countdownInterval = setInterval(function() {
+      countdown--;
+      continueBtn.textContent = `Continue without supporting (${countdown}s)`;
+      if (countdown === 0) {
+        clearInterval(countdownInterval);
+        continueBtn.textContent = "Continue without supporting";
+      }
+    }, 1000);
+
+    continueBtn.addEventListener("click", (e) => {
+      if (countdown === 0) {
+        ax = true;
         enabledEl.style.display = "none";
-        // Add the element to the body
-        document.body.appendChild(enabledEl);
-
-        // Adblock detection logic
-        function adBlockDetected() {
-            log('adBlockDetected()');
-            var ax = false;
-            enabledEl.style.display = 'block';
-
-            // Adblock delay countdown
-            var countdownEl = enabledEl.querySelector('.adb-continue-btn');
-            var countdown = 10;
-            var countdownInterval = setInterval(function () {
-                countdown--;
-                countdownEl.textContent = `Continue without supporting (${countdown}s)`;
-                if (countdown === 0) {
-                    clearInterval(countdownInterval);
-                    countdownEl.textContent = 'Continue without supporting';
-                }
-            }, 1000);
-            countdownEl.addEventListener("click",(e)=>{
-                if(countdown == 0){
-                    ax = true;
-                    enabledEl.style.display = "none";
-                }
-            })
-
-            // Check if the element still exists every 750ms
-            var checkInterval = setInterval(function () {
-                if (!document.body.contains(enabledEl)) {
-                    clearInterval(checkInterval);
-                    createEnabldeEl();
-                }
-            }, 750);
-        }
-
-        function adBlockNotDetected() {
-            log('Blocks not detected');
-            enabledEl.style.display = 'none';
-        }
-
-        function createEnabldeEl() {
-            // Recreate the enabledEl element
-            enabledEl = document.createElement('div');
-            enabledEl.classList.add('adb-enabled');
-            enabledEl.innerHTML = `
-            <div class="adb-enabled-overlay">
-                <div class="adb-enabled-content">
-                    <h2>Ad blocker detected</h2>
-                    <p>Please disable your AdBlock to continue.</p>
-                    <button class="adb-continue-btn">Continue without supporting (10s) -></button>
-                </div>
-            </div>
-        `;
-            document.body.appendChild(enabledEl);
-        }
-        if (typeof window.adblockDetector === 'undefined') {
-            log('Detector blocked, assuming ads as well');
-            adBlockDetected();
-        } else {
-            log('Running detector')
-            window.adblockDetector.init(
-                {
-                    debug: true,
-                    found: adBlockDetected,
-                    notFound: adBlockNotDetected
-                }
-            );
-        }
+      }
     });
+
+    // Check if the element still exists every 750ms
+    const checkInterval = setInterval(function() {
+      if (!document.body.contains(enabledEl)) {
+        clearInterval(checkInterval);
+        const { enabledEl: newEl } = createOverlay();
+        document.body.appendChild(newEl);
+      }
+    }, 750);
+  }
+
+  function adBlockNotDetected() {
+    log("Blocks not detected");
+    enabledEl.style.display = "none";
+  }
+
+  const REQUEST_URL = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+  const REQUEST_CONFIG = {
+    method: "HEAD",
+    mode: "no-cors",
+  };
+
+  const checkAdsBlocked = (callback) => {
+    fetch(REQUEST_URL, REQUEST_CONFIG)
+      .then((response) => {
+        callback(response.redirected);
+      })
+      .catch(() => {
+        callback(true);
+      });
+  };
+
+  checkAdsBlocked(adBlockDetected);
+});
 </script>
 {% if (ads == "true") %}
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2096280583430267" crossorigin="anonymous"></script>
-<link href="/assets/styles/a.css" rel="stylesheet"/>
+<script
+  async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2096280583430267"
+  crossorigin="anonymous"
+></script>
+<link href="/assets/styles/a.css" rel="stylesheet" />
 <script>
-    window.adsEnabled = true;
+  window.adsEnabled = true;
 </script>
 {% else %}
 <script>
-    window.adsEnabled = false;
+  window.adsEnabled = false;
 </script>
 {% endif %}
