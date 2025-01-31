@@ -1,5 +1,4 @@
 <script>
-    window.adsBlocked = false;
    window.addEventListener("load", () => {
     function log(msg) {
       console.log(msg);
@@ -8,7 +7,7 @@
     log("Window loaded, running adblock check");
     
     // Create elements programmatically
-    function createOverlay() {
+    function createOverlay(visibility = "none") {
       const enabledEl = document.createElement("div");
       enabledEl.classList.add("adb-enabled");
       
@@ -34,7 +33,7 @@
       content.appendChild(continueBtn);
       overlay.appendChild(content);
       enabledEl.appendChild(overlay);
-      enabledEl.style.display = (window.adsBlocked ? "block" : "none");
+      enabledEl.style.display = visibility;
       
       // Add styles
       const styles = document.createElement("style");
@@ -75,12 +74,11 @@
       return { enabledEl, continueBtn };
     }
     
-    const { enabledEl, continueBtn } = createOverlay();
+    const { enabledEl, continueBtn } = createOverlay("none");
     document.body.appendChild(enabledEl);
   
     function adBlockDetected() {
       log("adBlockDetected()");
-      window.adsBlocked = true;
       let ax = false;
       enabledEl.style.display = "block";
   
@@ -106,7 +104,7 @@
       const checkInterval = setInterval(function() {
         if (!document.body.contains(enabledEl)) {
           clearInterval(checkInterval);
-          const { enabledEl: newEl } = createOverlay();
+          const { enabledEl: newEl } = createOverlay("block");
           document.body.appendChild(newEl);
         }
       }, 750);
@@ -123,16 +121,22 @@
       mode: "no-cors",
     };
   
-    const checkAdsBlocked = (callback) => {
-      fetch(REQUEST_URL, REQUEST_CONFIG)
+  const checkAdsBlocked = (callback) => {
+    fetch(REQUEST_URL, REQUEST_CONFIG)
         .then((response) => {
-          callback(response.redirected);
-        })
+            callback(response.redirected);
+        })                                  
         .catch(() => {
-          callback(true);
+            callback(true);
         });
     };
   
-    checkAdsBlocked(adBlockDetected);
+    checkAdsBlocked((adsBlocked)=>{
+        if(adsBlocked){
+            adBlockDetected();
+        }else{
+            adBlockNotDetected();
+        }
+    });
   });
   </script>
