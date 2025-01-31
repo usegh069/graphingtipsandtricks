@@ -9,12 +9,10 @@
 <script src = "/assets/scripts/navigation.js"></script>
 
 
-{% if (ads == "true") %}
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2096280583430267" crossorigin="anonymous"></script>
 <script src="/assets/scripts/adblockdetect.js"></script>
-<link href="/assets/styles/a.css" rel="stylesheet"/>
 <script>
-    window.onload = () => {
+    window.addEventListener('load',()=>{
+        log("Window loaded, running adblock check");
         // Create the enabledEl element
         var enabledEl = document.createElement('div');
         enabledEl.classList.add('adb-enabled');
@@ -33,6 +31,7 @@
 
         // Adblock detection logic
         function adBlockDetected() {
+            log('adBlockDetected()');
             var ax = false;
             enabledEl.style.display = 'block';
 
@@ -64,6 +63,7 @@
         }
 
         function adBlockNotDetected() {
+            log('Blocks not detected');
             enabledEl.style.display = 'none';
         }
 
@@ -83,8 +83,10 @@
             document.body.appendChild(enabledEl);
         }
         if (typeof window.adblockDetector === 'undefined') {
+            log('Detector blocked, assuming ads as well');
             adBlockDetected();
         } else {
+            log('Running detector')
             window.adblockDetector.init(
                 {
                     debug: true,
@@ -93,7 +95,12 @@
                 }
             );
         }
-    }
+    });
+</script>
+{% if (ads == "true") %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2096280583430267" crossorigin="anonymous"></script>
+<link href="/assets/styles/a.css" rel="stylesheet"/>
+<script>
     window.adsEnabled = true;
 </script>
 {% else %}

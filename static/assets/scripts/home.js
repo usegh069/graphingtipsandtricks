@@ -117,8 +117,11 @@ try {
         try {
             log("Attempting base render");
             log("Cards rendered: " + window.ccPorted.cardsRendered)
+            log("Base render occuring: " + window.ccPorted.baseRendering);
+            if (window.ccPorted.baseRendering) return;
             if (window.ccPorted.cardsRendered) return;
-            window.ccPorted.serverBlocked = true
+            window.ccPorted.serverBlocked = true;
+            window.ccPorted.baseRendering = true;
 
             createNotif({
                 message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
@@ -292,6 +295,7 @@ try {
             }
         }
         log("Home page loaded");
+        window.ccPorted.baseRendering = false;
         loadAds();
     }
     async function incrementClicks(gameID) {
@@ -341,6 +345,7 @@ try {
                 .select('gameID, clicks');
 
             if (error) {
+                baseRender();
                 log('Error getting game clicks:', error.message);
                 return;
             }
@@ -351,6 +356,7 @@ try {
             return obj;
         } catch (e) {
             log(e);
+            baseRender();
             return {}
         }
     }
