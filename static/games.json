@@ -1468,6 +1468,24 @@
                 "survival",
                 "fnaf"
             ]
+        },
+        {
+            "name": "ballz",
+            "fName": "BallZ",
+            "description": "Break the bricks with your stream of balls in this bouncing physics game.",
+            "image": "/assets/images/game_covers/ballz.jpg",
+            "online": true,
+            "links": [
+                {
+                    "name": "CCPorted",
+                    "link": "https://ccported.github.io/bz/"
+                }
+            ],
+            "tags": [
+                "physics",
+                "casual",
+                "puzzle"
+            ]
         }
     ]
 }
