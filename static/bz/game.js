@@ -425,11 +425,19 @@ window.addEventListener("load", (e) => {
             } else {
                 listItem.style.color = "#ffffff";
             }
-
-            const displayName = entry.display_name.length > 10 ? entry.display_name.substring(0, 9) + "..." : entry.display_name;
+            const displayName = entry.display_name.length > 20 ? entry.display_name.substring(0, 19) + "..." : entry.display_name;
             const score = entry.score;
-            listItem.textContent = `${displayName}: ${score}`;
+            const userSpan = document.createElement("span");
+            userSpan.textContent = (entry.rank + 1) + ". " + displayName + "";
+            const scoreSpan = document.createElement("span");
+            scoreSpan.textContent = score;
+            listItem.style.display = "flex";
+            listItem.style.justifyContent = "space-between";
+
+            listItem.appendChild(userSpan);
+            listItem.appendChild(scoreSpan);
             leaderboard.appendChild(listItem);
+            leaderboard.style.paddingInlineStart = "0px";
         })
     })
 });

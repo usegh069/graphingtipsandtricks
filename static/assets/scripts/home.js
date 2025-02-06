@@ -296,6 +296,14 @@ try {
         }
         log("Home page loaded");
         window.ccPorted.baseRendering = false;
+        createPopup({
+            title: 'Hiring!',
+            message: "We are hiring! We are looking for interns to help add games and manage the community.",
+            cta: {
+                text: "Apply",
+                link: "https://forms.gle/kWJRXuYN93unLkZRA"
+            }
+        });
         loadAds();
     }
     async function incrementClicks(gameID) {
@@ -678,7 +686,9 @@ try {
         closeButton.onclick = () => popup.remove();
         const linkRow = document.createElement('div');
         linkRow.style.display = 'flex';
-        linkRow.style.justifyContent = 'space-between';
+        linkRow.style.alignItems = 'right';
+        linkRow.style.gap = '10px';
+        // linkRow.style.justifyContent = 'space';
         if (popupData.cta) {
             linkRow.appendChild(link);
         }
@@ -883,7 +893,13 @@ try {
         sendButton.addEventListener("click", async () => {
             const input = document.getElementById("gameRequestInput");
             try {
-
+                // show join discord instead
+                document.getElementById("gameRequestInput").value = "";
+                const p = document.createElement("p");
+                p.innerHTML = "We are not accepting game requests through the website at this time. <a href = 'https://discord.gg/4nURBJmUJY'>Please join the discord</a> and mention the @gamedev role in #game-requests to submit a game request."
+                const secondP = document.createElement("p");
+                secondP.innerHTML = "If you are unable to join the discord, please email us at <a href = 'mailto:sojscoder@gmail.com'>sojscoder@gmail.com</a>.";
+                
                 if (input.value.toLowerCase().includes("roblox")) {
                     alert("20 game requests for roblox are submitted every day. Please no more. Thanks");
                     closePopup();
