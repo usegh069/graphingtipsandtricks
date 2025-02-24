@@ -4,8 +4,8 @@ const link = document.createElement("link");
 const script = document.currentScript;
 const gameID = script.getAttribute("data-gameID");
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
-const glocation = window.location.hostname;
 const framed = pageInIframe();
+const glocation =(!framed) ? window.location.hostname : document.location.ancestorOrigins[0];
 const tGameID = treat(window.gameID);
 const stlyeLoadPromise = new Promise((r, rr) => {
     link.onload = () => {
