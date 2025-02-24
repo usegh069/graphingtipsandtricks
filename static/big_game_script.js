@@ -868,7 +868,7 @@ function emit() {
         isFramed: framed,
     }
     if (framed) {
-        data["parentDomainHost"] = new URL(window.location.ancestorOrigins[0]).hostname.length > 0) ? new URL(window.location.ancestorOrigins[0]).hostname : "unknown";
+        data["parentDomainHost"] = (new URL(window.location.ancestorOrigins[0]).hostname.length > 0) ? new URL(window.location.ancestorOrigins[0]).hostname : "unknown";
     }
     log(data);
     gtag("event", "play_game", data);
