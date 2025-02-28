@@ -216,14 +216,14 @@ try {
             baseRender();
         }, 3000);
 
-        createPopup({
-            title: 'Hiring!',
-            message: "We are hiring! We are looking for interns to help add games and manage the community.",
-            cta: {
-                text: "Apply",
-                link: "https://forms.gle/kWJRXuYN93unLkZRA"
-            }
-        });
+        // createPopup({
+        //     title: 'Hiring!',
+        //     message: "We are hiring! We are looking for interns to help add games and manage the community.",
+        //     cta: {
+        //         text: "Apply",
+        //         link: "https://forms.gle/kWJRXuYN93unLkZRA"
+        //     }
+        // });
         const gamesJson = await importJSON("/games.json");
         const { games } = gamesJson;
         log(`Got ${games.length} games`);
