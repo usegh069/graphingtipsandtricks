@@ -1,3 +1,0 @@
-gm-sdk.js
-YYGGames.js
-YYGGamesx.js

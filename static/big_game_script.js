@@ -1,1116 +1,172 @@
-window.ccPorted = {};
+window.ccPorted = window.ccPorted || {};
 
+const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/";
+const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi";
+const REDIRECT_URI = `${window.location.origin}/profile/`;
+const tGameID = treat(window.gameID || window.ccPorted.gameID);
 const link = document.createElement("link");
 const script = document.currentScript;
-const gameID = script.getAttribute("data-gameID");
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
+const glocation = window.location.hostname;
 const framed = pageInIframe();
-const glocation =(!framed) ? window.location.hostname : document.location.ancestorOrigins[0];
-const tGameID = treat(window.gameID);
-const stlyeLoadPromise = new Promise((r, rr) => {
-    link.onload = () => {
-        r();
-    }
-});
+const gameIDExtractRG = /\/(game_\w+)\//;
+const gameIDExtract = gameIDExtractRG.exec(window.location.pathname);
+const gameID = window.ccPorted.gameID || window.gameID || ((gameIDExtract) ? gameIDExtract[1] : "Unknown Game");
 
-let cachedChannels = null;
 let trackingInterval = null;
 let lastUpdate = Date.now();
 
-window.gameID = window.ccPorted.gameID;
-window.ccPorted.muteManagerPopupOpen = false;
 
-window.addEventListener("beforeunload", cleanupTracking);
 
-link.href = "/assets/styles/master.css";
-link.setAttribute("rel", "stylesheet");
-document.head.appendChild(link);
-
-createGameStorageSandbox(window.gameID || "ccported")();
-importJSON("/games.json").then(games => {
-    var { games } = games;
-    var unseengames = games.filter(game => {
-        var hasSeen = !hasSeenGame(game.name);
-        markGameSeen(game.name);
-        return hasSeen;
-    });
-    if (unseengames.length == 0) return;
-    var tail = "";
-    if (unseengames.length > 5) {
-        tail = " and more";
-    }
-    unseengames = unseengames.splice(0, 5);
-
-    var string = "New games to play: ";
-    unseengames.forEach((game, i) => {
-
-        string += ((i == games.length - 1) ? "and " : "") + game.fName + ((i != unseengames.length - 1) ? ", " : "");
-    });
-    createPopup(string + tail);
-    localStorage.setItem("ccported-popup", "yes", true)
-});
-shortcut([
-    17, 77
-], () => {
-    if (!window.ccPorted.muteManagerPopupOpen) {
-        muteManager()
-    } else {
-        closeMuteManager();
-    }
-});
-shortcut([17, 81], toggleStats);
-
-async function importJSON(path) {
-    let url;
-    if (path.startsWith("/") && !path.startsWith("//")) {
-        url = new URL(path, window.location.origin);
-    } else {
-        url = new URL(path);
-    }
-    url.searchParams.append('_', Date.now());
-
-    const res = await fetch(path, {
-        method: "GET",
-        headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
+class Leaderboard {
+    constructor(gameID) {
+        if (!gameID) {
+            throw new Error("Game ID is required");
         }
-    });
-    return res.json();
-}
-async function trackingTick() {
-    const now = Date.now();
-    const timeDiff = now - lastUpdate;
-    lastUpdate = now;
-
-    let minutesElapsedX = timeDiff / 60000;
-    const minutesElapsed =
-        Math.round((minutesElapsedX + Number.EPSILON) * 100) / 100;
-    if (minutesElapsed > 0 && tGameID) {
-        if (!window.ccPorted.trackingData.games[tGameID]) {
-            window.ccPorted.trackingData.games[tGameID] = { playtime: 0 };
+        this.gameID = gameID;
+        this.cached = [];
+        this.loading = false;
+        this.needsRefresh = false;
+        this.score = 0;
+    }
+    async loadScores() {
+        if (!window.ccPorted.user) {
+            await window.ccPorted.userPromise;
         }
-
-        const currentPlaytime =
-            getDeepValue(window.ccPorted.trackingData, `games.${tGameID}.playtime`) ||
-            0;
-        updateTracking(
-            `games.${tGameID}.playtime`,
-            currentPlaytime + minutesElapsed
-        );
-
-        const totalPlaytime = window.ccPorted.trackingData.total_playtime || 0;
-        updateTracking("total_playtime", totalPlaytime + minutesElapsed);
-    }
-    await saveTrackingData();
-}
-async function saveTrackingData() {
-    try {
-        const { error } = await window.ccPorted.supabaseClient
-            .from("u_profiles")
-            .update({ tracking_data: window.ccPorted.trackingData })
-            .eq("id", window.ccPorted.user.id);
-
-        if (error) {
-            log("Error saving tracking data:", error);
+        if (this.loading && this.cached.length > 0) {
+            return this.cached;
         }
-    } catch (err) {
-        log("Failed to save tracking data:", err);
-    }
-}
-async function updateTracking(attrPath, value) {
-    if (!window.ccPorted.trackingData) {
-        window.ccPorted.trackingData = { games: {}, total_playtime: 0 };
-    }
-
-    setDeepValue(window.ccPorted.trackingData, attrPath, value);
-}
-async function handleUserLoggedIn() {
-    // Fetch tracking data if user exists
-    const { data, error } = await window.ccPorted.supabaseClient
-        .from("u_profiles")
-        .select("tracking_data")
-        .eq("id", window.ccPorted.user.id)
-        .single();
-    if (error) log("Error fetching tracking data:", error);
-    if (data && data.tracking_data) {
-        window.ccPorted.trackingData = data.tracking_data;
-    } else {
-        window.ccPorted.trackingData = {
-            games: {},
-            total_playtime: 0,
-            chat_messages_sent: 0,
-            pages_visited: {},
-        };
-    }
-    setupTracking();
-    window.ccPorted.stateSync = new GameStateSync(
-        window.ccPorted.user.id,
-        window.ccPorted.supabaseClient
-    );
-    window.ccPorted.stateSync.initialize();
-}
-async function installGTAG() {
-    if (window.gtag) {
-        emit();
-        setInterval(emit, 1000 * 60 * 10);
-        return Promise.resolve();
-    } else {
-        const script = document.createElement("script");
-        const gID = `G-DJDL65P9Y4`;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${gID}`;
-        document.head.appendChild(script);
-        const loadPromise = new Promise((r, rr) => {
-            script.onload = () => {
-                window.dataLayer = window.dataLayer || [];
-                function gtag() { dataLayer.push(arguments); }
-                window.gtag = gtag;
-                gtag('js', new Date());
-                gtag('config', gID);
-                emit();
-                setInterval(emit, 1000 * 60 * 10);
-                r();
-            }
-        });
-        return loadPromise;
-    }
-
-}
-
-
-async function init() {
-    const stats = new Stats();
-    window.ccPorted.stats = stats;
-    window.ccPorted.supabaseClient = await installSupascript();
-    await installGTAG();
-    const { data: { user } } = await window.ccPorted.supabaseClient.auth.getUser();
-    window.ccPorted.user = user;
-    if (user) {
-        handleUserLoggedIn();
-    }
-    if (localStorage.getItem("[ns-ccported]_chat-convo-all-muted") !== 1 && user) {
-        setupRealtime();
-    }
-    if (localStorage.getItem("[ns-ccported]_hiring_popup") !== "yes") {
-        createPopup();
-        localStorage.setItem("hiring_popup", "yes", true);
-    };
-    if (!seenPopup) {
-        setTimeout(createPopup, 120000);
-    }
-}
-async function setupRealtime() {
-    try {
-        window.ccPorted.supabaseClient
-            .channel('public:chat_messages')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'chat_messages',
-                },
-                handleNewMessage
-            )
-            .subscribe();
-    } catch (err) {
-        log(err);
-    }
-}
-async function muteManagerPopup() {
-
-    if (!window.ccPorted.user) {
-        const { data: { user } } = await window.ccPorted.supabaseClient.auth.getUser();
-        window.ccPorted.user = user;
-        if (!user) {
-            createNotif({
-                message: `You must be logged in to use this feature`,
-                cta: false,
-                autoClose: 1,
-                actions: []
-            });
+        if (this.cached.length > 0 && !this.needsRefresh) {
+            return this.cached;
         }
-    }
-    if (window.ccPorted.fontAwesomeLoaded !== true) {
-        await loadFontAwesome();
-    }
-
-
-    const popup = document.createElement("div");
-    popup.classList.add("cc");
-    popup.classList.add("popup");
-    let rows = []
-    if (cachedChannels) {
-        rows = cachedChannels;
-    } else {
-        const { data, error } = await window.ccPorted.supabaseClient
-            .rpc('user_in_joined_users', { user_id: window.ccPorted.user.id });
-        rows = data;
-        cachedChannels = rows;
-        if (error) log(error)
-    }
-
-    popup.innerHTML = `
-        <div class="cc popup-content">
-            <h2>Manage Notifications</h2>
-            <p>Use <code>CTRL+M</code> to pull this up</p>
-            <div class = "cc channels-list-mute">
-                ${rows.map((channel) => {
-        return `<div class = "cc channel-row">
-                            <p class = "cc channel-name">${channel.friendly_name}</p>
-                            <p  data-channelid = "${channel.channel_id}" class="cc mute-channel"><i class="fa-solid fa-bell${isChannelMuted(channel) ? "-slash" : ""}"></i></p>
-                        </div>`
-    }).join("<br>")
-        }
-            </div>
-            <div class = "cc popup-buttons">
-                <button class = "cc" id="closer">Done</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(popup);
-    window.ccPorted.muteManagerPopupOpen = true;
-    return popup;
-}
-async function muteManager() {
-    const popup = await muteManagerPopup();
-    window.ccPorted.muteManagerPopupRef = popup;
-    document.addEventListener("keydown", (e) => {
-        if (e.key == "Escape") {
-            closeMuteManager();
-        }
-    });
-    popup.querySelectorAll(".mute-channel").forEach((el) => {
-        el.addEventListener("click", async (e) => {
-            const channelID = el.getAttribute("data-channelid");
-            if (localStorage.getItem(`channel-muted-${channelID}`) == 1) {
-                localStorage.setItem(`channel-muted-${channelID}`, 0, true);
-            } else {
-                localStorage.setItem(`channel-muted-${channelID}`, 1, true);
-            }
-            el.innerHTML = `<i class="fa-solid fa-bell${isChannelMuted({ channel_id: channelID }) ? "-slash" : ""}"></i>`;
-        });
-    });
-    popup.querySelector("#closer").addEventListener("click", () => {
-        closeMuteManager();
-    });
-}
-function log(...args) {
-    console.log("[CCPORTED]: ", ...args);
-    if (window.ccPorted?.stats) {
-        window.ccPorted.stats.log(...args);
-    }
-}
-function shuffle(array) {
-    let currentIndex = array.length;
-
-    while (currentIndex != 0) {
-        let randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [
-            array[randomIndex], array[currentIndex]];
-    }
-}
-function closeMuteManager() {
-    if (window.ccPorted.muteManagerPopupOpen) {
-        window.ccPorted.muteManagerPopupRef.remove();;
-        window.ccPorted.muteManagerPopupRef = null;
-        window.ccPorted.muteManagerPopupOpen = false;
-    }
-}
-function loadFontAwesome() {
-    const link = document.createElement("link");
-    link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css";
-    link.setAttribute("rel", "stylesheet");
-    link.setAttribute("crossorigin", "anonymous");
-    link.setAttribute("referrerpolicy", "no-referrer");
-    document.head.appendChild(link);
-
-    return new Promise((r, rr) => {
-        link.onload = () => {
-            window.ccPorted.fontAwesomeLoaded = true;
-            r();
-        }
-    });
-}
-function isChannelMuted(channel) {
-    return localStorage.getItem(`channel-muted-${channel.channel_id}`) == 1;
-}
-function shortcut(keys, cb) {
-    log(`Creating shortcut for keys ${keys}, calling ${cb.name}`);
-    var keyMap = {};
-    for (const key of keys) {
-        keyMap[key] = false;
-    }
-    document.addEventListener("keydown", (e) => {
-        if (keyMap[e.which] !== undefined) {
-            keyMap[e.which] = true;
-        }
-        if (check()) {
-            cb();
-        }
-    });
-    document.addEventListener("keyup", (e) => {
-        if (keyMap[e.which] !== undefined) {
-            keyMap[e.which] = false;
-        }
-    });
-    function check() {
-        var allPressed = true;
-        for (const key of keys) {
-            if (!keyMap[key]) {
-                allPressed = false;
-            }
-        }
-        return allPressed;
-    }
-}
-function decamelize(string) {
-    let denormalized = "";
-    for (let i = 0; i < string.length; i++) {
-        if (string[i] === string[i].toUpperCase() && ((string[i + 1] && string[i + 1] === string[i + 1].toUpperCase()) || !string[i + 1])) {
-            denormalized += " " + string[i];
-        } else {
-            denormalized += string[i];
-        }
-    }
-    denormalized = denormalized[0].toUpperCase() + denormalized.slice(1);
-    return denormalized;
-}
-function installSupascript() {
-    log("Installing Supabase script");
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/@supabase/supabase-js@2";
-    document.head.appendChild(script);
-    const loadPromise = new Promise((r, rr) => {
-        script.onload = () => {
-            r(createClient());
-        }
-    });
-
-    return loadPromise;
-}
-function pageInIframe() {
-    return (window.location !== window.parent.location);
-}
-function toggleStats() {
-    if (window.ccPorted.stats.isOpen) {
-        window.ccPorted.stats.close();
-    } else {
-        window.ccPorted.stats.open();
-    }
-}
-function treat(text) {
-    if (!text) return null;
-    return text.split(".").join("-");
-}
-function setDeepValue(obj, path, value) {
-    const parts = path.split(".");
-    let current = obj;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-        if (!(parts[i] in current)) {
-            current[parts[i]] = {};
-        }
-        current = current[parts[i]];
-    }
-
-    current[parts[parts.length - 1]] = value;
-    return obj;
-}
-function getDeepValue(obj, path) {
-    return path.split(".").reduce((curr, part) => curr && curr[part], obj);
-}
-function setupTracking() {
-    updateTracking(
-        `pages_visited.${treat(window.location.pathname)}.count`,
-        (getDeepValue(
-            window.ccPorted.trackingData,
-            `pages_visited.${treat(window.location.pathname)}.count`
-        ) || 0) + 1
-    );
-    trackingTick();
-    if (trackingInterval) {
-        clearInterval(trackingInterval);
-    }
-
-    lastUpdate = Date.now();
-    trackingInterval = setInterval(trackingTick, 5 * 60 * 1000);
-}
-function cleanupTracking() {
-    if (trackingInterval) {
-        clearInterval(trackingInterval);
-        trackingInterval = null;
-    }
-    if (window.ccPorted.trackingData) {
-        trackingTick();
-    }
-}
-function createClient() {
-    const SUPABASE_URL = 'https://dahljrdecyiwfjgklnvz.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI';
-    return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
-function createGameStorageSandbox(gameId = "ccported") {
-    // Create a unique namespace for this game
-    const namespace = `[ns_${gameId}]`;
-
-    // Save original storage APIs
-    const originalLocalStorage = window.localStorage;
-    const originalIndexedDB = window.indexedDB;
-    const namespaceRegex = new RegExp(`^\[ns_[a-zA-Z0-9_-]+\]_`);
-
-    // Create localStorage proxy
-    const localStorageProxy = new Proxy(localStorage, {
-        get: function (target, prop) {
-            switch (prop) {
-                case 'setItem':
-                    return function (key, value, global = false) {
-                        if (global) {
-                            return originalLocalStorage.setItem('[ns_ccported]_' + key, value);
-                        }
-                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
-                            return originalLocalStorage.setItem(`[ns_ccported]_${key}`, value);
-                        }
-                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
-                            return originalLocalStorage.setItem(`${namespace}_${key}`, value);
-                        }
-                        if (namespaceRegex.test(key)) {
-                            return originalLocalStorage.setItem(key, value);
-                        }
-                        return originalLocalStorage.setItem(`${namespace}_${key}`, value);
-                    }
-                case 'getItem':
-                    return function (key) {
-                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
-                            return originalLocalStorage.getItem(`[ns_ccported]_${key}`);
-                        }
-                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
-                            return originalLocalStorage.getItem(`${namespace}_${key}`);
-                        }
-                        if (namespaceRegex.test(key)) {
-                            return originalLocalStorage.getItem(key);
-                        }
-                        return originalLocalStorage.getItem(`${namespace}_${key}`);
-                    }
-                case 'removeItem':
-                    return function (key) {
-                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
-                            return originalLocalStorage.removeItem(`[ns_ccported]_${key}`);
-                        }
-                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
-                            return originalLocalStorage.removeItem(`${namespace}_${key}`);
-                        }
-                        if (namespaceRegex.test(key)) {
-                            return originalLocalStorage.removeItem(key);
-                        }
-                        return;
-                    }
-                case 'clear':
-                    return function (global = false) {
-                        if (global) {
-                            return originalLocalStorage.clear();
-                        }
-                        for (let i = originalLocalStorage.length - 1; i >= 0; i--) {
-                            const key = originalLocalStorage.key(i);
-                            if (key.startsWith(`${namespace}_`)) {
-                                originalLocalStorage.removeItem(key);
-                            }
-                        }
-                    }
-                case 'key':
-                    return function (index, global = false) {
-                        if (global) {
-                            return originalLocalStorage.key(index);
-                        }
-                        const gameKeys = [];
-                        for (let i = 0; i < originalLocalStorage.length; i++) {
-                            const key = originalLocalStorage.key(i);
-                            if (key.startsWith(`${namespace}_`)) {
-                                gameKeys.push(key.slice(namespace.length + 1));
-                            }
-                        }
-                        return gameKeys[index];
-                    }
-                case 'length':
-                    let count = 0;
-                    for (let i = 0; i < originalLocalStorage.length; i++) {
-                        if (originalLocalStorage.key(i).startsWith(`${namespace}_`)) {
-                            count++;
-                        }
-                    }
-                    return count;
-                case 'globalLength':
-                    return originalLocalStorage.length;
-                default:
-                    if (originalLocalStorage.getItem(`[ns_ccported]_${prop}`)) {
-                        return originalLocalStorage.getItem(`[ns_ccported]_${prop}`);
-                    }
-                    if (originalLocalStorage.getItem(`${namespace}_${prop}`)) {
-                        return originalLocalStorage.getItem(`${namespace}_${prop}`);
-                    }
-                    if (namespaceRegex.test(prop)) {
-                        return originalLocalStorage.getItem(prop);
-                    }
-            }
-        },
-        set: function (target, prop, value) {
-            ['getItem', 'setItem', 'removeItem', 'clear', 'key', 'length', 'globalLength'].forEach((method) => {
-                if (prop === method) {
-                    throw new Error(`Cannot overwrite localStorage method ${method}`);
+        this.loading = true;
+        try {
+            const data = await window.ccPorted.query({
+                TableName: "leaderboard",
+                IndexName: "gameID-score-index",
+                Limit: 10,
+                ScanIndexForward: false,
+                KeyConditionExpression: "gameID = :gameID AND score > :score",
+                ExpressionAttributeValues: {
+                    ":gameID": this.gameID,
+                    ":score": 0
                 }
             });
-            if (originalLocalStorage.getItem(`[ns_ccported]_${prop}`)) {
-                return originalLocalStorage.setItem(`[ns_ccported]_${prop}`, value);
-            }
-            if (originalLocalStorage.getItem(`${namespace}_${prop}`)) {
-                return originalLocalStorage.setItem(`${namespace}_${prop}`, value);
-            }
-            if (namespaceRegex.test(prop)) {
-                return originalLocalStorage.setItem(prop, value);
-            }
-            return originalLocalStorage.setItem(`${namespace}_${prop}`, value);
-        }
-    });
+            this.loading = false;
+            var rp = false;
+            var scores = data.Items.map((row, i) => {
+                if (row.userID == 'guest' || row.userID == window.ccPorted?.user?.sub) {
+                    rp = true;
+                }
+                return {
+                    score: row.score,
+                    id: row.userID,
+                    display_name: row.displayName,
+                    rank: i + 1
+                }
 
-    // Create IndexedDB proxy
-    const indexedDBProxy = new Proxy(window.indexedDB, {
-        get: function (target, prop) {
-            if (prop === 'open') {
-                return function (dbName, version) {
-                    const isNamespaced = namespaceRegex.test(dbName);
-                    if (isNamespaced) {
-                        return originalIndexedDB.open(dbName, version);
-                    }
-                    if (dbName.startsWith("[ns_ccported]_")) {
-                        return originalIndexedDB.open(dbName, version);
-                    }
-                    const namespacedDBName = `${namespace}_${dbName}`;
-
-                    const checkDatabases = async () => {
-                        try {
-                            const databases = await originalIndexedDB.databases();
-                            const oldDBExists = databases.some(db => db.name === dbName);
-                            return oldDBExists;
-                        } catch (error) {
-                            console.error('Error checking databases:', error);
-                            return false;
-                        }
-                    };
-
-                    const request = originalIndexedDB.open(namespacedDBName, version);
-
-                    request.onerror = function (event) {
-                        console.error(`Error opening database ${namespacedDBName}:`, event.target.error);
-                    };
-
-                    request.onupgradeneeded = function (event) {
-                        const newDB = event.target.result;
-
-                        checkDatabases().then(oldDBExists => {
-                            if (oldDBExists) {
-                                const oldDBRequest = originalIndexedDB.open(dbName);
-
-                                oldDBRequest.onerror = function (event) {
-                                    console.error(`Error opening old database ${dbName}:`, event.target.error);
-                                };
-
-                                oldDBRequest.onsuccess = function (event) {
-                                    const oldDB = event.target.result;
-                                    const storeNames = Array.from(oldDB.objectStoreNames);
-
-                                    if (storeNames.length === 0) {
-                                        oldDB.close();
-                                        return;
-                                    }
-
-                                    storeNames.forEach(storeName => {
-                                        try {
-                                            const transaction = oldDB.transaction(storeName, 'readonly');
-                                            const store = transaction.objectStore(storeName);
-                                            const getAllRequest = store.getAll();
-
-                                            getAllRequest.onsuccess = function () {
-                                                try {
-                                                    if (!newDB.objectStoreNames.contains(storeName)) {
-                                                        const newStore = newDB.createObjectStore(storeName,
-                                                            store.keyPath ? { keyPath: store.keyPath } :
-                                                                { autoIncrement: store.autoIncrement });
-
-                                                        Array.from(store.indexNames).forEach(indexName => {
-                                                            const index = store.index(indexName);
-                                                            newStore.createIndex(indexName, index.keyPath, {
-                                                                unique: index.unique,
-                                                                multiEntry: index.multiEntry
-                                                            });
-                                                        });
-                                                    }
-
-                                                    const newTransaction = newDB.transaction(storeName, 'readwrite');
-                                                    const newStore = newTransaction.objectStore(storeName);
-                                                    const items = getAllRequest.result;
-
-                                                    items.forEach(item => {
-                                                        try {
-                                                            newStore.add(item);
-                                                        } catch (error) {
-                                                            console.error(`Error adding item to ${storeName}:`, error);
-                                                        }
-                                                    });
-
-                                                    newTransaction.onerror = function (event) {
-                                                        console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
-                                                    };
-                                                } catch (error) {
-                                                    console.error(`Error processing store ${storeName}:`, error);
-                                                }
-                                            };
-
-                                            getAllRequest.onerror = function (event) {
-                                                console.error(`Error getting data from ${storeName}:`, event.target.error);
-                                            };
-
-                                            transaction.oncomplete = function () {
-                                                if (storeName === storeNames[storeNames.length - 1]) {
-                                                    oldDB.close();
-                                                    const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
-                                                    deleteRequest.onerror = function (event) {
-                                                        console.error(`Error deleting old database ${dbName}:`, event.target.error);
-                                                    };
-                                                }
-                                            };
-                                        } catch (error) {
-                                            console.error(`Error in store transfer process for ${storeName}:`, error);
-                                        }
-                                    });
-                                };
-                            }
-                        });
-                    };
-
-                    return request;
-                };
-            } else if (prop === 'deleteDatabase') {
-                return function (dbName) {
-                    if (namespaceRegex.test(dbName)) {
-                        return originalIndexedDB.deleteDatabase(dbName);
-                    }
-                    const namespacedDBName = `${namespace}_${dbName}`;
-                    return originalIndexedDB.deleteDatabase(namespacedDBName);
-                };
-            } else if (prop === 'databases') {
-                return async function () {
-                    const databases = await originalIndexedDB.databases();
-                    return databases.map(db => {
-                        db.name = db.name.replace(namespace + "_", '');
-                        return db;
-                    });
-                };
-            } else {
-                const value = originalIndexedDB[prop];
-                return typeof value === 'function' ? value.bind(originalIndexedDB) : value;
-            }
-        }
-    });
-    async function migrateDatabase(dbName, version) {
-        const namespacedDBName = `${namespace}_${dbName}`;
-        const databases = await originalIndexedDB.databases();
-        const oldDBExists = databases.some(db => db.name === dbName);
-
-        if (oldDBExists) {
-
-            return new Promise((resolve, reject) => {
-                const request = originalIndexedDB.open(namespacedDBName, version || 1);
-
-                request.onerror = function (event) {
-                    console.error(`Error opening namespaced database ${namespacedDBName}:`, event.target.error);
-                    reject(event.target.error);
-                };
-
-                request.onsuccess = function (event) {
-                    const oldDBRequest = originalIndexedDB.open(dbName);
-
-                    oldDBRequest.onerror = function (event) {
-                        console.error(`Error opening old database ${dbName}:`, event.target.error);
-                        reject(event.target.error);
-                    };
-
-                    oldDBRequest.onsuccess = function (event) {
-                        const oldDB = event.target.result;
-                        const storeNames = Array.from(oldDB.objectStoreNames);
-
-                        if (storeNames.length === 0) {
-                            oldDB.close();
-                            resolve();
-                            return;
-                        }
-
-                        let completedStores = 0;
-                        const upgradeRequest = originalIndexedDB.open(namespacedDBName, (version || 1) + 1);
-
-                        upgradeRequest.onupgradeneeded = function (event) {
-                            const upgradedDB = event.target.result;
-
-                            storeNames.forEach(storeName => {
-                                if (!upgradedDB.objectStoreNames.contains(storeName)) {
-                                    const oldStore = oldDB.transaction(storeName).objectStore(storeName);
-                                    const newStore = upgradedDB.createObjectStore(storeName,
-                                        oldStore.keyPath ? { keyPath: oldStore.keyPath } :
-                                            { autoIncrement: oldStore.autoIncrement }
-                                    );
-
-                                    // Copy indexes
-                                    Array.from(oldStore.indexNames).forEach(indexName => {
-                                        const index = oldStore.index(indexName);
-                                        newStore.createIndex(indexName, index.keyPath, {
-                                            unique: index.unique,
-                                            multiEntry: index.multiEntry
-                                        });
-                                    });
-                                }
-                            });
-                        };
-
-                        upgradeRequest.onsuccess = function (event) {
-                            const upgradedDB = event.target.result;
-
-                            storeNames.forEach(storeName => {
-                                try {
-                                    const transaction = oldDB.transaction(storeName, 'readonly');
-                                    const store = transaction.objectStore(storeName);
-                                    const getAllRequest = store.getAll();
-
-                                    getAllRequest.onsuccess = function () {
-                                        try {
-                                            const items = getAllRequest.result;
-                                            const newTransaction = upgradedDB.transaction(storeName, 'readwrite');
-                                            const newStore = newTransaction.objectStore(storeName);
-
-                                            items.forEach(item => {
-                                                try {
-                                                    newStore.add(item);
-                                                } catch (error) {
-                                                    console.error(`Error adding item to ${storeName}:`, error);
-                                                }
-                                            });
-
-                                            newTransaction.oncomplete = function () {
-                                                completedStores++;
-
-                                                if (completedStores === storeNames.length) {
-                                                    oldDB.close();
-                                                    upgradedDB.close();
-
-                                                    const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
-
-                                                    deleteRequest.onsuccess = function () {
-                                                        resolve();
-                                                    };
-                                                    deleteRequest.onerror = function (event) {
-                                                        console.error(`Error deleting old database ${dbName}:`, event.target.error);
-                                                        reject(event.target.error);
-                                                    };
-                                                }
-                                            };
-
-                                            newTransaction.onerror = function (event) {
-                                                console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
-                                                reject(event.target.error);
-                                            };
-                                        } catch (error) {
-                                            console.error(`Error processing store ${storeName}:`, error);
-                                            reject(error);
-                                        }
-                                    };
-
-                                    getAllRequest.onerror = function (event) {
-                                        console.error(`Error getting data from ${storeName}:`, event.target.error);
-                                        reject(event.target.error);
-                                    };
-                                } catch (error) {
-                                    console.error(`Error in store transfer process for ${storeName}:`, error);
-                                    reject(error);
-                                }
-                            });
-                        };
-
-                        upgradeRequest.onerror = function (event) {
-                            console.error(`Error upgrading database ${namespacedDBName}:`, event.target.error);
-                            reject(event.target.error);
-                        };
-                    };
-                };
             });
+            if (this.guestScore != undefined) {
+                scores.push({ score: this.guestScore, display_name: 'Guest', userID: 'guest' });
+                scores.sort((a, b) => b.score - a.score);
+            }
+            this.cached = scores;
+            this.needsRefresh = false;
+            return scores;
+        } catch (e) {
+            console.log("[LEADERBOARD] Error getting scores", e);
+        }
+    }
+    addGuestScore(score) {
+        this.guestScore = score;
+        if (this.cached.length > 0) {
+            this.cached.push({ score: score, display_name: 'Guest', userID: 'guest' });
+            this.cached.sort((a, b) => b.score - a.score);
+        }
+    }
+    formatScore(score) {
+        // 1000 -> 1K
+        // 1000000 -> 1M
+        // 1234567 -> 1.23M
+        // thousand, million, billion, trillion, quadrilion, quintillion, sextillion, septillion, octillion, nonillion, decillion, undecillion, duodecillion
+        if (score < 1000) {
+            return score;
+        } else if (score < 1_000_000) {
+            return (score / 1000).toFixed(2) + 'K';
+        } else if (score < 1000000000) {
+            return (score / 1_000_000).toFixed(2) + 'M';
+        } else if (score < 1_000_000_000_000) {
+            return (score / 1_000_000_000).toFixed(2) + 'B';
+        } else if (score < 1_000_000_000_000_000) {
+            return (score / 1_000_000_000_000).toFixed(2) + 'T';
+        } else if (score < 1_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000).toFixed(2) + 'Q';
+        } else if (score < 1_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000).toFixed(2) + 'QQ';
+        } else if (score < 1_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000).toFixed(2) + 'S';
+        } else if (score < 1_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000).toFixed(2) + 'SS';
+        } else if (score < 1_000_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000_000).toFixed(2) + 'O';
+        } else if (score < 1_000_000_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000_000_000).toFixed(2) + 'N';
+        } else if (score / 1_000_000_000_000_000_000_000_000_000_000_000) {
+            return (score / 1_000_000_000_000_000_000_000_000_000_000_000).toFixed(2) + 'D';
         } else {
-            return Promise.resolve();
+            return score.toExponential(2);
         }
     }
-    return function setupGameEnvironment() {
-        Object.defineProperty(window, 'localStorage', {
-            value: localStorageProxy,
-            writable: false,
-            configurable: true
-        });
-
-        Object.defineProperty(window, 'indexedDB', {
-            value: indexedDBProxy,
-            writable: false,
-            configurable: true
-        });
-        window.ccPorted.migrateDatabase = migrateDatabase;
-    };
-}
-function emit() {
-    const data = {
-        gameID,
-        location: (glocation.length > 0) ? glocation : "unknown",
-        isFramed: framed,
-    }
-    if (framed) {
-        data["parentDomainHost"] = (new URL(window.location.ancestorOrigins[0]).hostname.length > 0) ? new URL(window.location.ancestorOrigins[0]).hostname : "unknown";
-    }
-    log(data);
-    gtag("event", "play_game", data);
-}
-function hasSeenGame(gameID) {
-    return localStorage.getItem(`seen-${gameID}`) == "yes";
-}
-function markGameSeen(gameID) {
-    localStorage.setItem(`seen-${gameID}`, "yes", true);
-}
-function createNotif(popupData) {
-    const popup = document.createElement('div');
-    popup.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        max-width: 800px;
-        min-width: 500px;
-        background-color: rgb(37,37,37);
-        border: 2px solid #333;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-    `;
-    if (popupData.autoClose) {
-        const meter = document.createElement("div");
-        meter.classList.add("meter");
-        meter.style.cssText = `
-            margin: 0;
-            width: 100%;
-            height: 10px;
-            background-color: rgba(0,0,255,1);
-            display: block;
-            position: absolute;
-            border-radius: 10px;
-            z-index: 9;
-            top: 0;
-            left: 0;
-            animation: meter-animation ${popupData.autoClose}s linear forwards;
-        `;
-        popup.appendChild(meter);
-
-        setTimeout(() => {
-            popup.style.animation = `fade 0.5s`;
-            setTimeout(() => {
-                popup.remove()
-            }, 500);
-        }, popupData.autoClose * 1000)
-    }
-    const popupContent = document.createElement("div");
-    const message = document.createElement('p');
-    message.textContent = popupData.message;
-    message.style.marginBottom = '10px';
-    message.style.color = 'white';
-    let link;
-    if (popupData.cta) {
-        link = document.createElement('a');
-        link.href = popupData.cta.link;
-        link.textContent = popupData.cta.text;
-        link.style.cssText = `
-            display: inline-block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-        `;
-    }
-    if (!popupData.autoClose) {
-        const closeButton = document.createElement('a');
-        closeButton.href = 'javascript:void(0)';
-        closeButton.textContent = 'Close';
-        closeButton.style.cssText = `
-            display: inline-block;
-            background-color: rgb(248,0,0);
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-        `;
-        closeButton.onclick = () => popup.remove();
-    }
-    const linkRow = document.createElement('div');
-    linkRow.style.display = 'flex';
-    linkRow.style.justifyContent = 'space-between';
-    if (popupData.actions && popupData.actions.length >= 1) {
-        const actionContainer = document.createElement("div");
-        for (const action of popupData.actions) {
-            const [actionName, actionFunc, color] = action;
-            let button = document.createElement("button");
-            button.style.cssText = `
-            display: inline-block;
-            background-color: ${(color) ? color : '#4CAF50'};
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            border: 1px solid ${(color) ? color : '#4CAF50'};
-            margin: 5px;
-            cursor: pointer;
-        `;
-            button.onclick = () => {
-                popup.remove();
-                actionFunc();
-            };
-            button.innerText = actionName;
-            actionContainer.appendChild(button);
+    async addScore(score) {
+        log("adding score");
+        if (!window.ccPorted.user) {
+            return this.addGuestScore(score);
         }
-        linkRow.appendChild(actionContainer);
+        try {
+            // find old score
+            const data = await window.ccPorted.query({
+                TableName: "leaderboard",
+                KeyConditionExpression: "gameID = :gameID AND userID = :userID",
+                ExpressionAttributeValues: {
+                    ":gameID": this.gameID,
+                    ":userID": window.ccPorted.user.sub
+                },
+                Limit: 1
+            });
+            const oldScore = data.Items;
+            // update score if new score is higher
+            if (oldScore && oldScore.length > 0) {
+                if (oldScore[0].score >= score) {
+                    log("Old score is higher");
+                    this.score = { score: score, userID: window.ccPorted.user.sub, displayName: window.ccPorted.user.attributes["preferred_username"] || window.ccPorted.user["cognito:username"] || "Anonymous" };
+                    return;
+                }
+            }
+            const newData = { gameID: this.gameID, userID: window.ccPorted.user.sub, score: score, displayName: window.ccPorted.user.attributes["preferred_username"] || window.ccPorted.user["cognito:username"] || "Anonymous" };
+            const params = {
+                TableName: 'leaderboard',
+                Key: {
+                    gameID: this.gameID,
+                    userID: window.ccPorted.user.sub
+                },
+                UpdateExpression: 'set score = :s, displayName = :d',
+                ExpressionAttributeValues: {
+                    ':s': score,
+                    ':d': newData.displayName
+                }
+            }
+            await window.ccPorted.documentClient.update(params).promise();
+            log("Score updated");
+            this.needsRefresh = true;
+        } catch (e) {
+            console.error(e);
+            log(e);
+        }
     }
-    if (popupData.cta) {
-        linkRow.appendChild(link);
+    clearCache() {
+        this.cached = [];
     }
-    if (!popupData.autoClose) {
-        linkRow.appendChild(closeButton);
-    }
-    if (popupData.fullLink) {
-        popup.style.cursor = "pointer";
-        popup.addEventListener("click", () => {
-            window.location.assign(popupData.fullLink);
-        })
-    }
-
-    popupContent.appendChild(message);
-    popupContent.appendChild(linkRow);
-    popup.appendChild(popupContent);
-    document.body.appendChild(popup);
 }
-function handleNewMessage(payload) {
-    const { new: message } = payload;
-    if (localStorage.getItem(`chat-convo-all-muted`) == 1 || localStorage.getItem(`channel-muted-${message.channel_id}`) == 1) return;
-    if (message.content.length > 50) {
-        message.content = message.content.slice(0, 50);
-        message.content += "...";
-    }
-    createNotif({
-        message: `(${message.channel_name}) ${message.display_name}: ${message.content}`,
-        cta: false,
-        autoClose: 3,
-        actions: [
-            ["Respond", () => {
-                window.location.assign(`/chat?channel=${message.channel_id}`)
-            }],
-            ["Mute", () => {
-                muteManager();
-            }, "rgb(248,0,0)"]
-        ]
-
-    });
-}
-function showAutoSaveNotification(text = 'Auto-saving...') {
-    var notification = window.ccPorted.autoSaveNotification || document.createElement('div');
-    notification.innerHTML = '';
-    notification.style.position = 'fixed';
-    notification.style.top = '10px';
-    notification.style.right = '10px';
-    notification.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-    notification.style.color = 'white';
-    notification.style.padding = '10px';
-    notification.style.borderRadius = '5px';
-    notification.style.textAlign = 'center';
-    notification.style.zIndex = '9999';
-    notification.style.display = "flex";
-    notification.style.alignItems = "center";
-    notification.style.justifyContent = "center";
-    notification.style.flexDirection = "row";
-    notification.innerText = text;
-    notification.setAttribute('data-creation-time', Date.now());
-    notification.setAttribute('data-min-visible-time', '3000');
-
-    const loading = document.createElement('img');
-    loading.src = '/assets/images/loading.gif';
-    loading.style.width = '20px';
-    loading.style.height = '20px';
-    loading.style.verticalAlign = 'middle';
-    loading.style.marginRight = '10px';
-    notification.insertBefore(loading, notification.firstChild);
-
-    document.body.appendChild(notification);
-    window.ccPorted.autoSaveNotification = notification;
-    return notification;
-}
-function createPopup(text = "Check out more awesome games like Spelunky, Minecraft, Cookie Clicker, Drift Hunters, and Slope, all unblocked and free to play at ccported.github.io!", opts) {
-    const popup = document.createElement('div');
-    popup.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        max-width: 800px;
-        min-width: 500px;
-        background-color: rgb(37,37,37);
-        border: 2px solid #333;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-        font-family: Arial, sans-serif;
-    `;
-
-    const message = document.createElement('p');
-    message.textContent = text;
-    message.style.marginBottom = '10px';
-    message.style.color = 'white';
-
-    const link = document.createElement('a' );
-    link.href = '/';
-    link.textContent = 'Visit ccported.github.io';
-    link.style.cssText = `
-        display: inline-block;
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 15px;
-        text-decoration: none;
-        border-radius: 5px;
-    `;
-    const closeButton = document.createElement('a');
-    closeButton.href = 'javascript:void(0)';
-    closeButton.textContent = 'Close';
-    closeButton.style.cssText = `
-        display: inline-block;
-        background-color: rgb(248,0,0);
-        color: white;
-        padding: 10px 15px;
-        text-decoration: none;
-        border-radius: 5px;
-    `;
-    closeButton.onclick = () => popup.remove();
-    const linkRow = document.createElement('div');
-    linkRow.style.display = 'flex';
-    linkRow.style.justifyContent = 'space-between';
-    linkRow.appendChild(link);
-    linkRow.appendChild(closeButton);
-
-    popup.appendChild(message);
-    popup.appendChild(linkRow);
-
-    document.body.appendChild(popup);
-    localStorage.setItem("ccported-popup", "yes", true)
-}
-// Optimized State Synchronization Utility
 class StateSyncUtility {
     constructor() {
         this.compressionEnabled = typeof CompressionStream !== 'undefined';
@@ -1143,10 +199,17 @@ class StateSyncUtility {
 
         return new Response(decompressed).text().then(JSON.parse);
     }
-    // Decompress data from Blob
-    async decompressData(compressed) {
-        const stream = compressed.stream();
+    // Decompress data from Readalbe stream
+    async decompressData(uint8array) {
+        const stream = new Blob([uint8array]).stream()
+        if (!this.compressionEnabled) {
+            const text = await new Response(stream).text();
+            return JSON.parse(text);
+        }
+        const decompressed = stream.pipeThrough(new DecompressionStream('gzip'));
+        return new Response(decompressed).text().then(JSON.parse);
 
+        /*
         if (!this.compressionEnabled) {
             const text = await new Response(stream).text();
             return JSON.parse(text);
@@ -1154,6 +217,7 @@ class StateSyncUtility {
 
         const decompressed = stream.pipeThrough(new DecompressionStream('gzip'));
         return new Response(decompressed).text().then(JSON.parse);
+        */
     }
 
     // Optimized localStorage data collection
@@ -1477,12 +541,15 @@ class StateSyncUtility {
     }
 }
 class GameStateSync {
-    constructor(userId, client) {
+    constructor(userId) {
         this.userId = userId;
-        this.client = client;
         this.syncUtil = new StateSyncUtility();
-        this.stateFileName = `${userId}_save_state.state`;
+        this.client = new window.ccPorted.AWS.S3({
+            region: 'us-west-2'
+        });
+        this.stateFileName = `save_state.state`;
         this.lastSync = 0;
+        this.initialize();
     }
 
     async initialize() {
@@ -1507,22 +574,13 @@ class GameStateSync {
 
     async saveToServer(stateBlob, timestamp) {
         try {
-            const { error } = await this.client
-                .storage
-                .from('save_states')
-                .upload(this.stateFileName, stateBlob, {
-                    upsert: true,
-                    contentType: 'application/octet-stream'
-                });
-            const { error: error2 } = await this.client
-                .from('u_profiles')
-                .update({ last_save_state: timestamp })
-                .eq('id', this.userId);
+            await window.ccPorted.uploadFile(stateBlob, this.stateFileName, { ContentType: "application/octet-stream" });
+            log('[CCPorted State Manager] State uploaded successfully');
+            await window.ccPorted.updateUser({
+                'custom:last_save_state': timestamp.toString()
+            })
+            log('[CCPorted State Manager] User attributes updated successfully');
 
-            if (error) {
-                log('[CCPorted State Manager] Error saving state: ' + error);
-                throw error;
-            }
         } catch (error) {
             log('[CCPorted State Manager] Error saving state: ' + error);
             throw error;
@@ -1532,78 +590,14 @@ class GameStateSync {
     async loadFromServer() {
         try {
             log("Starting load from server")
-            const { data: profile, error: profileError } = await this.client
-                .from('u_profiles')
-                .select('last_save_state')
-                .eq('id', this.userId)
-                .single();
-            if (profileError) {
-                log('[CCPorted State Manager] Error loading state: ' + profileError);
-                throw profileError;
+            const lastSave = window.ccPorted.user.attributes["custom:last_save_state"] || 0;
+            const params = {
+                Bucket: 'ccporteduserobjects',
+                Key: `${window.ccPorted.user.sub}/${this.stateFileName}`,
             }
-            const lastSave = profile.last_save_state || 0;
-            if (!profile.last_save_state) {
-                log('[CCPorted State Manager] No saved state found, checking old save method');
-                // they may be using the old save method
-                const { data: oldSave, error: oldSaveError } = await this.client
-                    .from('save_states')
-                    .select('*')
-                    .eq('user_id', this.userId);
-                if (oldSaveError) {
-                    log('[CCPorted State Manager] Error loading state: ' + oldSaveError);
-                    throw oldSaveError;
-                }
-                if (oldSave.length === 0) {
-                    log('[CCPorted State Manager] No saved state found (old or new)');
-                    return;
-                }
-                log('[CCPorted State Manager] Old save found');
-                // old data is of type text
-                const decomp = await this.syncUtil.decompressOldData(oldSave[0].state);
-                const timestamp = decomp.timestamp;
-                log('[CCPorted State Manager] [old] Last save timestamp: ' + timestamp);
-                const currentSave = localStorage.getItem('ccStateLastSave');
-                log('[CCPorted State Manager] [old] Current save timestamp: ' + currentSave);
-                if (!currentSave || timestamp > currentSave) {
-                    log('[CCPorted State Manager] Game state has been updated');
-                    log("[CCPorted State Manager] Importing state....");
-                    const result = await this.syncUtil.importState(decomp, true);
-                    if (result.success) {
-                        localStorage.setItem('ccStateLastSave', timestamp, true);
-                        log('[CCPorted State Manager] State loaded successfully');
-                        await result.import();
-                        location.reload();
-                    } else {
-                        log('[CCPorted State Manager] [310] Error loading state: ' + result.error);
-                        throw result.error;
-                    }
-                } else {
-                    log('[CCPorted State Manager] Transitioning to new save method');
-                    const compressed = await this.syncUtil.compressData(decomp);
-                    await this.saveToServer(compressed, timestamp);
-                    log('[CCPorted State Manager] Old save transitioned');
-                    log('[CCPorted State Manager] Deleting old save');
-                    await this.client
-                        .from('save_states')
-                        .delete()
-                        .eq('user_id', this.userId);
-                    log('[CCPorted State Manager] Old save deleted');
-                    return;
-                }
-            }
-            const { data, error } = await this.client
-                .storage
-                .from('save_states')
-                .download(this.stateFileName + '?timestampbuster=' + lastSave);
-            if (error) {
-                if (error.message.includes('Object not found')) {
-                    log('[CCPorted State Manager] No saved state found');
-                    return;
-                }
-                throw error;
-            }
+            const data = await this.client.getObject(params).promise();
             log('[CCPorted State Manager] State downloaded successfully');
-            const decomp = await this.syncUtil.decompressData(data);
+            const decomp = await this.syncUtil.decompressData(data.Body);
             log(`[CCPorted State Manager] State decompressed successfully`);
             const timestamp = decomp.timestamp;
             log('[CCPorted State Manager] Last save timestamp: ' + timestamp);
@@ -1627,12 +621,15 @@ class GameStateSync {
                 log('[CCPorted State Manager] Game state is up to date');
             }
         } catch (error) {
+            if (error.code?.includes('NoSuchKey')) {
+                log('[CCPorted State Manager] No save state found');
+                return;
+            }
             log('[CCPorted State Manager] [315] Error loading state: ' + error);
             throw error;
         }
     }
 }
-
 class Stats {
     constructor() {
         this.isOpen = false;
@@ -1675,6 +672,7 @@ class Stats {
             this.objectHovering = e.target;
         });
         window.addEventListener("load", () => {
+            console.log("Window loaded");
             this.log("Window loaded");
             document.body.appendChild(dom);
             Object.entries(this.contentBeforeLoad).forEach(([key, value]) => {
@@ -1701,13 +699,13 @@ class Stats {
 
                 `;
             document.head.appendChild(style);
+            if (this.interceptRequests) {
+                this.log(`Request interception is on. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a falsy value to turn off.`)
+                this.setupRequestInterception();
+            } else {
+                this.log(`Request interception is off. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a true value to turn on.`)
+            }
         });
-        if (this.interceptRequests) {
-            this.log(`Request interception is on. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a falsy value to turn off.`)
-            this.setupRequestInterception();
-        } else {
-            this.log(`Request interception is off. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a true value to turn on.`)
-        }
     }
     getPanel(panel = 0) {
         return this.dom.children[panel];
@@ -2157,20 +1155,18 @@ class Stats {
         // service worker
         // client.js
         if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-                navigator.serviceWorker
-                    .register("/service-worker.js")
-                    .then((registration) => {
-                        this.workerLoaded = true;
-                        this.log(
-                            "Service Worker registered successfully:",
-                            registration.scope
-                        );
-                    })
-                    .catch((error) => {
-                        console.error("Service Worker registration failed:", error);
-                    });
-            });
+            navigator.serviceWorker
+                .register("/service-worker.js")
+                .then((registration) => {
+                    this.workerLoaded = true;
+                    this.log(
+                        "Service Worker registered successfully:",
+                        registration.scope
+                    );
+                })
+                .catch((error) => {
+                    console.error("Service Worker registration failed:", error);
+                });
 
             // Listen for messages from the service worker
             navigator.serviceWorker.addEventListener("message", async (event) => {
@@ -2201,7 +1197,7 @@ class Stats {
             requestInterceptionLoaded: this.workerLoaded,
             memory: memoryUsage,
             cpu: cpuUsage,
-            user: `${user ? user.id : "N/A"} (${user ? user.user_metadata.display_name : "Guest"
+            user: `${user ? user.sub : "N/A"} (${user ? user["cognito:username"] : "Guest"
                 })`,
             game: game || "N/A",
             lastTrackingTick: `${lastTrackingTick} (${this.timeAgo(
@@ -2273,4 +1269,1253 @@ class Stats {
     }
 }
 
-init();
+window.addEventListener("beforeunload", cleanupTracking);
+window.addEventListener("load", () => {
+    init();
+    const login = document.querySelector('.loggedInReplacable');
+    if (login) {
+        login.addEventListener('click', (e) => {
+            if (login.textContent === "Login") {
+                e.preventDefault();
+                const redirect = window.location.origin;
+                const scopes = ["email", "openid", "phone", "aws.cognito.signin.user.admin"];
+                const baseURL = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/login";
+                const clientID = "4d6esoka62s46lo4d398o3sqpi";
+                const responseType = "code";
+                window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}/profile/`;
+                return false;
+            }
+        })
+    }
+});
+window.ccPorted.getUserTokens = () => {
+    return {
+        accessToken: localStorage.getItem("[ns_ccported]_accessToken"),
+        idToken: localStorage.getItem("[ns_ccported]_idToken"),
+        refreshToken: localStorage.getItem("[ns_ccported]_refreshToken")
+    };
+}
+window.ccPorted.downloadFile = (key) => {
+    return new Promise((resolve, reject) => {
+        window.ccPorted.s3Client.getObject({
+            Bucket: 'ccporteduserobjects',
+            Key: `${window.ccPorted.user.sub}/${key}`
+        }, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        });
+    });
+}
+window.ccPorted.uploadFile = (file, key, customparams = {}) => {
+    return new Promise((resolve, reject) => {
+        const uploadParams = {
+            Bucket: 'ccporteduserobjects',
+            Key: `${window.ccPorted.user.sub}/${key}`,
+            Body: file,
+            ContentType: file.type,
+            ...customparams
+        }
+        window.ccPorted.s3Client.upload(uploadParams, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        })
+    });
+}
+window.ccPorted.updateUser = (attributes) => {
+    return new Promise((resolve, reject) => {
+        window.ccPorted.identityProvider.updateUserAttributes({
+            AccessToken: window.ccPorted.getUserTokens().accessToken,
+            UserAttributes: Object.entries(attributes).map(([Name, Value]) => {
+                return {
+                    Name,
+                    Value
+                }
+            })
+        }, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        });
+    });
+}
+window.ccPorted.query = (...args) => {
+    const [partitionKeyName, partitionKey, tableName, otherData] = args;
+    if (typeof partitionKeyName == "object") {
+        return new Promise((resolve, reject) => {
+            window.ccPorted.documentClient.query(partitionKeyName, (err, data) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(data);
+                }
+            });
+        });
+    }
+    return new Promise((resolve, reject) => {
+        const params = {
+            TableName: tableName,
+            KeyConditionExpression: `${partitionKeyName} = :partitionKey`,
+            ExpressionAttributeValues: {
+                ":partitionKey": partitionKey,
+            },
+            ...otherData
+        }
+        window.ccPorted.documentClient.query(params, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        });
+    });
+}
+window.ccPorted.getUser = () => {
+    if (window.ccPorted.user) {
+        return user;
+    } else {
+        return window.ccPorted.userPromise;
+    }
+}
+window.ccPorted.userPromise = new Promise(async (resolve, reject) => {
+    await initializeAWS();
+    const userData = window.ccPorted.user;
+    if (userData) {
+        const loggedInReplacable = document.querySelector('.loggedInReplacable');
+        if (loggedInReplacable) {
+            loggedInReplacable.textContent = userData["cognito:username"];
+            loggedInReplacable.href = "/profile/";
+        }
+        resolve(userData);
+    } else {
+        reject("Failed to initialize user.");
+    }
+});
+
+function log(...args) {
+    console.log("[CCPORTED]: ", ...args);
+    if (window.ccPorted.stats) {
+        window.ccPorted.stats.log(...args);
+    }
+}
+function shuffle(array) {
+    let currentIndex = array.length;
+
+    // While there remain elements to shuffle...
+    while (currentIndex != 0) {
+
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+    }
+}
+function shortcut(keys, cb) {
+    log(`Creating shortcut for keys ${keys}, calling ${cb.name}`);
+    var keyMap = {};
+    for (const key of keys) {
+        keyMap[key] = false;
+    }
+    document.addEventListener("keydown", (e) => {
+        if (keyMap[e.which] !== undefined) {
+            keyMap[e.which] = true;
+        }
+        if (check()) {
+            cb();
+        }
+    });
+    document.addEventListener("keyup", (e) => {
+        if (keyMap[e.which] !== undefined) {
+            keyMap[e.which] = false;
+        }
+    });
+    function check() {
+        var allPressed = true;
+        for (const key of keys) {
+            if (!keyMap[key]) {
+                allPressed = false;
+            }
+        }
+        return allPressed;
+    }
+}
+function decamelize(string) {
+    // string are in camelcase
+    // should end up as "Camel Case"
+    let denormalized = "";
+    for (let i = 0; i < string.length; i++) {
+        if (string[i] === string[i].toUpperCase() && ((string[i + 1] && string[i + 1] === string[i + 1].toUpperCase()) || !string[i + 1])) {
+            denormalized += " " + string[i];
+        } else {
+            denormalized += string[i];
+        }
+    }
+    // capitalize first character
+    denormalized = denormalized[0].toUpperCase() + denormalized.slice(1);
+    return denormalized;
+}
+function createNotif(popupData) {
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        max-width: 800px;
+        min-width: 500px;
+        background-color: rgb(37,37,37);
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 99999;
+        font-family: Arial, sans-serif;
+    `;
+    if (popupData.autoClose) {
+        const meter = document.createElement("div");
+        meter.classList.add("meter");
+        meter.style.cssText = `
+            margin: 0;
+            width: 100%;
+            height: 10px;
+            background-color: rgba(0,0,255,1);
+            display: block;
+            position: absolute;
+            border-radius: 10px;
+            z-index: 9;
+            top: 0;
+            left: 0;
+            animation: meter-animation ${popupData.autoClose}s linear forwards;
+        `;
+        popup.appendChild(meter);
+
+        setTimeout(() => {
+            popup.style.animation = `fade 0.5s`;
+            setTimeout(() => {
+                popup.remove()
+            }, 500);
+        }, popupData.autoClose * 1000)
+    }
+    const popupContent = document.createElement("div");
+    const message = document.createElement('p');
+    message.textContent = popupData.message;
+    message.style.marginBottom = '10px';
+    message.style.color = 'white';
+    let link;
+    if (popupData.cta) {
+        link = document.createElement('a');
+        link.href = popupData.cta.link;
+        link.textContent = popupData.cta.text;
+        link.style.cssText = `
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+    }
+    if (!popupData.autoClose) {
+        const closeButton = document.createElement('a');
+        closeButton.href = 'javascript:void(0)';
+        closeButton.textContent = 'Close';
+        closeButton.style.cssText = `
+            display: inline-block;
+            background-color: rgb(248,0,0);
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        `;
+        closeButton.onclick = () => popup.remove();
+    }
+    const linkRow = document.createElement('div');
+    linkRow.style.display = 'flex';
+    linkRow.style.justifyContent = 'space-between';
+    if (popupData.actions && popupData.actions.length >= 1) {
+        const actionContainer = document.createElement("div");
+        for (const action of popupData.actions) {
+            const [actionName, actionFunc, color] = action;
+            let button = document.createElement("button");
+            button.style.cssText = `
+            display: inline-block;
+            background-color: ${(color) ? color : '#4CAF50'};
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid ${(color) ? color : '#4CAF50'};
+            margin: 5px;
+            cursor: pointer;
+        `;
+            button.onclick = () => {
+                popup.remove();
+                actionFunc();
+            };
+            button.innerText = actionName;
+            actionContainer.appendChild(button);
+        }
+        linkRow.appendChild(actionContainer);
+    }
+    if (popupData.cta) {
+        linkRow.appendChild(link);
+    }
+    if (!popupData.autoClose) {
+        linkRow.appendChild(closeButton);
+    }
+    if (popupData.fullLink) {
+        popup.style.cursor = "pointer";
+        popup.addEventListener("click", () => {
+            window.location.assign(popupData.fullLink);
+        })
+    }
+
+    popupContent.appendChild(message);
+    popupContent.appendChild(linkRow);
+    popup.appendChild(popupContent);
+    document.body.appendChild(popup);
+}
+function refreshAWSCredentials() {
+    return new Promise((resolve, reject) => {
+        AWS.config.credentials.expired = true;
+        AWS.config.credentials.refresh((error) => {
+            if (error) {
+                reject(error);
+                log("Failed to refresh credentials:", error);
+            } else {
+                log("Credentials refreshed successfully");
+                resolve();
+            }
+        });
+    });
+}
+function parseJwt(token) {
+    try {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(atob(base64));
+    } catch (e) {
+        console.error("Invalid JWT token:", e);
+        return null;
+    }
+}
+function isTokenExpired(tokenData) {
+    if (!tokenData || !tokenData.exp) return true;
+    const expiryTime = tokenData.exp * 1000;
+    return Date.now() >= expiryTime;
+}
+function toggleStats() {
+    if (window.ccPorted.stats.isOpen) {
+        window.ccPorted.stats.close();
+    } else {
+        window.ccPorted.stats.open();
+    }
+}
+function setupTracking() {
+    updateTracking(
+        `pages_visited.${treat(window.location.pathname)}.count`,
+        (getDeepValue(
+            window.ccPorted.trackingData,
+            `pages_visited.${treat(window.location.pathname)}.count`
+        ) || 0) + 1
+    );
+    trackingTick();
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+    }
+
+    lastUpdate = Date.now();
+    trackingInterval = setInterval(trackingTick, 5 * 60 * 1000); // 5 minutes
+}
+function cleanupTracking() {
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+        trackingInterval = null;
+    }
+
+    // Save final tracking update
+    if (window.ccPorted.trackingData) {
+        trackingTick();
+    }
+}
+function treat(text) {
+    if (!text) return null;
+    return text.split(".").join("-");
+}
+function setDeepValue(obj, path, value) {
+    const parts = path.split(".");
+    let current = obj;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (!(parts[i] in current)) {
+            current[parts[i]] = {};
+        }
+        current = current[parts[i]];
+    }
+
+    current[parts[parts.length - 1]] = value;
+    return obj;
+}
+function getDeepValue(obj, path) {
+    return path.split(".").reduce((curr, part) => curr && curr[part], obj);
+}
+function createGameStorageSandbox(gameId = "ccported") {
+    // Create a unique namespace for this game
+    const namespace = `[ns_${gameId}]`;
+
+    // Save original storage APIs
+    const originalLocalStorage = window.localStorage;
+    const originalIndexedDB = window.indexedDB;
+    const namespaceRegex = new RegExp(`^\[ns_[a-zA-Z0-9_-]+\]_`);
+
+    // Create localStorage proxy
+    const localStorageProxy = new Proxy(localStorage, {
+        get: function (target, prop) {
+            switch (prop) {
+                case 'setItem':
+                    return function (key, value, global = false) {
+                        if (global) {
+                            return originalLocalStorage.setItem('[ns_ccported]_' + key, value);
+                        }
+                        // check global namespace first
+                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
+                            return originalLocalStorage.setItem(`[ns_ccported]_${key}`, value);
+                        }
+                        // check game namespace
+                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
+                            return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+                        }
+                        // check if it's already namespaced
+                        if (namespaceRegex.test(key)) {
+                            return originalLocalStorage.setItem(key, value);
+                        }
+                        // if not, set it in the game's namespace
+                        return originalLocalStorage.setItem(`${namespace}_${key}`, value);
+                    }
+                case 'getItem':
+                    return function (key) {
+                        // check global namespace first
+                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
+                            return originalLocalStorage.getItem(`[ns_ccported]_${key}`);
+                        }
+                        // check game namespace
+                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
+                            return originalLocalStorage.getItem(`${namespace}_${key}`);
+                        }
+                        // check if it's already namespaced
+                        if (namespaceRegex.test(key)) {
+                            return originalLocalStorage.getItem(key);
+                        }
+                        // return obj if not found
+                        return originalLocalStorage.getItem(`${namespace}_${key}`);
+                    }
+                case 'removeItem':
+                    return function (key) {
+                        // check global namespace first
+                        if (originalLocalStorage.getItem(`[ns_ccported]_${key}`)) {
+                            return originalLocalStorage.removeItem(`[ns_ccported]_${key}`);
+                        }
+                        // check game namespace
+                        if (originalLocalStorage.getItem(`${namespace}_${key}`)) {
+                            return originalLocalStorage.removeItem(`${namespace}_${key}`);
+                        }
+                        // check if it's already namespaced
+                        if (namespaceRegex.test(key)) {
+                            return originalLocalStorage.removeItem(key);
+                        }
+                        // no perms, just return
+                        return;
+                    }
+                case 'clear':
+                    return function (global = false) {
+                        if (global) {
+                            return originalLocalStorage.clear();
+                        }
+                        // Only clear items for this game
+                        for (let i = originalLocalStorage.length - 1; i >= 0; i--) {
+                            const key = originalLocalStorage.key(i);
+                            if (key.startsWith(`${namespace}_`)) {
+                                originalLocalStorage.removeItem(key);
+                            }
+                        }
+                    }
+                case 'key':
+                    return function (index, global = false) {
+                        if (global) {
+                            return originalLocalStorage.key(index);
+                        }
+                        // Get all keys for this game
+                        const gameKeys = [];
+                        for (let i = 0; i < originalLocalStorage.length; i++) {
+                            const key = originalLocalStorage.key(i);
+                            if (key.startsWith(`${namespace}_`)) {
+                                gameKeys.push(key.slice(namespace.length + 1));
+                            }
+                        }
+                        return gameKeys[index];
+                    }
+                case 'length':
+                    let count = 0;
+                    for (let i = 0; i < originalLocalStorage.length; i++) {
+                        if (originalLocalStorage.key(i).startsWith(`${namespace}_`)) {
+                            count++;
+                        }
+                    }
+                    return count;
+                case 'globalLength':
+                    return originalLocalStorage.length;
+                default:
+                    // probably trying to access property stored in localStorage
+                    // check if it's in the global namespace
+                    if (originalLocalStorage.getItem(`[ns_ccported]_${prop}`)) {
+                        return originalLocalStorage.getItem(`[ns_ccported]_${prop}`);
+                    }
+                    // check if it's in the game's namespace
+                    if (originalLocalStorage.getItem(`${namespace}_${prop}`)) {
+                        return originalLocalStorage.getItem(`${namespace}_${prop}`);
+                    }
+                    // check if it's already namespaced
+                    if (namespaceRegex.test(prop)) {
+                        return originalLocalStorage.getItem(prop);
+                    }
+            }
+        },
+        set: function (target, prop, value) {
+            // check to see if overwriting getters
+            ['getItem', 'setItem', 'removeItem', 'clear', 'key', 'length', 'globalLength'].forEach((method) => {
+                if (prop === method) {
+                    throw new Error(`Cannot overwrite localStorage method ${method}`);
+                }
+            });
+            // probably trying to set a property in localStorage
+            // check if it's in the global namespace
+            if (originalLocalStorage.getItem(`[ns_ccported]_${prop}`)) {
+                return originalLocalStorage.setItem(`[ns_ccported]_${prop}`, value);
+            }
+            // check if it's in the game's namespace
+            if (originalLocalStorage.getItem(`${namespace}_${prop}`)) {
+                return originalLocalStorage.setItem(`${namespace}_${prop}`, value);
+            }
+            // check if it's already namespaced
+            if (namespaceRegex.test(prop)) {
+                return originalLocalStorage.setItem(prop, value);
+            }
+            // if not, set it in the game's namespace
+            return originalLocalStorage.setItem(`${namespace}_${prop}`, value);
+        }
+    });
+
+    // Create IndexedDB proxy
+    const indexedDBProxy = new Proxy(window.indexedDB, {
+        get: function (target, prop) {
+            if (prop === 'open') {
+                return function (dbName, version) {
+                    // check if db is already namespaced or global
+                    const isNamespaced = namespaceRegex.test(dbName);
+                    if (isNamespaced) {
+                        return originalIndexedDB.open(dbName, version);
+                    }
+                    if (dbName.startsWith("[ns_ccported]_")) {
+                        return originalIndexedDB.open(dbName, version);
+                    }
+                    // Namespace the database name
+                    const namespacedDBName = `${namespace}_${dbName}`;
+
+                    // Create a promise to check existing databases
+                    const checkDatabases = async () => {
+                        try {
+                            const databases = await originalIndexedDB.databases();
+                            const oldDBExists = databases.some(db => db.name === dbName);
+                            console.log(`Checking for database '${dbName}': ${oldDBExists}`);
+                            return oldDBExists;
+                        } catch (error) {
+                            console.error('Error checking databases:', error);
+                            return false;
+                        }
+                    };
+
+                    // First try to open the namespaced database
+                    const request = originalIndexedDB.open(namespacedDBName, version);
+
+                    request.onerror = function (event) {
+                        console.error(`Error opening database ${namespacedDBName}:`, event.target.error);
+                    };
+
+                    // Handle the case where the namespaced DB needs setup
+                    request.onupgradeneeded = function (event) {
+                        console.log(`Upgrade needed for ${namespacedDBName}`);
+                        const newDB = event.target.result;
+
+                        // Immediately check for old database
+                        checkDatabases().then(oldDBExists => {
+                            if (oldDBExists) {
+                                console.log(`Found old database '${dbName}', initiating transfer`);
+                                const oldDBRequest = originalIndexedDB.open(dbName);
+
+                                oldDBRequest.onerror = function (event) {
+                                    console.error(`Error opening old database ${dbName}:`, event.target.error);
+                                };
+
+                                oldDBRequest.onsuccess = function (event) {
+                                    const oldDB = event.target.result;
+                                    console.log(`Successfully opened old database '${dbName}'`);
+                                    console.log('Object stores found:', Array.from(oldDB.objectStoreNames));
+
+                                    // Get all object store names from old DB
+                                    const storeNames = Array.from(oldDB.objectStoreNames);
+
+                                    if (storeNames.length === 0) {
+                                        console.log(`No object stores found in old database '${dbName}'`);
+                                        oldDB.close();
+                                        return;
+                                    }
+
+                                    // Transfer each object store
+                                    storeNames.forEach(storeName => {
+                                        console.log(`Transferring object store: ${storeName}`);
+                                        try {
+                                            const transaction = oldDB.transaction(storeName, 'readonly');
+                                            const store = transaction.objectStore(storeName);
+                                            const getAllRequest = store.getAll();
+
+                                            getAllRequest.onsuccess = function () {
+                                                try {
+                                                    // Create new store in namespaced DB if it doesn't exist
+                                                    if (!newDB.objectStoreNames.contains(storeName)) {
+                                                        console.log(`Creating new object store: ${storeName}`);
+                                                        const newStore = newDB.createObjectStore(storeName,
+                                                            store.keyPath ? { keyPath: store.keyPath } :
+                                                                { autoIncrement: store.autoIncrement });
+
+                                                        // Copy indexes
+                                                        Array.from(store.indexNames).forEach(indexName => {
+                                                            const index = store.index(indexName);
+                                                            newStore.createIndex(indexName, index.keyPath, {
+                                                                unique: index.unique,
+                                                                multiEntry: index.multiEntry
+                                                            });
+                                                        });
+                                                    }
+
+                                                    // Transfer data
+                                                    const newTransaction = newDB.transaction(storeName, 'readwrite');
+                                                    const newStore = newTransaction.objectStore(storeName);
+                                                    const items = getAllRequest.result;
+                                                    console.log(`Transferring ${items.length} items for store ${storeName}`);
+
+                                                    items.forEach(item => {
+                                                        try {
+                                                            newStore.add(item);
+                                                        } catch (error) {
+                                                            console.error(`Error adding item to ${storeName}:`, error);
+                                                        }
+                                                    });
+
+                                                    newTransaction.oncomplete = function () {
+                                                        console.log(`Completed transfer for store: ${storeName}`);
+                                                    };
+
+                                                    newTransaction.onerror = function (event) {
+                                                        console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
+                                                    };
+                                                } catch (error) {
+                                                    console.error(`Error processing store ${storeName}:`, error);
+                                                }
+                                            };
+
+                                            getAllRequest.onerror = function (event) {
+                                                console.error(`Error getting data from ${storeName}:`, event.target.error);
+                                            };
+
+                                            transaction.oncomplete = function () {
+                                                console.log(`Old database transaction complete for: ${storeName}`);
+                                                // Only delete the old database after all transfers are complete
+                                                if (storeName === storeNames[storeNames.length - 1]) {
+                                                    oldDB.close();
+                                                    const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
+                                                    deleteRequest.onsuccess = function () {
+                                                        console.log(`Successfully deleted old database: ${dbName}`);
+                                                    };
+                                                    deleteRequest.onerror = function (event) {
+                                                        console.error(`Error deleting old database ${dbName}:`, event.target.error);
+                                                    };
+                                                }
+                                            };
+                                        } catch (error) {
+                                            console.error(`Error in store transfer process for ${storeName}:`, error);
+                                        }
+                                    });
+                                };
+                            } else {
+                                console.log(`No old database found for '${dbName}'`);
+                            }
+                        });
+                    };
+
+                    return request;
+                };
+            } else if (prop === 'deleteDatabase') {
+                return function (dbName) {
+                    // Check if the database is already namespaced
+                    if (namespaceRegex.test(dbName)) {
+                        return originalIndexedDB.deleteDatabase(dbName);
+                    }
+                    // Namespace the database name
+                    const namespacedDBName = `${namespace}_${dbName}`;
+                    return originalIndexedDB.deleteDatabase(namespacedDBName);
+                };
+            } else if (prop === 'databases') {
+                // remove the current namespace name from the list of databases
+                // eg: [ns_slope]_/idbfs -> /idbfs
+                return async function () {
+                    const databases = await originalIndexedDB.databases();
+                    return databases.map(db => {
+                        db.name = db.name.replace(namespace + "_", '');
+                        return db;
+                    });
+                };
+            } else {
+                // For all other properties, bind them to the original indexedDB if they're functions
+                const value = originalIndexedDB[prop];
+                return typeof value === 'function' ? value.bind(originalIndexedDB) : value;
+            }
+        }
+    });
+    async function migrateDatabase(dbName, version) {
+        const namespacedDBName = `${namespace}_${dbName}`;
+        const databases = await originalIndexedDB.databases();
+        const oldDBExists = databases.some(db => db.name === dbName);
+
+        if (oldDBExists) {
+            console.log(`Manually migrating database: ${dbName}`);
+
+            return new Promise((resolve, reject) => {
+                const request = originalIndexedDB.open(namespacedDBName, version || 1);
+
+                request.onerror = function (event) {
+                    console.error(`Error opening namespaced database ${namespacedDBName}:`, event.target.error);
+                    reject(event.target.error);
+                };
+
+                request.onsuccess = function (event) {
+                    const newDB = event.target.result;
+                    console.log(`Successfully opened namespaced database '${namespacedDBName}'`);
+
+                    // Open the old database
+                    const oldDBRequest = originalIndexedDB.open(dbName);
+
+                    oldDBRequest.onerror = function (event) {
+                        console.error(`Error opening old database ${dbName}:`, event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    oldDBRequest.onsuccess = function (event) {
+                        const oldDB = event.target.result;
+                        console.log(`Successfully opened old database '${dbName}'`);
+
+                        const storeNames = Array.from(oldDB.objectStoreNames);
+                        console.log('Object stores found:', storeNames);
+
+                        if (storeNames.length === 0) {
+                            console.log(`No object stores found in old database '${dbName}'`);
+                            oldDB.close();
+                            resolve();
+                            return;
+                        }
+
+                        // Keep track of completed stores
+                        let completedStores = 0;
+
+                        // Create a version change request to set up stores if needed
+                        const upgradeRequest = originalIndexedDB.open(namespacedDBName, (version || 1) + 1);
+
+                        upgradeRequest.onupgradeneeded = function (event) {
+                            const upgradedDB = event.target.result;
+
+                            storeNames.forEach(storeName => {
+                                if (!upgradedDB.objectStoreNames.contains(storeName)) {
+                                    const oldStore = oldDB.transaction(storeName).objectStore(storeName);
+                                    const newStore = upgradedDB.createObjectStore(storeName,
+                                        oldStore.keyPath ? { keyPath: oldStore.keyPath } :
+                                            { autoIncrement: oldStore.autoIncrement }
+                                    );
+
+                                    // Copy indexes
+                                    Array.from(oldStore.indexNames).forEach(indexName => {
+                                        const index = oldStore.index(indexName);
+                                        newStore.createIndex(indexName, index.keyPath, {
+                                            unique: index.unique,
+                                            multiEntry: index.multiEntry
+                                        });
+                                    });
+                                }
+                            });
+                        };
+
+                        upgradeRequest.onsuccess = function (event) {
+                            const upgradedDB = event.target.result;
+
+                            // Transfer data for each store
+                            storeNames.forEach(storeName => {
+                                console.log(`Transferring object store: ${storeName}`);
+                                try {
+                                    const transaction = oldDB.transaction(storeName, 'readonly');
+                                    const store = transaction.objectStore(storeName);
+                                    const getAllRequest = store.getAll();
+
+                                    getAllRequest.onsuccess = function () {
+                                        try {
+                                            const items = getAllRequest.result;
+                                            console.log(`Transferring ${items.length} items for store ${storeName}`);
+
+                                            const newTransaction = upgradedDB.transaction(storeName, 'readwrite');
+                                            const newStore = newTransaction.objectStore(storeName);
+
+                                            items.forEach(item => {
+                                                try {
+                                                    newStore.add(item);
+                                                } catch (error) {
+                                                    console.error(`Error adding item to ${storeName}:`, error);
+                                                }
+                                            });
+
+                                            newTransaction.oncomplete = function () {
+                                                console.log(`Completed transfer for store: ${storeName}`);
+                                                completedStores++;
+
+                                                // Check if all stores are completed
+                                                if (completedStores === storeNames.length) {
+                                                    console.log('All stores transferred successfully');
+                                                    oldDB.close();
+                                                    upgradedDB.close();
+
+                                                    // Delete the old database
+                                                    const deleteRequest = originalIndexedDB.deleteDatabase(dbName);
+                                                    deleteRequest.onsuccess = function () {
+                                                        console.log(`Successfully deleted old database: ${dbName}`);
+                                                        resolve();
+                                                    };
+                                                    deleteRequest.onerror = function (event) {
+                                                        console.error(`Error deleting old database ${dbName}:`, event.target.error);
+                                                        reject(event.target.error);
+                                                    };
+                                                }
+                                            };
+
+                                            newTransaction.onerror = function (event) {
+                                                console.error(`Error in transfer transaction for ${storeName}:`, event.target.error);
+                                                reject(event.target.error);
+                                            };
+                                        } catch (error) {
+                                            console.error(`Error processing store ${storeName}:`, error);
+                                            reject(error);
+                                        }
+                                    };
+
+                                    getAllRequest.onerror = function (event) {
+                                        console.error(`Error getting data from ${storeName}:`, event.target.error);
+                                        reject(event.target.error);
+                                    };
+                                } catch (error) {
+                                    console.error(`Error in store transfer process for ${storeName}:`, error);
+                                    reject(error);
+                                }
+                            });
+                        };
+
+                        upgradeRequest.onerror = function (event) {
+                            console.error(`Error upgrading database ${namespacedDBName}:`, event.target.error);
+                            reject(event.target.error);
+                        };
+                    };
+                };
+            });
+        } else {
+            console.log(`No old database found for '${dbName}'`);
+            return Promise.resolve();
+        }
+    }
+    return function setupGameEnvironment() {
+        // Override storage APIs in the game's context
+        Object.defineProperty(window, 'localStorage', {
+            value: localStorageProxy,
+            writable: false,
+            configurable: true
+        });
+
+        Object.defineProperty(window, 'indexedDB', {
+            value: indexedDBProxy,
+            writable: false,
+            configurable: true
+        });
+        window.ccPorted.migrateDatabase = migrateDatabase;
+    };
+}
+function showAutoSaveNotification(text = 'Auto-saving...') {
+    var notification = window.ccPorted.autoSaveNotification || document.createElement('div');
+    notification.innerHTML = '';
+    notification.style.position = 'fixed';
+    notification.style.top = '10px';
+    notification.style.right = '10px';
+    notification.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+    notification.style.color = 'white';
+    notification.style.padding = '10px';
+    notification.style.borderRadius = '5px';
+    notification.style.textAlign = 'center';
+    notification.style.zIndex = '9999';
+    notification.style.display = "flex";
+    notification.style.alignItems = "center";
+    notification.style.justifyContent = "center";
+    notification.style.flexDirection = "row";
+    notification.innerText = text;
+    notification.setAttribute('data-creation-time', Date.now());
+    notification.setAttribute('data-min-visible-time', '3000');
+
+    const loading = document.createElement('img');
+    loading.src = '/assets/images/loading.gif';
+    loading.style.width = '20px';
+    loading.style.height = '20px';
+    loading.style.verticalAlign = 'middle';
+    loading.style.marginRight = '10px';
+    notification.insertBefore(loading, notification.firstChild);
+
+    document.body.appendChild(notification);
+    window.ccPorted.autoSaveNotification = notification;
+    return notification;
+}
+function pageInIframe() {
+    return (window.location !== window.parent.location);
+}
+function emit() {
+    const data = {
+        gameID,
+        location: (glocation.length > 0) ? glocation : "unknown",
+        isFramed: framed,
+    }
+    if (framed) {
+        data["parentDomainHost"] = (window.parent.location.hostname.length > 0) ? window.parent.location.hostname : "unknown";
+        data["parentDomain"] = window.parent.location;
+    }
+    log(data);
+    gtag("event", "play_game", data);
+}
+function installGTAG() {
+    log("Installing GTAG");
+    if (window.gtag) {
+        log("GTAG already installed, starting init");
+        init();
+        return Promise.resolve();
+    } else {
+        log("GTAG not installed, loading script");
+        const script = document.createElement("script");
+        const gID = `G-DJDL65P9Y4`;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${gID}`;
+        document.head.appendChild(script);
+        const loadPromise = new Promise((r, rr) => {
+            script.onload = () => {
+                log("GTAG script loaded");
+                window.dataLayer = window.dataLayer || [];
+                function gtag() { dataLayer.push(arguments); }
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', gID);
+                log("GTAG installed, starting init");
+                initEmit();
+                r();
+            }
+        });
+        return loadPromise;
+    }
+
+}
+
+async function importJSON(path) {
+    let url;
+    if (path.startsWith("/") && !path.startsWith("//")) {
+        url = new URL(path, window.location.origin);
+    } else {
+        url = new URL(path);
+    }
+    url.searchParams.append('_', Date.now());
+
+    const res = await fetch(path, {
+        method: "GET",
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    });
+    return res.json();
+}
+async function initializeUnathenticated() {
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: 'us-west-2:8ffe94a1-9042-4509-8e65-4efe16e61e3e'
+    });
+    log('Configured AWS SDK with unauthenticated credentials');
+    return null;
+}
+async function initializeAuthenticated(idToken, accessToken, refreshToken) {
+
+    // Decode token
+    let userData = parseJwt(idToken);
+    // Check if token is expired
+    if (isTokenExpired(userData)) {
+        console.log("ID token expired, attempting refresh...");
+        const newTokens = await refreshTokens(refreshToken);
+        if (!newTokens) {
+            console.error("Failed to refresh token. User must log in again.");
+            return null;
+        }
+        userData = parseJwt(newTokens.id_token);
+    }
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: 'us-west-2:8ffe94a1-9042-4509-8e65-4efe16e61e3e',
+        RoleSessionName: userData.sub
+    });
+    const surl = "cognito-idp.us-west-2.amazonaws.com/us-west-2_lg1qptg2n";
+    AWS.config.credentials.params.Logins =
+        AWS.config.credentials.params.Logins || {};
+    AWS.config.credentials.params.Logins[surl] = idToken;
+    await refreshAWSCredentials();
+    const otherData = await window.ccPorted.identityProvider.getUser({
+        AccessToken: accessToken
+    }).promise();
+    log("User attributes recieved")
+    const userDataJSON = otherData.UserAttributes.reduce((acc, { Name, Value }) => {
+        acc[Name] = Value;
+        return acc;
+    }, {});
+    const user = {
+        ...userData,
+        attributes: userDataJSON
+    };
+    return user;
+}
+async function initializeAWS() {
+    window.ccPorted["awsReady"] = false;
+    if (typeof AWS == "undefined") {
+        log("AWS SDK not loaded, loading...");
+        const sdk = document.createElement("script");
+        sdk.src = "https://sdk.amazonaws.com/js/aws-sdk-2.1030.0.min.js";
+        document.head.appendChild(sdk);
+        await new Promise((r, rr) => {
+            log("Waiting for AWS SDK to load...");
+            sdk.onload = r;
+        });
+        log("AWS SDK loaded");
+    }
+    window.ccPorted.AWS = AWS;
+    AWS.config.update({ region: "us-west-2" });
+    window.ccPorted["identityProvider"] = new AWS.CognitoIdentityServiceProvider({
+        region: 'us-west-2'
+    });
+    let idToken = localStorage.getItem("[ns_ccported]_idToken");
+    let accessToken = localStorage.getItem("[ns_ccported]_accessToken");
+    let refreshToken = localStorage.getItem("[ns_ccported]_refreshToken");
+    let user = null;
+    if (!idToken || !accessToken) {
+        console.warn("No valid tokens found. Checking for auth code...");
+        const authCode = new URLSearchParams(window.location.search).get("code");
+
+        if (authCode) {
+            console.log("Auth code found. Exchanging for tokens...");
+            const tokens = await exchangeAuthCodeForTokens(authCode);
+            if (!tokens) {
+                console.error("Failed to exchange auth code for tokens.");
+                return null;
+            }
+            idToken = tokens.id_token;
+            accessToken = tokens.access_token;
+            refreshToken = tokens.refresh_token;
+
+            user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+        } else {
+            console.warn("No auth code found in URL. User may need to log in.");
+            user = await initializeUnathenticated();
+        }
+    } else {
+        log("Tokens found. Initializing user...");
+        user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+
+    }
+    window.ccPorted["s3Client"] = new AWS.S3({
+        region: "us-west-2",
+    });
+    window.ccPorted["documentClient"] = new AWS.DynamoDB.DocumentClient({
+        region: "us-west-2"
+    });
+    window.ccPorted["awsReady"] = true;
+    window.ccPorted["user"] = user;
+    window.ccPorted.getUser = () => user;
+
+}
+async function exchangeAuthCodeForTokens(authCode) {
+    try {
+        const response = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                grant_type: "authorization_code",
+                client_id: CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                code: authCode
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error_description || "Failed to exchange auth code");
+
+        // Store tokens in localStorage
+        localStorage.setItem("[ns_ccported]_accessToken", data.access_token);
+        localStorage.setItem("[ns_ccported]_idToken", data.id_token);
+        localStorage.setItem("[ns_ccported]_refreshToken", data.refresh_token);
+        window.history.replaceState({}, document.title, REDIRECT_URI); // Remove auth code from URL
+
+        return data;
+    } catch (error) {
+        console.error("Error exchanging auth code:", error);
+        return null;
+    }
+}
+async function refreshTokens(refreshToken) {
+    if (!refreshToken) {
+        console.warn("No refresh token available.");
+        return null;
+    }
+
+    try {
+        const response = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                grant_type: "refresh_token",
+                client_id: CLIENT_ID,
+                refresh_token: refreshToken
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error_description || "Token refresh failed");
+
+        // Store new tokens
+        localStorage.setItem("[ns_ccported]_accessToken", data.access_token);
+        localStorage.setItem("[ns_ccported]_idToken", data.id_token);
+
+        console.log("Tokens refreshed successfully");
+        return data;
+    } catch (error) {
+        console.error("Error refreshing token:", error);
+        return null;
+    }
+}
+async function saveTrackingData() {
+    try {
+        await window.ccPorted.updateUser({
+            'custom:tracking_data': JSON.stringify(window.ccPorted.trackingData)
+        })
+    } catch (err) {
+        log("Failed to save tracking data:", err);
+    }
+}
+async function updateTracking(attrPath, value) {
+    if (!window.ccPorted.trackingData) {
+        window.ccPorted.trackingData = { games: {}, total_playtime: 0 };
+    }
+
+    setDeepValue(window.ccPorted.trackingData, attrPath, value);
+}
+async function trackingTick() {
+    const now = Date.now();
+    const timeDiff = now - lastUpdate;
+    lastUpdate = now;
+
+    // Convert ms to minutes
+    let minutesElapsedX = timeDiff / 60000;
+    const minutesElapsed =
+        Math.round((minutesElapsedX + Number.EPSILON) * 100) / 100;
+    if (minutesElapsed > 0 && tGameID) {
+        if (!window.ccPorted.trackingData.games[tGameID]) {
+            window.ccPorted.trackingData.games[tGameID] = { playtime: 0 };
+        }
+
+        // Update game-specific playtime
+        const currentPlaytime =
+            getDeepValue(window.ccPorted.trackingData, `games.${tGameID}.playtime`) ||
+            0;
+        updateTracking(
+            `games.${tGameID}.playtime`,
+            currentPlaytime + minutesElapsed
+        );
+
+        // Update total playtime
+        const totalPlaytime = window.ccPorted.trackingData.total_playtime || 0;
+        updateTracking("total_playtime", totalPlaytime + minutesElapsed);
+    }
+    await saveTrackingData();
+}
+async function handleUserLoggedIn() {
+    // Fetch tracking data if user exists
+    if (!window.ccPorted.user) return;
+    if (window.ccPorted.user.attributes["custom:tracking_data"]) {
+        console.log(window.ccPorted.user.attributes["custom:tracking_data"].length)
+        window.ccPorted.trackingData = JSON.parse(
+            window.ccPorted.user.attributes["custom:tracking_data"]
+        );
+    } else {
+        window.ccPorted.trackingData = {
+            games: {},
+            total_playtime: 0,
+            chat_messages_sent: 0,
+            pages_visited: {},
+        };
+    }
+    setupTracking();
+    window.ccPorted.stateSync = new GameStateSync(
+        window.ccPorted.user.id,
+    );
+}
+async function init() {
+    if (window.ccPorted.user) {
+        handleUserLoggedIn();
+    } else if (window.ccPorted.userPromise) {
+        try {
+            const user = await window.ccPorted.userPromise;
+            if (user) {
+                window.ccPorted.user = user;
+                handleUserLoggedIn();
+            }
+        } catch (e) {
+            log("User appears to be logged out.")
+        }
+    }
+}
+async function initEmit() {
+    emit();
+    setInterval(emit, 1000 * 60 * 10);
+}
+
+installGTAG();
+
+shortcut([17, 81], toggleStats);
+createGameStorageSandbox(window.gameID || "ccported")();
+
+link.href = "/assets/styles/master.css";
+link.setAttribute("rel", "stylesheet");
+document.head.appendChild(link);
+
+const stats = new Stats();
+window.ccPorted.stats = stats;

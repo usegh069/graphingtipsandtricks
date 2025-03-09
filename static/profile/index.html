@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1030.0.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <chead title="Profile | CCPorted"/>
@@ -24,14 +25,6 @@
                             <label for="displayName">Display Name</label>
                             <input type="text" id="displayName" placeholder="Enter display name" autocomplete="off">
                         </div>
-                        <div class="info-group">
-                            <label for="currentPassword">Current Password</label>
-                            <input type="password" id="currentPassword" placeholder="Enter current password" autocomplete="off">
-                        </div>
-                        <div class="info-group">
-                            <label for="newPassword">New Password</label>
-                            <input type="password" id="newPassword" placeholder="Enter new password" autocomplete="off">
-                        </div>
                         <button id="saveChanges">Save Changes</button>
                     </div>
                 </div>
@@ -42,12 +35,11 @@
             </div>
         </div>
 
-        <div class="achievements-section">
+        <!-- <div class="achievements-section">
             <h2>Achievements</h2>
             <div class="achievements-grid" id="achievementsContainer">
-                <!-- Achievements will be populated by JavaScript -->
             </div>
-        </div>
+        </div> -->
     </main>
     <scripts />
     <script src="/assets/scripts/profile.js"></script>

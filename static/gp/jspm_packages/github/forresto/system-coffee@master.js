@@ -1,1 +1,0 @@
-module.exports = require("github:forresto/system-coffee@master/coffee.js");

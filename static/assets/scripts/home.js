@@ -12,6 +12,7 @@ try {
     const header = document.querySelector('header');
     const toggleBtn = document.querySelector('.toggle-btn');
 
+    window.server = null;
     const sortStates = [
         [() => {
             sortCardsByClicks((cards) => {
@@ -75,6 +76,37 @@ try {
     window.gameRQPopupOpen = false;
     document.querySelector(".cards").classList.add("loading");
 
+    // AWS Configuration
+    AWS.config.region = 'us-west-2';
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: 'us-west-2:cb7ff0d0-87c6-43c8-a9e4-dece8bd1b8c7'
+    });
+    const dynamodb = new AWS.DynamoDB.DocumentClient();
+
+    async function importGames() {
+        const games = [];
+        const params = {
+            TableName: 'games_list',
+            ProjectionExpression: 'gameID, clicks, description, fName, tags, thumbPath',
+        };
+
+        try {
+            const data = await dynamodb.scan(params).promise();
+            data.Items.forEach(item => {
+                games.push(item);
+            });
+        } catch (error) {
+            console.error('Error loading games:', error);
+            document.querySelector('.container').innerHTML = `
+                <div class="error">
+                    Error loading games. Please try again later.
+                    <br>
+                    ${error.message}
+                </div>
+            `;
+        }
+        return { games }
+    }
     async function importJSON(path) {
         let url;
         if (path.startsWith("/") && !path.startsWith("//")) {
@@ -98,22 +130,31 @@ try {
         return res.json() || {};
     }
     async function testOpenServers() {
-        const servers = ["https://dahljrdecyiwfjgklnvz.supabase.co"];
-        const responses = await Promise.all(servers.map(server => {
-            fetch(server)
-        }));
-        const json = await Promise.all(responses.map(response => response.json()));
-        // expexted response should have "error: requested path is invalid"
-        const valid = null;
-        json.forEach((serverRes, i) => {
-            if (serverRes["error"].includes("requested path is invalid")) {
-                valid = servers[i];
-                return;
+        let server = null;
+        let serverIndex = 0;
+        const serverList = await fetch('/servers.txt');
+        const serversText = await serverList.text();
+        const servers = serversText.split('\n');
+        while(!server) {
+            const toAttemptIndex = Math.floor(Math.random() * servers.length);
+            const toAttempt = servers[toAttemptIndex];
+            try {
+                console.log(`[CCPORTED: Attempting server ${toAttempt} (${toAttemptIndex})`);   
+                const res = await fetch(`https://${toAttempt}/blocked_res.txt`);
+                if (res.ok) {
+                    const text = await res.text();
+                    if(text.indexOf("===NOT_BLOCKED===") !== -1) {
+                        server = toAttempt;
+                        serverIndex = toAttemptIndex;
+                    }
+                }  
+            } catch (e) {
+                console.log(`[CCPORTED: Server ${toAttempt} failed: ${e}`);
             }
-        });
-        return valid;
+        }
+        return [server.split('\r')[0], serverIndex];
     }
-    async function baseRender() {
+    async function baseRender(gamesJson) {
         try {
             log("Attempting base render");
             log("Cards rendered: " + window.ccPorted.cardsRendered)
@@ -128,7 +169,6 @@ try {
             //     cta: false,
             //     autoClose: 5
             // });
-            const gamesJson = await importJSON("/games.json");
             const { games } = gamesJson;
             log(`Games ${games.length} found.`);
             games.forEach(game => {
@@ -141,23 +181,13 @@ try {
                     if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
                         if (e.target.tagName == "A") {
                             e.preventDefault();
-                            const protocol = window.location.protocol;
-                            const hostname = window.location.hostname;
-                            const fullURL = e.target.href;
-                            let x = fullURL.replace("ccported.github.io", hostname);
-                            console.log(protocol);
-                            x = x.replace("https://", protocol + "//");
-                            window.open(x, '_blank');
+                            incrementClicks(id);
+                            window.open(e.target.href, '_blank');
                         }
                         return;
                     }
-                    const protocol = window.location.protocol;
-                    const hostname = window.location.hostname;
-                    const fullURL = links[0].href;
-                    let x = fullURL.replace("ccported.github.io", hostname + "//");
-                    console.log(protocol);
-                    x = x.replace("https://", protocol);
-                    window.open(links[0].href.replace("ccported.github.io", window.location.hostname), '_blank');
+                    incrementClicks(id);
+                    window.open(links[0].href, '_blank');
                 });
                 checkSeenGame(id, card);
                 markGameSeen(id);
@@ -212,10 +242,10 @@ try {
         log("Initializing");
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
-        setTimeout(() => {
-            baseRender();
-        }, 3000);
-
+        const [chosenServer, index] = await testOpenServers();
+        window.ccPorted.gameServer = {};
+        window.ccPorted.gameServer.server = chosenServer;
+        window.ccPorted.gameServer.index = index;
         // createPopup({
         //     title: 'Hiring!',
         //     message: "We are hiring! We are looking for interns to help add games and manage the community.",
@@ -224,48 +254,30 @@ try {
         //         link: "https://forms.gle/kWJRXuYN93unLkZRA"
         //     }
         // });
-        const gamesJson = await importJSON("/games.json");
+        const gamesJson = await importGames();
+        setTimeout(() => {
+            baseRender(gamesJson);
+        }, 3000);
         const { games } = gamesJson;
         log(`Got ${games.length} games`);
-        let clicks;
-        try {
-            clicks = await getAllClicks();
-        } catch (e) {
-            log(e);
-            clicks = {};
-        }
         games.forEach(game => {
             const card = buildCard(game);
             const id = card.getAttribute('id');
             // get links
             const links = card.querySelectorAll('.card-content .card-links a');
             card.style.cursor = "pointer";
-            card.setAttribute('data-clicks', clicks[id] || 0);
+            card.setAttribute('data-clicks', game.clicks || 0);
             card.addEventListener('click', (e) => {
                 if (e.target.tagName == "SPAN" || e.target.tagName == "A") {
-                    // not the card, but an item for which something happens on the card
                     if (e.target.tagName == "A") {
                         e.preventDefault();
-                        // if it's a link, open it
                         incrementClicks(id);
-                        const protocol = window.location.protocol;
-                        const hostname = window.location.hostname;
-                        const fullURL = e.target.href;
-                        let x = fullURL.replace("ccported.github.io", hostname);
-                        console.log(protocol);
-                        x = x.replace("https://", protocol + "//");
-                        window.open(e.target.href.replace("ccported.github.io", window.location.hostname), '_blank');
+                        window.open(e.target.href, '_blank');
                     }
                     return;
                 }
                 incrementClicks(id);
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const fullURL = links[0].href;
-                let x = fullURL.replace("ccported.github.io", hostname);
-                console.log(protocol);
-                x = x.replace("https://", protocol + "//");
-                window.open(x, '_blank');
+                window.open(links[0].href, '_blank');
             });
             checkSeenGame(id, card);
             markGameSeen(id);
@@ -318,20 +330,19 @@ try {
     async function incrementClicks(gameID) {
         try {
             log(`Incrementing clicks for game ${gameID}`);
-            let { data: game_clicks, error } = await client
-                .from('game_clicks')
-                .select('clicks')
-                .eq('gameID', gameID);
-
-            if (error) {
-                log('Error getting game clicks:', error.message);
-                return;
-            }
-            const clicks = (game_clicks[0] || { clicks: 0 }).clicks + 1;
-            // upsert
-            let { data, error: upsertError } = await client
-                .from('game_clicks')
-                .upsert([{ gameID, clicks }]);
+            const params = {
+                TableName: 'games_list',
+                Key: {
+                    gameID: gameID
+                },
+                UpdateExpression: 'SET clicks = clicks + :inc',
+                ExpressionAttributeValues: {
+                    ':inc': 1
+                },
+                ReturnValues: 'UPDATED_NEW'
+            };
+            const data = await dynamodb.update(params).promise();
+            log('Clicks incremented:', data.Attributes.clicks);
         } catch (e) {
             log(e);
         }
@@ -352,29 +363,6 @@ try {
         } catch (e) {
             log(e);
             return 0;
-        }
-    }
-    async function getAllClicks() {
-        try {
-            log(`Getting all game clicks`);
-            let { data: game_clicks, error } = await client
-                .from('game_clicks')
-                .select('gameID, clicks');
-
-            if (error) {
-                baseRender();
-                log('Error getting game clicks:', error.message);
-                return;
-            }
-            let obj = {};
-            game_clicks.forEach(game => {
-                obj[game.gameID] = game.clicks;
-            });
-            return obj;
-        } catch (e) {
-            log(e);
-            baseRender();
-            return {}
         }
     }
     function pickRandomCard() {
@@ -718,7 +706,7 @@ try {
         const card = document.createElement("div");
         card.classList.add("card");
         card.classList.add("grid");
-        card.id = game.name;
+        card.id = game.gameID;
 
         // Add star icon
         const star = document.createElement("span");
@@ -731,7 +719,7 @@ try {
 
         const bg = document.createElement("div");
         bg.classList.add("card-bg");
-        bg.style.backgroundImage = `url('${game.image}')`;
+        bg.style.backgroundImage = `url('https://${window.ccPorted.gameServer.server}/games/${game.gameID}${game.thumbPath}')`;
 
         const content = document.createElement("div");
         content.classList.add("card-content");
@@ -761,12 +749,10 @@ try {
 
         const links = document.createElement("div");
         links.classList.add("card-links");
-        game.links.forEach(link => {
-            const linkElement = document.createElement("a");
-            linkElement.href = link.link;
-            linkElement.textContent = `${link.action ? link.action : "Play"} ${(link.pre) ? link.pre : game.fName} on ${link.name}`;
-            links.appendChild(linkElement);
-        });
+        const linkElement = document.createElement("a");
+        linkElement.href = `/play/#${game.gameID}?server=${window.ccPorted.gameServer.index}`;
+        linkElement.textContent = `Play ${game.fName} on CCPorted`;
+        links.appendChild(linkElement);
 
         contentInner.appendChild(title);
         contentInner.appendChild(description);
