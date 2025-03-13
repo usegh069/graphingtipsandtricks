@@ -11,6 +11,7 @@ const framed = pageInIframe();
 const glocation = (!framed) ? window.location.hostname : document.location.ancestorOrigins[0];
 const gameIDExtractRG = /\/(game_\w+)\//;
 const gameIDExtract = gameIDExtractRG.exec(window.location.pathname);
+const parentOrigin = (framed && document.location.ancestorOrigins.length > 0) ? new URL(document.location.ancestorOrigins[0]).origin : null;
 const gameID = window.ccPorted.gameID || window.gameID || ((gameIDExtract) ? gameIDExtract[1] : "Unknown Game");
 
 let trackingInterval = null;
@@ -2246,7 +2247,7 @@ async function getTokensFromParent(timeout = 5000) {
         // Set up message handler
         const messageHandler = (event) => {
             // Only accept messages from the parent origin
-            if (event.origin !== window.parent.origin) return;
+            if (event.origin !== parentOrigin) return;
 
             const data = event.data;
 
@@ -2280,7 +2281,7 @@ async function getTokensFromParent(timeout = 5000) {
         window.parent.postMessage({
             action: "GET_TOKENS",
             requestId: requestId
-        }, window.parent.origin);
+        }, parentOrigin);
 
         // Set timeout
         setTimeout(() => {
