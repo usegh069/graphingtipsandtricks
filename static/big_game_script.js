@@ -15,7 +15,7 @@ const gameID = window.ccPorted.gameID || window.gameID || ((gameIDExtract) ? gam
 
 let trackingInterval = null;
 let lastUpdate = Date.now();
-
+let waitingForCreds = true;
 
 
 class Leaderboard {
@@ -167,6 +167,7 @@ class Leaderboard {
         this.cached = [];
     }
 }
+window.ccPorted.Leaderboard = Leaderboard;
 class StateSyncUtility {
     constructor() {
         this.compressionEnabled = typeof CompressionStream !== 'undefined';
@@ -1270,17 +1271,6 @@ class Stats {
 }
 
 window.addEventListener("beforeunload", cleanupTracking);
-window.addEventListener("message", (e) => {
-    log("Recieved message from ", e.origin);
-    const {data} = e;
-    console.log(e);
-    if(data.action == "SET_TOKENS") { 
-        const tokens = data.content;
-        localStorage.setItem("[ns_ccported]_accessToken", tokens.access_token);
-        localStorage.setItem("[ns_ccported]_idToken", tokens.id_token);
-        localStorage.setItem("[ns_ccported]_refreshToken", tokens.refresh_token);
-    }
-})
 window.addEventListener("load", () => {
     init();
     const login = document.querySelector('.loggedInReplacable');
@@ -2248,6 +2238,57 @@ function installGTAG() {
 
 }
 
+async function getTokensFromParent(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        // Create a unique request ID to match responses
+        const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+        // Set up message handler
+        const messageHandler = (event) => {
+            // Only accept messages from the parent origin
+            if (event.origin !== window.parent.origin) return;
+
+            const data = event.data;
+
+            // Verify this is a response to our specific request
+            if (data.requestId === requestId) {
+                // Clean up the event listener
+                window.removeEventListener("message", messageHandler);
+
+                // Handle the different response types
+                if (data.action === "SET_TOKENS") {
+                    const tokens = data.content;
+
+                    // Store tokens in localStorage with consistent naming
+                    localStorage.setItem("[ns_ccported]_accessToken", tokens.accessToken);
+                    localStorage.setItem("[ns_ccported]_idToken", tokens.idToken);
+                    localStorage.setItem("[ns_ccported]_refreshToken", tokens.refreshToken);
+
+                    resolve(tokens);
+                } else if (data.action === "NO_USER") {
+                    reject(new Error("No authenticated user in parent"));
+                } else if (data.action === "UNKNOWN_ACTION") {
+                    reject(new Error("Unknown action"));
+                }
+            }
+        };
+
+        // Add event listener
+        window.addEventListener("message", messageHandler);
+
+        // Send request to parent
+        window.parent.postMessage({
+            action: "GET_TOKENS",
+            requestId: requestId
+        }, window.parent.origin);
+
+        // Set timeout
+        setTimeout(() => {
+            window.removeEventListener("message", messageHandler);
+            reject(new Error("Timeout getting tokens from parent"));
+        }, timeout);
+    });
+}
 async function importJSON(path) {
     let url;
     if (path.startsWith("/") && !path.startsWith("//")) {
@@ -2352,20 +2393,20 @@ async function initializeAWS() {
         } else {
             console.warn("No auth code found in URL. User may need to log in.");
             if (framed) {
-                console.log("Waiting for tokens from parent 3 second timeout");
-                await new Promise((r) => {
-                    setTimeout(r, 3000);
-                });
-                let idToken = localStorage.getItem("[ns_ccported]_idToken");
-                let accessToken = localStorage.getItem("[ns_ccported]_accessToken");
-                let refreshToken = localStorage.getItem("[ns_ccported]_refreshToken");
-                if (!idToken || !accessToken) {
-                    console.log("Waiting failed, initializing unauthenticated.");
-                    user = await initializeUnathenticated();
-                } else {
-                    user = await initializeAuthenticated(idToken, accessToken, refreshToken);
-                }
+                try {
+                    const tokens = await getTokensFromParent();
+                    const { idToken, accessToken, refreshToken } = tokens;
 
+                    if (!idToken || !accessToken) {
+                        console.log("Invalid tokens received, initializing unauthenticated.");
+                        user = await initializeUnathenticated();
+                    } else {
+                        user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+                    }
+                } catch (error) {
+                    console.error("Authentication error:", error.message);
+                    user = await initializeUnathenticated();
+                }
             } else {
                 console.log("No parent to recieve tokens from... initializing unauthenticated");
                 user = await initializeUnathenticated();
