@@ -1,7 +1,7 @@
 window.ccPorted = window.ccPorted || {};
 const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/"; // Replace with your Cognito domain
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi"; // Replace with your App Client ID
-const REDIRECT_URI = "http://localhost:8080/profile/"; // Replace with your redirect URI
+const REDIRECT_URI = window.location.origin; 
 
 window.addEventListener("load", () => {
     const login = document.querySelector('.loggedInReplacable');
@@ -14,7 +14,7 @@ window.addEventListener("load", () => {
                 const baseURL = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/login";
                 const clientID = "4d6esoka62s46lo4d398o3sqpi";
                 const responseType = "code";
-                window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}/profile/`;
+                window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}`;
                 return false;
             }
         })
@@ -226,7 +226,7 @@ function parseJwt(token) {
         const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
         return JSON.parse(atob(base64));
     } catch (e) {
-        console.error("Invalid JWT token:", e);
+        log("[ERROR] Invalid JWT token:", e);
         return null;
     }
 }
@@ -268,14 +268,18 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
     let userData = parseJwt(idToken);
     // Check if token is expired
     if (isTokenExpired(userData)) {
-        console.log("ID token expired, attempting refresh...");
+        log("ID token expired, attempting refresh...");
         const newTokens = await refreshTokens(refreshToken);
         if (!newTokens) {
-            console.error("Failed to refresh token. User must log in again.");
+            log("[ERROR] Failed to refresh token. User must log in again.");
             return null;
         }
         userData = parseJwt(newTokens.id_token);
+        if(isTokenExpired(userData)){
+            console.log("ok now what the heck")
+        }
     }
+    log("User logged in, initializing credentials")
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
         IdentityPoolId: 'us-west-2:8ffe94a1-9042-4509-8e65-4efe16e61e3e',
         RoleSessionName: userData.sub
@@ -322,23 +326,23 @@ async function initializeAWS() {
     let refreshToken = localStorage.getItem("[ns_ccported]_refreshToken");
     let user = null;
     if (!idToken || !accessToken) {
-        console.warn("No valid tokens found. Checking for auth code...");
+        log("[WARN] No valid tokens found. Checking for auth code...");
         const authCode = new URLSearchParams(window.location.search).get("code");
 
         if (authCode) {
-            console.log("Auth code found. Exchanging for tokens...");
+            log("Auth code found. Exchanging for tokens...");
             const tokens = await exchangeAuthCodeForTokens(authCode);
             if (!tokens) {
-                console.error("Failed to exchange auth code for tokens.");
+                log("[ERROR] Failed to exchange auth code for tokens.");
                 return null;
             }
             idToken = tokens.id_token;
             accessToken = tokens.access_token;
             refreshToken = tokens.refresh_token;
-
+            log("Successfully retrieved tokens")
             user = await initializeAuthenticated(idToken, accessToken, refreshToken);
         } else {
-            console.warn("No auth code found in URL. User may need to log in.");
+            log("[WARN] No auth code found in URL. User may need to log in.");
             user = await initializeUnathenticated();
         }
     } else {
@@ -373,7 +377,7 @@ async function exchangeAuthCodeForTokens(authCode) {
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(data.error_description || "Failed to exchange auth code");
+        if (data.error) throw new Error(data.error);
 
         // Store tokens in localStorage
         localStorage.setItem("[ns_ccported]_accessToken", data.access_token);
@@ -383,13 +387,13 @@ async function exchangeAuthCodeForTokens(authCode) {
 
         return data;
     } catch (error) {
-        console.error("Error exchanging auth code:", error);
+        log("[ERROR] Error exchanging auth code:", error);
         return null;
     }
 }
 async function refreshTokens(refreshToken) {
     if (!refreshToken) {
-        console.warn("No refresh token available.");
+        log("[WARN] No refresh token available.");
         return null;
     }
 
@@ -413,10 +417,10 @@ async function refreshTokens(refreshToken) {
         localStorage.setItem("[ns_ccported]_accessToken", data.access_token);
         localStorage.setItem("[ns_ccported]_idToken", data.id_token);
 
-        console.log("Tokens refreshed successfully");
+        log("Tokens refreshed successfully");
         return data;
     } catch (error) {
-        console.error("Error refreshing token:", error);
+        log("[ERROR] Error refreshing token:", error);
         return null;
     }
 }

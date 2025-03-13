@@ -1274,9 +1274,11 @@ async function handleUserLoggedIn() {
         };
     }
     setupTracking();
-    window.ccPorted.stateSync = new GameStateSync(
-        window.ccPorted.user.id,
-    );
+    if (typeof window.ccPorted?.config?.stateSyncEnabled == "undefined" || window.ccPorted?.config?.stateSyncEnabled) {
+        window.ccPorted.stateSync = new GameStateSync(
+            window.ccPorted.user.id,
+        );
+    }
 }
 async function init() {
     if (window.ccPorted.user) {
