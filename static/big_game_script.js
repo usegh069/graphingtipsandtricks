@@ -2,13 +2,13 @@ window.ccPorted = window.ccPorted || {};
 
 const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/";
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi";
-const REDIRECT_URI = `${window.location.origin}/profile/`;
+const REDIRECT_URI = `${window.location.origin}`;
 const tGameID = treat(window.gameID || window.ccPorted.gameID);
 const link = document.createElement("link");
 const script = document.currentScript;
 const seenPopup = (localStorage.getItem("ccported-popup") == "yes");
-const glocation = window.location.hostname;
 const framed = pageInIframe();
+const glocation = (!framed) ? window.location.hostname : document.location.ancestorOrigins[0];
 const gameIDExtractRG = /\/(game_\w+)\//;
 const gameIDExtract = gameIDExtractRG.exec(window.location.pathname);
 const gameID = window.ccPorted.gameID || window.gameID || ((gameIDExtract) ? gameIDExtract[1] : "Unknown Game");
@@ -1270,6 +1270,20 @@ class Stats {
 }
 
 window.addEventListener("beforeunload", cleanupTracking);
+window.addEventListener("message", (e) => {
+    try {
+        if (e.origin !== new URL(window.location.ancestorOrigins[0]).origin) return;
+    }catch(e){
+        return;
+    }
+    const {data} = e;
+    if(data.action = "SET_TOKENS") { 
+        const tokens = data.content;
+        localStorage.setItem("[ns_ccported]_accessToken", tokens.access_token);
+        localStorage.setItem("[ns_ccported]_idToken", tokens.id_token);
+        localStorage.setItem("[ns_ccported]_refreshToken", tokens.refresh_token);
+    }
+})
 window.addEventListener("load", () => {
     init();
     const login = document.querySelector('.loggedInReplacable');
@@ -1282,7 +1296,7 @@ window.addEventListener("load", () => {
                 const baseURL = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/login";
                 const clientID = "4d6esoka62s46lo4d398o3sqpi";
                 const responseType = "code";
-                window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}/profile/`;
+                window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}`;
                 return false;
             }
         })
@@ -1400,7 +1414,7 @@ window.ccPorted.userPromise = new Promise(async (resolve, reject) => {
 });
 
 function log(...args) {
-    console.log("[CCPORTED]: ", ...args);
+    console.log(`[${gameID}]: `, ...args);
     if (window.ccPorted.stats) {
         window.ccPorted.stats.log(...args);
     }
@@ -2202,8 +2216,7 @@ function emit() {
         isFramed: framed,
     }
     if (framed) {
-        data["parentDomainHost"] = (window.parent.location.hostname.length > 0) ? window.parent.location.hostname : "unknown";
-        data["parentDomain"] = window.parent.location;
+        data["parentDomainHost"] = (new URL(window.location.ancestorOrigins[0]).hostname.length > 0) ? new URL(window.location.ancestorOrigins[0]).hostname : "unknown";
     }
     log(data);
     gtag("event", "play_game", data);
@@ -2341,7 +2354,25 @@ async function initializeAWS() {
             user = await initializeAuthenticated(idToken, accessToken, refreshToken);
         } else {
             console.warn("No auth code found in URL. User may need to log in.");
-            user = await initializeUnathenticated();
+            if (framed) {
+                console.log("Waiting for tokens from parent 3 second timeout");
+                await new Promise((r) => {
+                    setTimeout(r, 3000);
+                });
+                let idToken = localStorage.getItem("[ns_ccported]_idToken");
+                let accessToken = localStorage.getItem("[ns_ccported]_accessToken");
+                let refreshToken = localStorage.getItem("[ns_ccported]_refreshToken");
+                if (!idToken || !accessToken) {
+                    console.log("Waiting failed, initializing unauthenticated.");
+                    user = await initializeUnathenticated();
+                } else {
+                    user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+                }
+
+            } else {
+                console.log("No parent to recieve tokens from... initializing unauthenticated");
+                user = await initializeUnathenticated();
+            }
         }
     } else {
         log("Tokens found. Initializing user...");
