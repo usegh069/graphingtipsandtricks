@@ -1271,13 +1271,10 @@ class Stats {
 
 window.addEventListener("beforeunload", cleanupTracking);
 window.addEventListener("message", (e) => {
-    try {
-        if (e.origin !== new URL(window.location.ancestorOrigins[0]).origin) return;
-    }catch(e){
-        return;
-    }
+    log("Recieved message from ", e.origin);
     const {data} = e;
-    if(data.action = "SET_TOKENS") { 
+    console.log(e);
+    if(data.action == "SET_TOKENS") { 
         const tokens = data.content;
         localStorage.setItem("[ns_ccported]_accessToken", tokens.access_token);
         localStorage.setItem("[ns_ccported]_idToken", tokens.id_token);
