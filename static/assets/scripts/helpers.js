@@ -3,6 +3,8 @@ const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi"; // Replace with your App Client ID
 const REDIRECT_URI = window.location.origin; 
 
+let redirectToProfileAfterLogin = false;
+
 window.addEventListener("load", () => {
     const login = document.querySelector('.loggedInReplacable');
     if (login) {
@@ -301,6 +303,9 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
         ...userData,
         attributes: userDataJSON
     };
+    if(redirectToProfileAfterLogin){
+        window.location.assign("/profile/")
+    }
     return user;
 }
 async function initializeAWS() {
@@ -331,10 +336,14 @@ async function initializeAWS() {
 
         if (authCode) {
             log("Auth code found. Exchanging for tokens...");
+            // if the auth code exists, the user just logged in
+            redirectToProfileAfterLogin = true;
+
             const tokens = await exchangeAuthCodeForTokens(authCode);
             if (!tokens) {
                 log("[ERROR] Failed to exchange auth code for tokens.");
-                return null;
+                user = initializeUnathenticated();
+                return user;
             }
             idToken = tokens.id_token;
             accessToken = tokens.access_token;
