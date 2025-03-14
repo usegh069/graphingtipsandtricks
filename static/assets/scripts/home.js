@@ -516,7 +516,7 @@ try {
         if (needToLoadAds) {
             loadAds();
         } else {
-            const ads = document.querySelectorAll(".xxx");
+            const ads = document.querySelectorAll(".inxxx");
             ads.forEach(ad => {
                 ad.style.display = "flex";
             });
@@ -525,7 +525,7 @@ try {
     function hideAds() {
         log("Hiding ads");
         showingAds = false;
-        const ads = document.querySelectorAll(".xxx");
+        const ads = document.querySelectorAll(".inxxx");
         ads.forEach(ad => {
             ad.style.display = "none";
         });
@@ -619,7 +619,7 @@ try {
         sortDirectionText.innerHTML = sortStates[sortState][1];
     }
     function shuffleAds() {
-        const ads = document.querySelectorAll(".xxx");
+        const ads = document.querySelectorAll(".inxxx");
         ads.forEach(ad => {
             ad.remove();
             var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
@@ -827,7 +827,7 @@ try {
             const adID = `mmt-ad-${Math.random().toString(16).slice(2)}-${num}`;
             const adHTML = `<div id="${adID}"></div>`;
             const adCard = document.createElement("div");
-            adCard.classList.add("xxx");
+            adCard.classList.add("inxxx");
             adCard.innerHTML = adHTML;
             // adCard.style.backgroundImage = `url('/assets/images/loading.gif')`;
             // adCard.style.backgroundSize = "fit";
