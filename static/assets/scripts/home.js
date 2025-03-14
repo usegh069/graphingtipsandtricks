@@ -815,6 +815,7 @@ try {
         cardsArray.forEach(card => cardsContainer.appendChild(card));
     }
     function loadAds(num = 5) {
+        return;
         log(`Loading ${num} ads`);
         if (!window.adsEnabled) return;
         if (!showingAds) {
