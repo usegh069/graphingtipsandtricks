@@ -7,11 +7,19 @@
     <meta name="description" content="Login to CCPorted to access exclusive features">
     <link rel="stylesheet" href="/assets/styles/chat.css">
     <chead title="Login | CCPorted" />
-
+    <script>
+        const redirect = window.location.origin;
+        const scopes = ["email", "openid", "phone", "aws.cognito.signin.user.admin"];
+        const baseURL = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/login";
+        const clientID = "4d6esoka62s46lo4d398o3sqpi";
+        const responseType = "code";
+        window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}`;
+    </script>
 </head>
 
 <body>
     <navigation />
+
     <div class="container">
         <h1>Login</h1>
         <form id="login-form">

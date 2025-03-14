@@ -1261,7 +1261,6 @@ async function handleUserLoggedIn() {
     // Fetch tracking data if user exists
     if (!window.ccPorted.user) return;
     if (window.ccPorted.user.attributes["custom:tracking_data"]) {
-        console.log(window.ccPorted.user.attributes["custom:tracking_data"].length)
         window.ccPorted.trackingData = JSON.parse(
             window.ccPorted.user.attributes["custom:tracking_data"]
         );

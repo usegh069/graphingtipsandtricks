@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-        <!-- external (gtag) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-DJDL65P9Y4"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
-    
-            gtag('config', 'G-DJDL65P9Y4');
-        </script>
+    <!-- external (gtag) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DJDL65P9Y4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-DJDL65P9Y4');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sign up for CCPorted to access exclusive features">
     <link rel="stylesheet" href="/assets/styles/chat.css">
-    <chead title="Signup | CCPorted"/>
+    <chead title="Signup | CCPorted" />
+    <script>
+        const redirect = window.location.origin;
+        const scopes = ["email", "openid", "phone", "aws.cognito.signin.user.admin"];
+        const baseURL = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/login";
+        const clientID = "4d6esoka62s46lo4d398o3sqpi";
+        const responseType = "code";
+        window.location.href = `${baseURL}?client_id=${clientID}&response_type=${responseType}&scope=${scopes.join("+")}&redirect_uri=${redirect}`;
+    </script>
 </head>
+
 <body>
     <navigation />
     <div class="container">
@@ -31,4 +41,5 @@
 
     <script src="/assets/scripts/signup.js"></script>
 </body>
+
 </html>

@@ -294,7 +294,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
     const otherData = await window.ccPorted.identityProvider.getUser({
         AccessToken: accessToken
     }).promise();
-    log("User attributes recieved")
+    log("User attributes recieved", otherData);
     const userDataJSON = otherData.UserAttributes.reduce((acc, { Name, Value }) => {
         acc[Name] = Value;
         return acc;
@@ -303,6 +303,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
         ...userData,
         attributes: userDataJSON
     };
+    console.log("U1",user);
     if(redirectToProfileAfterLogin){
         window.location.assign("/profile/")
     }

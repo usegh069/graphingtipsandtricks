@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadUserData() {
     try {
         const user = await window.ccPorted.getUser();
+        console.log("U2",user);
         if (!user) {
             window.location.href = '/login/';
             return;
@@ -43,8 +44,8 @@ function renderStats(trackingData) {
     const statsC = document.querySelector(".stats-container");
     const totalGameTime = trackingData.total_playtime || 0;
     const gamesPlayed = Object.keys(trackingData.games || {});
-    const gamesFormatted = gamesPlayed.map(game => {
-        const name = deIDIfy(game);
+    const gamesFormatted = gamesPlayed.map(async game => {
+        const name = await deIDIfy(game);
         const timePlayed = trackingData.games[game];
         const stat = document.createElement("div");
         stat.classList.add("stat");
@@ -89,13 +90,7 @@ function formatMinutes(minutes) {
     return string;
 }
 function deIDIfy(id) {
-    let string = "";
-    const parts = id.split("_");
-    parts.forEach((word, i) => {
-        word = word.split("-").join(".");
-        string += capitalizeFirstLetter(word) + " ";
-    });
-    return string;
+    return id;
 }
 function capitalizeFirstLetter(val) {
     return val.charAt(0).toUpperCase() + val.slice(1);
