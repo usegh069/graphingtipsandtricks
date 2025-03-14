@@ -325,7 +325,7 @@ try {
         }
         log("Home page loaded");
         window.ccPorted.baseRendering = false;
-        loadAds();
+        setTimeout(loadAds, 1000);
     }
     async function incrementClicks(gameID) {
         try {
@@ -824,7 +824,8 @@ try {
         };
         needToLoadAds = false;
         for (let i = 0; i < num; i++) {
-            const adID = `mmt-ad-${Math.random().toString(16).slice(2)}-${num}`;
+            console.log("loading ad ", i)
+            const adID = `mmt-ad-${Math.random().toString(16).slice(2)}-${i}`;
             const adHTML = `<div id="${adID}"></div>`;
             const adCard = document.createElement("div");
             adCard.classList.add("inxxx");
@@ -839,7 +840,8 @@ try {
             $MMT = window.$MMT || {};
             $MMT.cmd = $MMT.cmd || [];
             $MMT.cmd.push(function () {
-                $MMT.display.slots.push(adID);
+                console.log(adID.slice(4))
+                $MMT.display.slots.push([adID.slice(4)]);
             });
         }
     }
