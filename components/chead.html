@@ -16,3 +16,13 @@
 <title>{{title}}</title>
 <script src="/assets/scripts/navigation.js"></script>
 <adBlockDetect />
+
+{% if (ads == "true") %}
+<script>
+  window.adsEnabled = true;
+</script>
+{% else %}
+<script>
+  window.adsEnabled = false;
+</script>
+{% endif %}

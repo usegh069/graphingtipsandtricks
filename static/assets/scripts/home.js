@@ -457,13 +457,6 @@ try {
                 }
                 document.getElementById("check-roms").innerHTML = "";
                 document.getElementById("check-roms").appendChild(div);
-            } else {
-                setTimeout(() => {
-                    if (Date.now() - lastInputTime >= failedInputCheckLag) {
-                        client.from("failed_search")
-                            .insert([{ search_content: searchInput.value }])
-                    }
-                }, failedInputCheckLag);
             }
         } else {
             showAds();
@@ -523,7 +516,7 @@ try {
         if (needToLoadAds) {
             loadAds();
         } else {
-            const ads = document.querySelectorAll(".tad");
+            const ads = document.querySelectorAll(".xxx");
             ads.forEach(ad => {
                 ad.style.display = "flex";
             });
@@ -532,7 +525,7 @@ try {
     function hideAds() {
         log("Hiding ads");
         showingAds = false;
-        const ads = document.querySelectorAll(".tad");
+        const ads = document.querySelectorAll(".xxx");
         ads.forEach(ad => {
             ad.style.display = "none";
         });
@@ -626,7 +619,7 @@ try {
         sortDirectionText.innerHTML = sortStates[sortState][1];
     }
     function shuffleAds() {
-        const ads = document.querySelectorAll(".tad");
+        const ads = document.querySelectorAll(".xxx");
         ads.forEach(ad => {
             ad.remove();
             var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
@@ -821,7 +814,7 @@ try {
         removeCards();
         cardsArray.forEach(card => cardsContainer.appendChild(card));
     }
-    function loadAds(num = 3) {
+    function loadAds(num = 5) {
         log(`Loading ${num} ads`);
         if (!window.adsEnabled) return;
         if (!showingAds) {
@@ -831,23 +824,23 @@ try {
         };
         needToLoadAds = false;
         for (let i = 0; i < num; i++) {
-            const adHTML = `<div data-mndbanid="c5cf29fe-386b-45f3-a462-bc8326f5a713"></div>`;
+            const adID = `mmt-ad-${Math.random().toString(16).slice(2)}-${num}`;
+            const adHTML = `<div id="${adID}"></div>`;
             const adCard = document.createElement("div");
-            adCard.classList.add("tad");
+            adCard.classList.add("xxx");
             adCard.innerHTML = adHTML;
-            adCard.style.backgroundImage = `url('/assets/images/loading.gif')`;
-            adCard.style.backgroundSize = "fit";
-            adCard.style.backgroundRepeat = "no-repeat";
-            adCard.style.backgroundPosition = "center";
+            // adCard.style.backgroundImage = `url('/assets/images/loading.gif')`;
+            // adCard.style.backgroundSize = "fit";
+            // adCard.style.backgroundRepeat = "no-repeat";
+            // adCard.style.backgroundPosition = "center";
 
             var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
             document.querySelector(".cards").insertBefore(adCard, randomCard);
-        }
-        const script = document.createElement("script");
-        script.src = "https://ss.mrmnd.com/banner.js";
-        document.body.appendChild(script);
-        script.onload = () => {
-            log("Ads loaded");
+            $MMT = window.$MMT || {};
+            $MMT.cmd = $MMT.cmd || [];
+            $MMT.cmd.push(function () {
+                $MMT.display.slots.push(adID);
+            });
         }
     }
     function rerenderCards(layout) {
