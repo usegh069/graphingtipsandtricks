@@ -1,66 +1,66 @@
 class Leaderboard {
-    constructor(gameID, client) {
+    constructor(gameID) {
+        if (!gameID) {
+            throw new Error("Game ID is required");
+        }
         this.gameID = gameID;
-        this.client = client;
         this.cached = [];
         this.loading = false;
         this.needsRefresh = false;
         this.score = 0;
     }
-    async loadScores(showUserRank) {
-        if (this.loading) {
+    async loadScores() {
+        if (!window.ccPorted.user) {
+            await window.ccPorted.userPromise;
+        }
+        if (this.loading && this.cached.length > 0) {
             return this.cached;
         }
         if (this.cached.length > 0 && !this.needsRefresh) {
             return this.cached;
         }
-
         this.loading = true;
-        const { data, error } = await this.client
-            .from('leaderboard')
-            .select(`score, u_profiles (id, display_name)`)
-            .eq('game_id', this.gameID)
-            .order('score', { ascending: false })
-            .limit(10);
+        try {
+            const data = await window.ccPorted.query({
+                TableName: "leaderboard",
+                IndexName: "gameID-score-index",
+                Limit: 10,
+                ScanIndexForward: false,
+                KeyConditionExpression: "gameID = :gameID AND score > :score",
+                ExpressionAttributeValues: {
+                    ":gameID": this.gameID,
+                    ":score": 0
+                }
+            });
+            this.loading = false;
+            var rp = false;
+            var scores = data.Items.map((row, i) => {
+                if (row.userID == 'guest' || row.userID == window.ccPorted?.user?.sub) {
+                    rp = true;
+                }
+                return {
+                    score: row.score,
+                    id: row.userID,
+                    display_name: row.displayName,
+                    rank: i + 1
+                }
 
-        if (error) {
-            log(error);
-            console.error(error);
-        }
-        this.loading = false;
-        var rp = false;
-        var scores = data.map((row, i) => {
-            if (row.u_profiles.id == 'guest' || row.u_profiles.id == window.ccPorted?.user?.id) {
-                rp = true;
-            }
-            return {
-                score: row.score,
-                id: row.u_profiles.id,
-                display_name: row.u_profiles.display_name,
-                rank: i
-            }
-
-        });
-        if (this.guestScore != undefined) {
-            scores.push({ score: this.guestScore, display_name: 'Guest', id: 'guest' });
-            scores.sort((a, b) => b.score - a.score);
-        }
-        if (showUserRank && !rp && window.ccPorted?.user?.id) {
-            const { data: rank } = await this.client
-                .rpc('get_lowest_rank', { p_game_id: this.gameID, p_user_id: window.ccPorted?.user?.id });
-            if (rank) {
-                scores.push({ score: this.score.score, display_name: this.score.display_name, id: this.score.id, rank: rank });
+            });
+            if (this.guestScore != undefined) {
+                scores.push({ score: this.guestScore, display_name: 'Guest', userID: 'guest' });
                 scores.sort((a, b) => b.score - a.score);
             }
+            this.cached = scores;
+            this.needsRefresh = false;
+            return scores;
+        } catch (e) {
+            console.log("[LEADERBOARD] Error getting scores", e);
         }
-        this.cached = scores;
-        this.needsRefresh = false;
-        return scores;
     }
     addGuestScore(score) {
         this.guestScore = score;
         if (this.cached.length > 0) {
-            this.cached.push({ score: score, u_profiles: { display_name: 'Guest', id: 'guest' } });
+            this.cached.push({ score: score, display_name: 'Guest', userID: 'guest' });
             this.cached.sort((a, b) => b.score - a.score);
         }
     }
@@ -97,37 +97,46 @@ class Leaderboard {
             return score.toExponential(2);
         }
     }
-    async addScore(userID, score) {
+    async addScore(score) {
         log("adding score");
+        if(!window.ccPorted.user) {
+            return this.addGuestScore(score);
+        }
         try {
             // find old score
-            const { data: oldScore, error: oldError } = await this.client
-                .from('leaderboard')
-                .select(`score, id, u_profiles (display_name)`)
-                .eq('user_id', userID)
-                .eq('game_id', this.gameID);
-            if (oldError) {
-                log(oldError);
-                console.error(oldError);
-            }
+            const data = await window.ccPorted.query({
+                TableName: "leaderboard",
+                KeyConditionExpression: "gameID = :gameID AND userID = :userID",
+                ExpressionAttributeValues: {
+                    ":gameID": this.gameID,
+                    ":userID": window.ccPorted.user.sub
+                },
+                Limit: 1
+            });
+            const oldScore = data.Items;
             // update score if new score is higher
             if (oldScore && oldScore.length > 0) {
                 if (oldScore[0].score >= score) {
-                    this.score = { score: score, id: userID, display_name: window.ccPorted?.user?.user_metadata.display_name || "Anonymous" };
+                    log("Old score is higher");
+                    this.score = { score: score, userID: window.ccPorted.user.sub, displayName: window.ccPorted.user.attributes["preferred_username"] || window.ccPorted.user["cognito:username"] || "Anonymous" };
                     return;
                 }
             }
-            const newData = { game_id: this.gameID, user_id: userID, score: score };
-            if (oldScore && oldScore.length > 0) {
-                newData.id = oldScore[0].id;
+            const newData = { gameID: this.gameID, userID: window.ccPorted.user.sub, score: score, displayName: window.ccPorted.user.attributes["preferred_username"] || window.ccPorted.user["cognito:username"] || "Anonymous" };
+            const params = {
+                TableName: 'leaderboard',
+                Key: {
+                    gameID: this.gameID,
+                    userID: window.ccPorted.user.sub
+                },
+                UpdateExpression: 'set score = :s, displayName = :d',
+                ExpressionAttributeValues: {
+                    ':s': score,
+                    ':d': newData.displayName
+                }
             }
-            const { error } = await this.client
-                .from('leaderboard')
-                .upsert(newData);
-            if (error) {
-                log(error);
-                console.error(error);
-            }
+            await window.ccPorted.documentClient.update(params).promise();
+            log("Score updated");
             this.needsRefresh = true;
         } catch (e) {
             console.error(e);

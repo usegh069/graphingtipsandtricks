@@ -1,1 +1,0 @@
-module.exports = require("npm:lie@3.1.1/lib/index.js");

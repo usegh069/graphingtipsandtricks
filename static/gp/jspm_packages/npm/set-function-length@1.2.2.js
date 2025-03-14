@@ -1,1 +1,0 @@
-module.exports = require("npm:set-function-length@1.2.2/index.js");

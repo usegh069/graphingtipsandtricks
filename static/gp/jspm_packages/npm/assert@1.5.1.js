@@ -1,1 +1,0 @@
-module.exports = require("npm:assert@1.5.1/assert.js");

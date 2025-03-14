@@ -12,7 +12,7 @@ const glocation = (!framed) ? window.location.hostname : document.location.ances
 const gameIDExtractRG = /\/(game_\w+)\//;
 const gameIDExtract = gameIDExtractRG.exec(window.location.pathname);
 const parentOrigin = (framed && document.location.ancestorOrigins.length > 0) ? new URL(document.location.ancestorOrigins[0]).origin : null;
-const gameID = window.ccPorted.gameID || window.gameID || ((gameIDExtract) ? gameIDExtract[1] : "Unknown Game");
+const gameID = (typeof window.ccPorted.gameID != "undefined" && window.ccPorted.gameID != "undefined") ? window.ccPorted.gameID : false || window.gameID || ((gameIDExtract) ? gameIDExtract[1] : "Unknown Game");
 
 let trackingInterval = null;
 let lastUpdate = Date.now();

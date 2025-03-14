@@ -1,0 +1,31 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:Scan",
+				"dynamodb:GetItem"
+			],
+			"Resource": "arn:aws:dynamodb:us-west-2:708504602187:table/games_list"
+		},
+		{
+		    "Effect": "Allow",
+            "Action": [
+                "dynamodb:UpdateItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-west-2:708504602187:table/games_list",
+            "Condition": {
+                "ForAllValues:StringEquals": {
+                    "dynamodb:Attributes": [
+                        "gameID",
+                        "clicks"
+                    ]
+                },
+                "StringEqualsIfExists": {
+                    "dynamodb:ReturnValues": "UPDATED_NEW"
+                }
+            }
+		}
+	]
+}

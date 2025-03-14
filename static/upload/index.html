@@ -69,6 +69,9 @@
     <label>Game Name:</label>
     <input type="text" id="name" /><br />
 
+    <label>Force Key (Update existing game):</label>
+    <input type="text" id="forceKey" /><br />
+
     <label>Description:</label>
     <input type="text" id="description" /><br />
 
@@ -185,6 +188,7 @@
       const thumbFile = document.getElementById("thumbFile").files[0];
       const name = document.getElementById("name").value;
       const description = document.getElementById("description").value;
+      const forceKey = document.getElementById("forceKey").value;
       const thumbPath =
         document.getElementById("thumbPath").value || "/thumb.png";
       const isProxy = document.getElementById("isProxy").checked;
@@ -216,7 +220,7 @@
 
       const params = {
         Bucket: "ccportedtempstore",
-        Key: `game_${Date.now().toString(16).substring(7)}_${Math.random()
+        Key: (forceKey.length > 0) ? forceKey : `game_${Date.now().toString(16).substring(7)}_${Math.random()
           .toString(16)
           .substring(2)}.zip`,
         Body: blob,
@@ -266,12 +270,32 @@
         document.getElementById("proxyPath").value = "";
         document.getElementById("tags").value = game.tags.join(",");
       } else {
-        document.getElementById("name").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("thumbPath").placeholder = "/thumb.jpg";
-        document.getElementById("isProxy").checked = false;
-        document.getElementById("proxyPath").value = "";
-        document.getElementById("tags").value = "";
+        // attempt dynamoDB
+        const dynamoDB = new AWS.DynamoDB.DocumentClient();
+        const params = {
+          TableName: "games_list",
+          Key: {
+            gameID: gameID,
+          },
+        };
+        const data = await dynamoDB.get(params).promise();
+        if (data.Item) {
+          document.getElementById("name").value = data.Item.fName;
+          document.getElementById("description").value = data.Item.description;
+          document.getElementById("isProxy").checked = data.Item.isProxy;
+          document.getElementById("proxyPath").value = data.Item.proxyPath;
+          document.getElementById("tags").value = data.Item.tags.join(",");
+          document.getElementById("forceKey").value = gameID;
+          document.getElementById("thumbPath").value = data.Item.thumbPath;
+        } else {
+          alert("Game not found.");
+          document.getElementById("name").value = "";
+          document.getElementById("description").value = "";
+          document.getElementById("thumbPath").placeholder = "/thumb.jpg";
+          document.getElementById("isProxy").checked = false;
+          document.getElementById("proxyPath").value = "";
+          document.getElementById("tags").value = "";
+        }
       }
     }
     document.getElementById("zipFile").addEventListener("change", (e) => {
