@@ -107,6 +107,24 @@ try {
         }
         return { games }
     }
+    async function adsEnabled() {
+        let adBlockEnabled = false
+        const googleAdUrl = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
+        try {
+            await fetch(new Request(googleAdUrl)).catch(_ => adBlockEnabled = true)
+        } catch (e) {
+            adBlockEnabled = true
+        } finally {
+            const res = await fetch("/ahosts.txt");
+            const text = await res.text();
+            const hosts = text.split('\n');
+            if (hosts.includes(window.location.hostname)) {
+                return !adBlockEnabled;
+            } else {
+                return false;
+            }
+        }
+    }
     async function importJSON(path) {
         let url;
         if (path.startsWith("/") && !path.startsWith("//")) {
@@ -135,19 +153,19 @@ try {
         const serverList = await fetch('/servers.txt');
         const serversText = await serverList.text();
         const servers = serversText.split('\n');
-        while(!server) {
+        while (!server) {
             const toAttemptIndex = Math.floor(Math.random() * servers.length);
             const toAttempt = servers[toAttemptIndex];
             try {
-                console.log(`[CCPORTED: Attempting server ${toAttempt} (${toAttemptIndex})`);   
+                console.log(`[CCPORTED: Attempting server ${toAttempt} (${toAttemptIndex})`);
                 const res = await fetch(`https://${toAttempt}/blocked_res.txt`);
                 if (res.ok) {
                     const text = await res.text();
-                    if(text.indexOf("===NOT_BLOCKED===") !== -1) {
+                    if (text.indexOf("===NOT_BLOCKED===") !== -1) {
                         server = toAttempt;
                         serverIndex = toAttemptIndex;
                     }
-                }  
+                }
             } catch (e) {
                 console.log(`[CCPORTED: Server ${toAttempt} failed: ${e}`);
             }
@@ -242,6 +260,12 @@ try {
         log("Initializing");
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
+        window.ccPorted.adsEnabled = await adsEnabled();
+        if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
+            // add margin for the ads
+            document.querySelector(".cards").style.marginRight = "300px";
+            document.querySelector(".search").style.marginRight = "300px";
+        }
         const [chosenServer, index] = await testOpenServers();
         window.ccPorted.gameServer = {};
         window.ccPorted.gameServer.server = chosenServer;

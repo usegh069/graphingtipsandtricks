@@ -31,9 +31,6 @@ class Leaderboard {
         this.score = 0;
     }
     async loadScores() {
-        if (!window.ccPorted.user) {
-            await window.ccPorted.userPromise;
-        }
         if (this.loading && this.cached.length > 0) {
             return this.cached;
         }

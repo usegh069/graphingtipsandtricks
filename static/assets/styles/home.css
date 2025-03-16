@@ -413,15 +413,7 @@ button#sort, button#pickforme {
         justify-content: center;
 }
 
-/* only desktop styles */
-@media screen and (min-width: 800px){
-    .cards{
-        margin-right: 300px;
-    }
-    .search{
-        margin-right: 300px;
-    }
-}
+
 /* Mobile Styles */
 @media screen and (max-width: 768px) {
     /* Header adjustments */
