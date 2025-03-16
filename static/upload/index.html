@@ -149,9 +149,13 @@
       IdentityPoolId: "us-west-2:c4735e5d-feb3-4a42-a02b-a79244783abd",
     });
     async function loadData(filePath) {
-      const response = await fetch(filePath);
-      const json = await response.json();
-      return json;
+      try {
+        const response = await fetch(filePath);
+        const json = await response.json();
+        return json;
+      } catch (e) {
+        return { games: [] }
+      }
     }
 
     // Called when an identity provider has a token for a logged in user
@@ -283,7 +287,7 @@
           document.getElementById("name").value = data.Item.fName;
           document.getElementById("description").value = data.Item.description;
           document.getElementById("isProxy").checked = data.Item.isProxy;
-          document.getElementById("proxyPath").value = data.Item.proxyPath;
+          document.getElementById("proxyPath").value = data.Item.proxyPath || "";
           document.getElementById("tags").value = data.Item.tags.join(",");
           document.getElementById("forceKey").value = gameID;
           document.getElementById("thumbPath").value = data.Item.thumbPath;
@@ -298,13 +302,13 @@
         }
       }
     }
-    document.getElementById("zipFile").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      const fileName = file.name;
-      const firstBit = fileName.split(".").slice(0, -1).join(".");
-      document.getElementById("gameId").value = firstBit;
-      load();
-    });
+    // document.getElementById("zipFile").addEventListener("change", (e) => {
+    //   const file = e.target.files[0];
+    //   const fileName = file.name;
+    //   const firstBit = fileName.split(".").slice(0, -1).join(".");
+    //   document.getElementById("gameId").value = firstBit;
+    //   load();
+    // });
     document.getElementById("romFile").addEventListener("change", (e) => {
       const file = e.target.files[0];
       const fileName = file.name;

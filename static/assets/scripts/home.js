@@ -743,7 +743,7 @@ try {
         const links = document.createElement("div");
         links.classList.add("card-links");
         const linkElement = document.createElement("a");
-        linkElement.href = `/play/#${game.gameID}?server=${window.ccPorted.gameServer.index}`;
+        linkElement.href = `/play/?id=${game.gameID}&server=${window.ccPorted.gameServer.index}`;
         linkElement.textContent = `Play ${game.fName} on CCPorted`;
         links.appendChild(linkElement);
 

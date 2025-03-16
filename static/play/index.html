@@ -37,8 +37,9 @@
             iframe.height = window.innerHeight;
             iframe.allowFullscreen = true;
 
-            const gameID = window.location.hash.substring(1).split('?')[0];
-            const serverID = new URLSearchParams(window.location.hash.substring(1).split('?')[1]).get('server');
+            const searchParams = new URLSearchParams(window.location.search);
+            const gameID = searchParams.get('id');
+            const serverID = searchParams.get('server');
             const serverList = await fetch('/servers.txt');
             const serversText = await serverList.text();
             const servers = serversText.split('\n');
