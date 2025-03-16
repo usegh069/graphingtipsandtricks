@@ -214,7 +214,7 @@
       };
 
       const zip = await JSZip.loadAsync(zipFile);
-      zip.file("data.json", JSON.stringify(dataJson));
+      zip.file("ccported_game_data.json", JSON.stringify(dataJson));
 
       if (thumbFile) {
         zip.file("thumb.jpg", thumbFile);
