@@ -1,6 +1,6 @@
 window.ccPorted = window.ccPorted || {};
 
-const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/";
+const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com";
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi";
 const REDIRECT_URI = `${window.location.origin}`;
 const tGameID = treat(window.gameID || window.ccPorted.gameID);
@@ -37,6 +37,7 @@ class Leaderboard {
         if (this.cached.length > 0 && !this.needsRefresh) {
             return this.cached;
         }
+        await window.ccPorted.awsPromise;
         this.loading = true;
         try {
             const data = await window.ccPorted.query({
@@ -1294,7 +1295,8 @@ window.ccPorted.getUserTokens = () => {
         refreshToken: localStorage.getItem("[ns_ccported]_refreshToken")
     };
 }
-window.ccPorted.downloadFile = (key) => {
+window.ccPorted.downloadFile = async (key) => {
+    await window.ccPorted.awsPromise;
     return new Promise((resolve, reject) => {
         window.ccPorted.s3Client.getObject({
             Bucket: 'ccporteduserobjects',
@@ -1308,7 +1310,8 @@ window.ccPorted.downloadFile = (key) => {
         });
     });
 }
-window.ccPorted.uploadFile = (file, key, customparams = {}) => {
+window.ccPorted.uploadFile = async (file, key, customparams = {}) => {
+    await window.ccPorted.awsPromise;
     return new Promise((resolve, reject) => {
         const uploadParams = {
             Bucket: 'ccporteduserobjects',
@@ -1326,7 +1329,8 @@ window.ccPorted.uploadFile = (file, key, customparams = {}) => {
         })
     });
 }
-window.ccPorted.updateUser = (attributes) => {
+window.ccPorted.updateUser = async (attributes) => {
+    await window.ccPorted.awsPromise;
     return new Promise((resolve, reject) => {
         window.ccPorted.identityProvider.updateUserAttributes({
             AccessToken: window.ccPorted.getUserTokens().accessToken,
@@ -1345,7 +1349,8 @@ window.ccPorted.updateUser = (attributes) => {
         });
     });
 }
-window.ccPorted.query = (...args) => {
+window.ccPorted.query = async (...args) => {
+    await window.ccPorted.awsPromise;
     const [partitionKeyName, partitionKey, tableName, otherData] = args;
     if (typeof partitionKeyName == "object") {
         return new Promise((resolve, reject) => {
@@ -1383,8 +1388,16 @@ window.ccPorted.getUser = () => {
         return window.ccPorted.userPromise;
     }
 }
+window.ccPorted.awsPromise = new Promise(async (resolve, reject) => {
+    try {
+        await initializeAWS();
+        resolve(window.ccPorted);
+    } catch (err) {
+        reject(err);
+    }
+});
 window.ccPorted.userPromise = new Promise(async (resolve, reject) => {
-    await initializeAWS();
+    await window.ccPorted.awsPromise;
     const userData = window.ccPorted.user;
     if (userData) {
         const loggedInReplacable = document.querySelector('.loggedInReplacable');
@@ -2310,6 +2323,7 @@ async function initializeUnathenticated() {
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
         IdentityPoolId: 'us-west-2:8ffe94a1-9042-4509-8e65-4efe16e61e3e'
     });
+    await refreshAWSCredentials();
     log('Configured AWS SDK with unauthenticated credentials');
     return null;
 }

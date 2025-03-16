@@ -1,5 +1,5 @@
 window.ccPorted = window.ccPorted || {};
-const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com/"; // Replace with your Cognito domain
+const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com"; // Replace with your Cognito domain
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi"; // Replace with your App Client ID
 const REDIRECT_URI = window.location.origin; 
 

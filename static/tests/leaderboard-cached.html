@@ -43,11 +43,12 @@
             const serverList = await fetch('/servers.txt');
             const serversText = await serverList.text();
             const servers = serversText.split('\n');
-            if (serverID) {
-                iframe.src = `https://${servers[serverID]}/games/${gameID}/index.html`;
-            } else {
-                iframe.src = `https://${servers[Math.floor(Math.random() * servers.length)]}/games/${gameID}/index.html`;
-            }
+            // if (serverID) {
+            //     iframe.src = `https://${servers[serverID]}/games/${gameID}/index.html`;
+            // } else {
+            //     iframe.src = `https://${servers[Math.floor(Math.random() * servers.length)]}/games/${gameID}/index.html`;
+            // }
+            iframe.src = "/testgames/test-tetris-leaderboard/index.html";
             iframe.addEventListener("load", (e) => {
                 const w = iframe.contentWindow;
                 log(`Iframe loaded. User logged in: ${(typeof window.ccPorted.user != undefined && window.ccPorted.user != null)}`);
@@ -185,7 +186,7 @@
                 }
                 document.head.appendChild(link);
             }
-            requestGameData();
+            // requestGameData();
         })();
 
     </script>
