@@ -492,7 +492,7 @@ function createGameStorageSandbox(gameId = "ccported") {
         window.ccPorted.migrateDatabase = migrateDatabase;
     };
 }
-createGameStorageSandbox(window.gameID || "ccported")();
+// createGameStorageSandbox(window.gameID || "ccported")();
 
 class Stats {
     constructor() {

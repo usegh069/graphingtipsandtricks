@@ -274,6 +274,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
         const newTokens = await refreshTokens(refreshToken);
         if (!newTokens) {
             log("[ERROR] Failed to refresh token. User must log in again.");
+            window.location.assign("/login"); // Redirect to login page
             return null;
         }
         userData = parseJwt(newTokens.id_token);
@@ -421,7 +422,16 @@ async function refreshTokens(refreshToken) {
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(data.error_description || "Token refresh failed");
+        if (data.error) {
+            if (data.error === "invalid_grant") {
+                log("[ERROR] Invalid refresh token. Clearing stored tokens and redirecting to login.");
+                localStorage.removeItem("[ns_ccported]_accessToken");
+                localStorage.removeItem("[ns_ccported]_idToken");
+                localStorage.removeItem("[ns_ccported]_refreshToken");
+                window.location.assign("/login");
+            }
+            throw new Error(data.error || "Token refresh failed");
+        }
 
         // Store new tokens
         localStorage.setItem("[ns_ccported]_accessToken", data.access_token);
