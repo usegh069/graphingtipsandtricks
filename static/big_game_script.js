@@ -170,6 +170,7 @@ window.ccPorted.Leaderboard = Leaderboard;
 class StateSyncUtility {
     constructor() {
         this.compressionEnabled = typeof CompressionStream !== 'undefined';
+        this.keyBlackList = ["[ns_ccported]_ccStateLastSave", "[ns_ccported]_statsConfig_interceptRequests", "[ns_ccported]_accessToken", "[ns_ccported]_idToken", "[ns_ccported]_refreshToken"];
     }
 
     // Compress data using CompressionStream if available, return as Blob
@@ -226,7 +227,7 @@ class StateSyncUtility {
         const data = {};
         for (let i = 0; i < localStorage.globalLength; i++) {
             const key = localStorage.key(i, true);
-            if (key === 'ccStateLastSave') continue;
+            if (this.keyBlackList.includes(key)) continue;
             data[key] = localStorage.getItem(key);
         }
         return data;
@@ -273,10 +274,20 @@ class StateSyncUtility {
 
     // Optimized localStorage import
     async importLocalStorageState(data) {
+        const tempValues = {}
+        for(const key of this.keyBlackList) {
+            console.log(key);
+            tempValues[key] = localStorage.getItem(key);
+        }
+        console.log(tempValues);
         localStorage.clear(true);
         Object.entries(data).forEach(([key, value]) => {
+            if (this.keyBlackList.includes(key)) return;
             localStorage.setItem(key, value);
         });
+        for(const key of this.keyBlackList) {
+            localStorage.setItem(key, tempValues[key]);
+        }
     }
 
     // Optimized store creation
@@ -500,7 +511,6 @@ class StateSyncUtility {
             } else {
                 state = compressedState;
             }
-            log('[329]', state);
             return {
                 success: true,
                 timestamp: state.timestamp,
@@ -672,7 +682,6 @@ class Stats {
             this.objectHovering = e.target;
         });
         window.addEventListener("load", () => {
-            console.log("Window loaded");
             this.log("Window loaded");
             document.body.appendChild(dom);
             Object.entries(this.contentBeforeLoad).forEach(([key, value]) => {
@@ -2333,7 +2342,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
     let userData = parseJwt(idToken);
     // Check if token is expired
     if (isTokenExpired(userData)) {
-        console.log("ID token expired, attempting refresh...");
+        log("ID token expired, attempting refresh...");
         const newTokens = await refreshTokens(refreshToken);
         if (!newTokens) {
             console.error("Failed to refresh token. User must log in again.");
@@ -2490,7 +2499,7 @@ async function refreshTokens(refreshToken) {
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(data.error_description || "Token refresh failed");
+        if (data.error) throw new Error(data.error || "Token refresh failed");
 
         // Store new tokens
         localStorage.setItem("[ns_ccported]_accessToken", data.access_token);

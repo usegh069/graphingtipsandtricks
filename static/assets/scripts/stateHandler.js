@@ -56,9 +56,10 @@ class StateSyncUtility {
     getLocalStorageData() {
         log(`[CCPorted State Manager] Getting local storage data.... (length: ${localStorage.globalLength})`)
         const data = {};
+        const blackList = ['[ns_ccported]_ccStateLastSave', '[ns_ccported]_accessToken', '[ns_ccported]_idToken', '[ns_ccported]_refreshToken'];
         for (let i = 0; i < localStorage.globalLength; i++) {
             const key = localStorage.key(i, true);
-            if (key === 'ccStateLastSave') continue;
+            if (blackList.includes(key)) continue;
             data[key] = localStorage.getItem(key);
         }
         return data;
@@ -392,7 +393,7 @@ class GameStateSync {
     }
     async saveState(state, timestamp) {
         this.lastSync = timestamp;
-        localStorage.setItem('ccStateLastSave', timestamp, true);
+        localStorage.setItem('[ns_ccported]_ccStateLastSave', timestamp, true);
         var notification = window.ccPorted.autoSaveNotification;
         await this.saveToServer(state, timestamp);
         if (notification.getAttribute('data-creation-time') + notification.getAttribute('data-min-visible-time') < Date.now()) {
@@ -433,17 +434,17 @@ class GameStateSync {
             log(`[CCPorted State Manager] State decompressed successfully`);
             const timestamp = decomp.timestamp;
             log('[CCPorted State Manager] Last save timestamp: ' + timestamp);
-            const currentSave = localStorage.getItem('ccStateLastSave');
+            const currentSave = localStorage.getItem('[ns_ccported]_ccStateLastSave');
             log('[CCPorted State Manager] Current save timestamp: ' + currentSave);
             if (!currentSave || timestamp > currentSave) {
                 log('[CCPorted State Manager] Game state has been updated');
-                localStorage.setItem('ccStateLastSave', timestamp, true);
+                localStorage.setItem('[ns_ccported]_ccStateLastSave', timestamp, true);
                 log('[CCPorted State Manager] Importing state....');
                 const result = await this.syncUtil.importState(decomp, true);
                 if (result.success) {
                     log('[CCPorted State Manager] State loaded successfully');
                     await result.import();
-                    localStorage.setItem('ccStateLastSave', timestamp, true);
+                    localStorage.setItem('[ns_ccported]_ccStateLastSave', timestamp, true);
                     location.reload();
                 } else {
                     log('[CCPorted State Manager] [310] Error loading state: ' + result.error);

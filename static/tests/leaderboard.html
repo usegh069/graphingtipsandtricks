@@ -69,7 +69,10 @@
                     const req = await fetch("/servers.txt");
                     const serversList = await req.text();
                     const allowedOrigins = serversList.split("\n").map((domain) => {
-                        return `https://${domain}`
+                        if(domain.indexOf('localhost') > -1) {
+                            return `http://${domain.trim()}`
+                        }
+                        return `https://${domain.trim()}`
                     });
                     console.log(allowedOrigins);
                     if (!allowedOrigins.includes(event.origin)) {

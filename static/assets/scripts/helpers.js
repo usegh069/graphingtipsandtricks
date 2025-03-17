@@ -2,9 +2,14 @@ window.ccPorted = window.ccPorted || {};
 const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com"; // Replace with your Cognito domain
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi"; // Replace with your App Client ID
 const REDIRECT_URI = window.location.origin; 
+const isFramed = window !== window.top;
+const isMobile = /Mobi/.test(navigator.userAgent);
 
 let redirectToProfileAfterLogin = false;
-
+if (!isFramed) {
+    window.ccPorted.config = window.ccPorted.config || {};
+    window.ccPorted.config.stateSyncEnabled = false;
+}
 window.addEventListener("load", () => {
     const login = document.querySelector('.loggedInReplacable');
     if (login) {
@@ -304,7 +309,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
         ...userData,
         attributes: userDataJSON
     };
-    console.log("U1",user);
+
     if(redirectToProfileAfterLogin){
         window.location.assign("/profile/")
     }
@@ -363,9 +368,11 @@ async function initializeAWS() {
     }
     window.ccPorted["s3Client"] = new AWS.S3({
         region: "us-west-2",
+        RoleSessionName: user.sub || "web-identity"
     });
     window.ccPorted["documentClient"] = new AWS.DynamoDB.DocumentClient({
-        region: "us-west-2"
+        region: "us-west-2",
+        RoleSessionName: user.sub || "web-identity"
     });
     window.ccPorted["awsReady"] = true;
     window.ccPorted["user"] = user;
