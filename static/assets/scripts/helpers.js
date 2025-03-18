@@ -368,11 +368,11 @@ async function initializeAWS() {
     }
     window.ccPorted["s3Client"] = new AWS.S3({
         region: "us-west-2",
-        RoleSessionName: user.sub || "web-identity"
+        RoleSessionName: user?.sub || "web-identity"
     });
     window.ccPorted["documentClient"] = new AWS.DynamoDB.DocumentClient({
         region: "us-west-2",
-        RoleSessionName: user.sub || "web-identity"
+        RoleSessionName: user?.sub || "web-identity"
     });
     window.ccPorted["awsReady"] = true;
     window.ccPorted["user"] = user;
