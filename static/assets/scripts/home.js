@@ -76,14 +76,11 @@ try {
     window.gameRQPopupOpen = false;
     document.querySelector(".cards").classList.add("loading");
 
-    // AWS Configuration
-    AWS.config.region = 'us-west-2';
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-        IdentityPoolId: 'us-west-2:cb7ff0d0-87c6-43c8-a9e4-dece8bd1b8c7'
-    });
-    const dynamodb = new AWS.DynamoDB.DocumentClient();
+
 
     async function importGames() {
+        await window.ccPorted.userPromise;
+        const dynamodb = window.ccPorted.documentClient;
         const games = [];
         const params = {
             TableName: 'games_list',
@@ -101,7 +98,9 @@ try {
                 <div class="error">
                     Error loading games. Please try again later.
                     <br>
-                    ${error.message}
+                    <span style = "color: red">${error.message}</span>
+                    <br>
+                    <p>Please contact us at <a href = "mailto:sojscoder@gmail.com">sojscoder@gmail.com</a> if this issue persists.</p>
                 </div>
             `;
         }
@@ -839,6 +838,7 @@ try {
         cardsArray.forEach(card => cardsContainer.appendChild(card));
     }
     function loadAds(num = 5, layout = "grid") {
+        // Some handling code
         log(`Loading ${num} ads`);
         if (!window.adsEnabled) return;
         if (!showingAds) {
@@ -847,22 +847,23 @@ try {
             return;
         };
         needToLoadAds = false;
+        // actual ad loading code
         for (let i = 0; i < num; i++) {
             console.log("loading ad ", i)
-            /* <div id="mmt-1327f13c-fb3f-45df-9616-2c76dacf8707"></div>
-            <script type="text/javascript" data-cfasync="false">
-            $MMT = window.$MMT || {}; $MMT.cmd = $MMT.cmd || [];
-            $MMT.cmd.push(function(){ $MMT.display.slots.push(["1327f13c-fb3f-45df-9616-2c76dacf8707"]);
-             });</script>*/
+            // Switch between grid/row repeatable id, as given by email
             const adID = (layout == "grid") ? `mnt-1327f13c-fb3f-45df-9616-2c76dacf8707` : `mmt-f0fb4319-1dae-4282-83c7-aac7643d8fce`;
             const adHTML = `<div id="${adID}"></div>`;
             const adCard = document.createElement("div");
             adCard.classList.add("inxxx");
             adCard.classList.add(layout);
             adCard.innerHTML = adHTML;
-
+            const h3 = document.createElement("h3");
+            h3.innerHTML = "Advertisement";
+            adCard.appendChild(h3)
+            // create a div with the ad id
             var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
             document.querySelector(".cards").insertBefore(adCard, randomCard);
+            // run the code in the script
             $MMT = window.$MMT || {};
             $MMT.cmd = $MMT.cmd || [];
             $MMT.cmd.push(function () {

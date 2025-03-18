@@ -792,4 +792,10 @@ button#pickforme {
   transition: all 0.3s ease;
   display: flex;
   flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.inxxx h3{
+    font-size: 30px;
+    font-weight: bold;
 }
