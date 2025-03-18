@@ -348,6 +348,8 @@ try {
         }
         log("Home page loaded");
         window.ccPorted.baseRendering = false;
+        rerenderAds();
+
         setTimeout(loadAds, 1000);
     }
     async function incrementClicks(gameID) {
@@ -838,6 +840,7 @@ try {
         cardsArray.forEach(card => cardsContainer.appendChild(card));
     }
     function loadAds(num = 5, layout = "grid") {
+        return;
         // Some handling code
         log(`Loading ${num} ads`);
         if (!window.adsEnabled) return;
@@ -880,63 +883,28 @@ try {
         rerenderAds(layout)
     }
     function rerenderAds(layout) {
-        document.querySelectorAll('.inxxx').forEach(ad => {
-            ad.remove();
-        });
-        loadAds(5, layout);
+        // shuffle ads
+        const ads = document.querySelectorAll('.inxxx');
+        // remove all ads
+        ads.forEach(ad => ad.remove());
+        // load them again, in different order
+        for(let i = 0; i < ads.length; i++) {
+            const ad = ads[i];
+            const randomCard = document.querySelector('.cards').children[Math.floor(Math.random() * document.querySelector('.cards').children.length)];
+            document.querySelector('.cards').insertBefore(ad, randomCard);
+        }
+        
+
     }
     toggleBtn.addEventListener('click', () => {
         const currentLayout = toggleBtn.getAttribute('data-current');
         const newLayout = currentLayout === 'grid' ? 'rows' : 'grid';
         toggleBtn.setAttribute('data-current', newLayout);
+        const cards = document.querySelector(".cards");
+        cards.classList.toggle('rows', newLayout === 'rows');
+        cards.classList.toggle('grid', newLayout === 'grid');
         rerenderCards(newLayout);
     });
-    // document.addEventListener("keydown", (e) => {
-    //     if (e.key == "Escape" && window.gameRQPopupOpen) {
-    //         closePopup();
-    //     }
-    //     if (e.key == "Enter" && window.gameRQPopupOpen) {
-    //         document.getElementById("sendGameRequestButton").click();
-    //     }
-    // });
-    // addGameRequestButton.addEventListener("click", () => {
-    //     createAddGamePopup();
-    //     const sendButton = document.getElementById("sendGameRequestButton");
-    //     const nvmdButton = document.getElementById("nvmd");
-    //     const popup = document.querySelector(".popup");
-
-    //     popup.addEventListener("click", (e) => {
-    //         if (e.target == popup) {
-    //             closePopup();
-    //         }
-    //     });
-    //     nvmdButton.addEventListener("click", () => {
-    //         closePopup();
-    //     });
-    //     sendButton.addEventListener("click", async () => {
-    //         const input = document.getElementById("gameRequestInput");
-    //         try {
-    //             // show join discord instead
-    //             document.getElementById("gameRequestInput").value = "";
-    //             const p = document.createElement("p");
-    //             p.innerHTML = "We are not accepting game requests through the website at this time. <a href = 'https://discord.gg/4nURBJmUJY'>Please join the discord</a> and mention the @gamedev role in #game-requests to submit a game request."
-    //             const secondP = document.createElement("p");
-    //             secondP.innerHTML = "If you are unable to join the discord, please email us at <a href = 'mailto:sojscoder@gmail.com'>sojscoder@gmail.com</a>.";
-
-    //             if (input.value.toLowerCase().includes("roblox")) {
-    //                 alert("20 game requests for roblox are submitted every day. Please no more. Thanks");
-    //                 closePopup();
-    //                 return;
-    //             }
-    //             await addGameRequest(input.value);
-    //         } catch (e) {
-    //             // alert("An error occurred while sending your request. Please try again later.")
-    //             log("error" + e);
-    //         }
-    //         closePopup();
-    //     });
-
-    // });
     pickForMe.addEventListener("click", (e) => {
         var card = pickRandomCard();
         card.click();

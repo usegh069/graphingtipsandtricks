@@ -86,10 +86,18 @@ header.shadow {
   background-size: contain;
   background-repeat: no-repeat;
 }
-
 .card.loading {
   display: none;
 }
+.cards.loading .inxxx {
+  display: none;
+}
+.cards.grid .inxxx.rows {
+  display: none;
+}
+.cards.rows .inxxx.grid {
+  display: none;
+} 
 .card.grid {
   width: 300px;
   height: 200px;
