@@ -137,7 +137,7 @@
             });
             async function requestGameData() {
                 await window.ccPorted.userPromise;
-                const dynamdb = window.ccPorted.documentClient;
+                const dynamodb = window.ccPorted.documentClient;
                 dynamodb.get({
                     TableName: 'games_list',
                     Key: {
