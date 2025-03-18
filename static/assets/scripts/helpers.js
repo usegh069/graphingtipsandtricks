@@ -559,6 +559,7 @@ window.ccPorted.userPromise = new Promise(async (resolve, reject) => {
         }
         resolve(userData);
     } else {
-        reject("Failed to initialize user.");
+        resolve(null);
+        console.log("[UserPromise]: Failed to inizialize user")
     }
 });
