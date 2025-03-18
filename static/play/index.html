@@ -135,14 +135,9 @@
                     })
                 }
             });
-            AWS.config.region = 'us-west-2';
-            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: 'us-west-2:cb7ff0d0-87c6-43c8-a9e4-dece8bd1b8c7'
-            });
-
-            const dynamodb = new AWS.DynamoDB.DocumentClient();
-
-            function requestGameData() {
+            async function requestGameData() {
+                await window.ccPorted.userPromise;
+                const dynamdb = window.ccPorted.documentClient;
                 dynamodb.get({
                     TableName: 'games_list',
                     Key: {
