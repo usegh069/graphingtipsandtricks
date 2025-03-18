@@ -77,6 +77,9 @@ header.shadow {
   /* min-height: 50vh; */
 }
 
+.card{
+  cursor: pointer;
+}
 .cards.loading {
   background-image: url("../images/loading.gif");
   background-position: center;
