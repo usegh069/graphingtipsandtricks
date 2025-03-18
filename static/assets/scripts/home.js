@@ -838,8 +838,7 @@ try {
         removeCards();
         cardsArray.forEach(card => cardsContainer.appendChild(card));
     }
-    function loadAds(num = 5) {
-        return;
+    function loadAds(num = 5, layout = "grid") {
         log(`Loading ${num} ads`);
         if (!window.adsEnabled) return;
         if (!showingAds) {
@@ -850,10 +849,16 @@ try {
         needToLoadAds = false;
         for (let i = 0; i < num; i++) {
             console.log("loading ad ", i)
-            const adID = `mmt-ad-${Math.random().toString(16).slice(2)}-${i}`;
+            /* <div id="mmt-1327f13c-fb3f-45df-9616-2c76dacf8707"></div>
+            <script type="text/javascript" data-cfasync="false">
+            $MMT = window.$MMT || {}; $MMT.cmd = $MMT.cmd || [];
+            $MMT.cmd.push(function(){ $MMT.display.slots.push(["1327f13c-fb3f-45df-9616-2c76dacf8707"]);
+             });</script>*/
+            const adID = (layout == "grid") ? `mnt-1327f13c-fb3f-45df-9616-2c76dacf8707` : `mmt-f0fb4319-1dae-4282-83c7-aac7643d8fce`;
             const adHTML = `<div id="${adID}"></div>`;
             const adCard = document.createElement("div");
             adCard.classList.add("inxxx");
+            adCard.classList.add(layout);
             adCard.innerHTML = adHTML;
 
             var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
@@ -871,6 +876,13 @@ try {
             card.classList.toggle('rows', layout === 'rows');
             card.classList.toggle('grid', layout === 'grid');
         });
+        rerenderAds(layout)
+    }
+    function rerenderAds(layout) {
+        document.querySelectorAll('.inxxx').forEach(ad => {
+            ad.remove();
+        });
+        loadAds(5, layout);
     }
     toggleBtn.addEventListener('click', () => {
         const currentLayout = toggleBtn.getAttribute('data-current');
