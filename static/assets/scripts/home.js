@@ -63,12 +63,9 @@ try {
             })
         }, "Random"]
     ]
-    let showingAds = true;
-    let needToLoadAds = false;
     let lastInputTime = Date.now();
     let query = new URLSearchParams(window.location.search);
     let cachedRomsJSON = null;
-    let cachedHotOrder = [];
     let sortState = 0;
     let cardsCache = [];
 
@@ -79,7 +76,9 @@ try {
 
 
     async function importGames() {
+        log("Importing games... waiting for AWS")
         await window.ccPorted.userPromise;
+        log("AWS Loaded, waiting for query");
         const dynamodb = window.ccPorted.documentClient;
         const games = [];
         const params = {
@@ -89,6 +88,7 @@ try {
 
         try {
             const data = await dynamodb.scan(params).promise();
+            log(`Query fullfiled, found ${data.Items.length} games.`);
             data.Items.forEach(item => {
                 games.push(item);
             });
@@ -114,13 +114,22 @@ try {
         } catch (e) {
             adBlockEnabled = true
         } finally {
-            const res = await fetch("/ahosts.txt");
-            const text = await res.text();
-            const hosts = text.split('\n');
-            if (hosts.includes(window.location.hostname)) {
-                return !adBlockEnabled;
+            if (!window.ccPorted.aHosts) {
+                const res = await fetch("/ahosts.txt");
+                const text = await res.text();
+                const hosts = text.split('\n');
+                window.ccPorted.aHosts = hosts.map(h => h.trim());
+                if (window.ccPorted.aHosts.includes(window.location.hostname)) {
+                    return !adBlockEnabled;
+                } else {
+                    return false;
+                }
             } else {
-                return false;
+                if (window.ccPorted.aHosts.includes(window.location.hostname)) {
+                    return !adBlockEnabled;
+                } else {
+                    return false;
+                }
             }
         }
     }
@@ -169,7 +178,7 @@ try {
                 console.log(`[CCPORTED: Server ${toAttempt} failed: ${e}`);
             }
         }
-        return [server.split('\r')[0], serverIndex];
+        return [server.trim(), serverIndex];
     }
     async function baseRender(gamesJson) {
         try {
@@ -255,8 +264,44 @@ try {
             log("Failed to import manually" + "\n" + e.stack);
         }
     }
+    async function checkForSwitchToAHost() {
+        try {
+            log("Checking switch to aHost");
+            if (!window.ccPorted.aHosts) {
+                const res = await fetch("/ahosts.txt");
+                const text = await res.text();
+                const hosts = text.split('\n');
+                window.ccPorted.aHosts = hosts.map(h => h.trim());
+            }
+            if (window.ccPorted.aHosts.includes(window.location.hostname)) {
+                log("Already on aHost");
+                return;
+            };
+            for (const host of window.ccPorted.aHosts) {
+                try {
+                    log(`Checking ${host}`);
+                    const blockedRes = await fetch(`https://${host}/blocked_res.txt`);
+                    if (blockedRes.ok) {
+                        const text = await blockedRes.text();
+                        if (text.indexOf("===NOT_BLOCKED===") !== -1) {
+                            window.location.href = `https://${host}/`
+                        }else{
+                            log(`${host} failed (wrong res)`);
+                        }
+                    }else{
+                        log(`${host} failed (res not 200)`);
+                    }
+                } catch (e) {
+                    log(`${host} failed (errored)!`)
+                }
+            }
+        } catch (e) {
+            log("Error checking for AHost switch")
+        }
+    }
     async function init() {
         log("Initializing");
+        await checkForSwitchToAHost();
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
         window.ccPorted.adsEnabled = await adsEnabled();
@@ -352,8 +397,6 @@ try {
         log("Home page loaded");
         window.ccPorted.baseRendering = false;
         rerenderAds();
-
-        setTimeout(loadAds, 1000);
     }
     async function incrementClicks(gameID) {
         try {
@@ -832,42 +875,6 @@ try {
         let cardsContainer = document.querySelector(".cards");
         removeCards();
         cardsArray.forEach(card => cardsContainer.appendChild(card));
-    }
-    function loadAds(num = 5, layout = "grid") {
-        return;
-        // Some handling code
-        log(`Loading ${num} ads`);
-        if (!window.adsEnabled) return;
-        if (!showingAds) {
-            log("Ads not shown, not loading");
-            needToLoadAds = true;
-            return;
-        };
-        needToLoadAds = false;
-        // actual ad loading code
-        for (let i = 0; i < num; i++) {
-            console.log("loading ad ", i)
-            // Switch between grid/row repeatable id, as given by email
-            const adID = (layout == "grid") ? `mnt-1327f13c-fb3f-45df-9616-2c76dacf8707` : `mmt-f0fb4319-1dae-4282-83c7-aac7643d8fce`;
-            const adHTML = `<div id="${adID}"></div>`;
-            const adCard = document.createElement("div");
-            adCard.classList.add("inxxx");
-            adCard.classList.add(layout);
-            adCard.innerHTML = adHTML;
-            const h3 = document.createElement("h3");
-            h3.innerHTML = "Advertisement";
-            adCard.appendChild(h3)
-            // create a div with the ad id
-            var randomCard = document.querySelector(".cards").children[Math.floor(Math.random() * document.querySelector(".cards").children.length)];
-            document.querySelector(".cards").insertBefore(adCard, randomCard);
-            // run the code in the script
-            $MMT = window.$MMT || {};
-            $MMT.cmd = $MMT.cmd || [];
-            $MMT.cmd.push(function () {
-                console.log(adID.slice(4))
-                $MMT.display.slots.push([adID.slice(4)]);
-            });
-        }
     }
     function rerenderCards(layout) {
         document.querySelectorAll('.card').forEach(card => {
