@@ -567,8 +567,18 @@ class Stats {
             this.log(`Request interception is on. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a falsy value to turn off.`)
             this.setupRequestInterception();
         } else {
-            this.log(`Request interception is off. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a true value to turn on.`)
+            this.log(`Request interception is off. set [ns_ccported]_statsConfig_interceptRequests in localStorage to a true value to turn on.`);
+            this.ensureRequestInterceptionOff();
         }
+    }
+    ensureRequestInterceptionOff() {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (const registration of registrations) {
+                if(registration.scope === window.location.origin + "/") {
+                    registration.unregister();
+                }
+            }
+        });
     }
     getPanel(panel = 0) {
         return this.dom.children[panel];

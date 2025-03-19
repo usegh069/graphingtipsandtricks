@@ -265,6 +265,9 @@ try {
             document.querySelector(".cards").style.marginRight = "300px";
             document.querySelector(".search").style.marginRight = "300px";
         }
+        if (!window.ccPorted.adsEnabled) {
+            hideAds();
+        }
         const [chosenServer, index] = await testOpenServers();
         window.ccPorted.gameServer = {};
         window.ccPorted.gameServer.server = chosenServer;
@@ -421,71 +424,76 @@ try {
         });
     }
     async function input(sortState = 0) {
-        log(`Searching for ${searchInput.value}`);
-        if (searchInput.value.length <= 0) {
-            setSort(sortState);
+        hideAds();
+        // update query parameters
+        if (searchInput.value.length > 0) {
+            console.log("SEARCH LONG")
+            var url = new URL(window.location.href);
+            url.searchParams.set("q", searchInput.value);
+            window.history.pushState({}, '', url);
+            // if the input has content, add open it
+            openSearch();
+
+            var matching = cardsCache.map((card) => {
+                var score = 0;
+                feilds.forEach(feild => {
+                    var allFeilds = card.querySelectorAll(feild);
+                    for (var i = 0; i < allFeilds.length; i++) {
+                        var string = normalize(allFeilds[i].innerText);
+                        if (string.indexOf(normalize(searchInput.value)) !== -1) {
+                            score++;
+                        }
+                    }
+                })
+                return [score, card]
+            });
+            matching = matching.sort((a, b) => {
+                return b[0] - a[0]
+            });
+            matching = matching.filter((card) => {
+                if (card[0] == 0) return false;
+                cardsContainer.appendChild(card[1]);
+                return true;
+            });
+            lastInputTime = Date.now();
+            removeCards();
+            if (matching.length == 0) {
+                removeCards();
+                var results = await testRomSearch(searchInput.value);
+                if (results.length > 0) {
+                    var h3 = document.createElement("h3");
+                    h3.innerHTML = `Rom Results`
+                    var fullLibrary = document.createElement("p");
+                    fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://" + window.location.hostname + "/roms/'>full library</a></i>";
+
+                    var div = document.createElement("div");
+                    div.appendChild(h3)
+                    div.appendChild(fullLibrary);
+                    for (const result of results) {
+                        var p = document.createElement("p");
+                        var [url, name, platform] = result;
+                        p.innerHTML = `<a href = "/emulator/?core=${platform}&rom=${url}">${name}</a>`;
+                        div.appendChild(p)
+                    }
+                    document.getElementById("check-roms").innerHTML = "";
+                    document.getElementById("check-roms").appendChild(div);
+                }
+            } else {
+                matching.forEach((card) => {
+                    cardsContainer.appendChild(card[1]);
+                });
+                document.getElementById("check-roms").innerHTML = "";
+            }
+        } else if (searchInput.value.length <= 0) {
             var url = new URL(window.location);
+            console.log("SEARCH SHORT")
             url.searchParams.delete("q");
             window.history.pushState({}, '', url);
-            return;
-        }
-        // update query parameters
-        var url = new URL(window.location.href);
-        url.searchParams.set("q", searchInput.value);
-        window.history.pushState({}, '', url);
-        // if the input has content, add open it
-        openSearch();
-
-        // add click event to clear the input
-        var matching = cardsCache.map((card) => {
-            var score = 0;
-            feilds.forEach(feild => {
-                var allFeilds = card.querySelectorAll(feild);
-                for (var i = 0; i < allFeilds.length; i++) {
-                    var string = normalize(allFeilds[i].innerText);
-                    if (string.indexOf(normalize(searchInput.value)) !== -1) {
-                        score++;
-                    }
-                }
-            })
-            return [score, card]
-        });
-        matching = matching.sort((a, b) => {
-            return b[0] - a[0]
-        });
-        removeCards();
-        matching = matching.filter((card) => {
-            if (card[0] == 0) return false;
-            cardsContainer.appendChild(card[1]);
-            return true;
-        });
-        shuffleAds();
-        lastInputTime = Date.now();
-        if (matching.length == 0) {
             removeCards();
-            hideAds();
-            var results = await testRomSearch(searchInput.value);
-            if (results.length > 0) {
-                var h3 = document.createElement("h3");
-                h3.innerHTML = `Rom Results`
-                var fullLibrary = document.createElement("p");
-                fullLibrary.innerHTML = "<i style = 'font-weight:normal'>View the <a href = 'https://" + window.location.hostname + "/roms/'>full library</a></i>";
-
-                var div = document.createElement("div");
-                div.appendChild(h3)
-                div.appendChild(fullLibrary);
-                for (const result of results) {
-                    var p = document.createElement("p");
-                    var [url, name, platform] = result;
-                    p.innerHTML = `<a href = "/emulator/?core=${platform}&rom=${url}">${name}</a>`;
-                    div.appendChild(p)
-                }
-                document.getElementById("check-roms").innerHTML = "";
-                document.getElementById("check-roms").appendChild(div);
-            }
-        } else {
-            showAds();
-            document.getElementById("check-roms").innerHTML = "";
+            cardsCache.forEach(card => {
+                cardsContainer.appendChild(card);
+            });
+            setSort(sortState);
         }
     }
     async function testRomSearch(query) {
@@ -535,28 +543,15 @@ try {
             log('Error adding game request:', error.message);
         }
     };
-    function showAds() {
-        log("Showing ads");
-        showingAds = true;
-        if (needToLoadAds) {
-            loadAds();
-        } else {
-            const ads = document.querySelectorAll(".inxxx");
-            ads.forEach(ad => {
-                ad.style.display = "flex";
-            });
-        }
-    }
     function hideAds() {
         log("Hiding ads");
         showingAds = false;
         const ads = document.querySelectorAll(".inxxx");
         ads.forEach(ad => {
-            ad.style.display = "none";
+            ad.remove();
         });
     }
     function openSearch() {
-        log("Search box opened");
         searchInput.type = "text";
         searchInput.focus();
     }
@@ -714,7 +709,6 @@ try {
         document.body.appendChild(popup);
     }
     function removeCards() {
-        log("Removing all cards");
         cardsContainer.querySelectorAll(".card").forEach(card => {
             card.remove();
         });
@@ -888,12 +882,12 @@ try {
         // remove all ads
         ads.forEach(ad => ad.remove());
         // load them again, in different order
-        for(let i = 0; i < ads.length; i++) {
+        for (let i = 0; i < ads.length; i++) {
             const ad = ads[i];
             const randomCard = document.querySelector('.cards').children[Math.floor(Math.random() * document.querySelector('.cards').children.length)];
             document.querySelector('.cards').insertBefore(ad, randomCard);
         }
-        
+
 
     }
     toggleBtn.addEventListener('click', () => {
@@ -918,21 +912,6 @@ try {
         input(sortState);
         setSort(sortState);
     });
-    // searchInput.addEventListener("click", (e) => {
-    //     // only clear if the click is on the "x" button
-    //     var rect = searchInput.getBoundingClientRect();
-    //     var x = rect.right - 10 - 15; // 10 is padding, 15 is the width of the "x" button
-    //     if (e.clientX > x) {
-    //         log("Clearing search input");
-    //         searchInput.value = "";
-    //         var url = new URL(window.location);
-    //         url.searchParams.delete("q");
-    //         window.history.pushState({}, '', url);
-    //         setSort(sortState)
-    //         searchInput.type = "hidden";
-    //     }
-
-    // });
     searchInput.addEventListener("mousemove", (e) => {
         // only set if the click is on the "x" button
         var rect = searchInput.getBoundingClientRect();
