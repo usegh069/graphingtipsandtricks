@@ -369,7 +369,7 @@ try {
                 },
                 ReturnValues: 'UPDATED_NEW'
             };
-            const data = await dynamodb.update(params).promise();
+            const data = await window.ccPorted.documentClient.update(params).promise();
             log('Clicks incremented:', data.Attributes.clicks);
         } catch (e) {
             log(e);
