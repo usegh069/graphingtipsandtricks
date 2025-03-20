@@ -422,6 +422,10 @@ button#pickforme {
   align-content: center;
   display: flex;
   justify-content: center;
+  color: #333;
+}
+body.dark .dont-see {
+  color: #eee;
 }
 
 /* Mobile Styles */
@@ -821,6 +825,7 @@ button#pickforme {
 body.dark {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #111;
+  color: #eee;
   margin: 0;
   padding: 0;
 }

@@ -128,11 +128,12 @@ input[type="text"].cc {
 
 @import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
 
-.cc.lightDarkToggle{
+.cc.lightDarkToggle {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
+    bottom: 20px;
+    right: 20px;
 }
+
 .cc.checkbox {
     opacity: 0;
     box-sizing: border-box;
@@ -141,8 +142,8 @@ input[type="text"].cc {
 
 .cc.checkbox-label {
     background-color: #363636;
-    width: 50px;
-    height: 26px;
+    width: 60px;
+    height: 30px;
     border-radius: 50px;
     position: relative;
     padding: 5px;
@@ -156,14 +157,15 @@ input[type="text"].cc {
 .cc.fa-moon {
     color: #f1c40f;
 }
+
 .cc.fa-sun {
     color: #f39c12;
 }
 
 .cc.checkbox-label .cc.ball {
     background-color: #fff;
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     position: absolute;
     left: 2px;
     top: 2px;
@@ -173,5 +175,5 @@ input[type="text"].cc {
 }
 
 .cc.checkbox:checked+.cc.checkbox-label .cc.ball {
-    transform: translateX(24px);
+    transform: translateX(30px);
 }
