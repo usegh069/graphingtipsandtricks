@@ -266,7 +266,6 @@ try {
     }
     async function checkForSwitchToAHost() {
         try {
-            return;
             log("Checking switch to aHost");
             if (!window.ccPorted.aHosts) {
                 const res = await fetch("/ahosts.txt");
