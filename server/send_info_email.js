@@ -68,11 +68,12 @@ const emailHTML = `
 <body>
     <div class="container">
         <h1>Hello!</h1>
-        <p>CCPorted has changed the login/signup system. Please login to your account using either your username or email address.</p>
-        <p>Then, click "forgot password" to reset your password.</p>
-        <p>Thank you for using CCPorted!</p><br><br>
-        <p>If you have any questions, please respond to this email.</p>
-        <p>If some of the links do not work for you on the <a href="https://docs.google.com/document/d/11yw7n2F84XOkAwpM8tF-ZYHESuus1Gg7dmJ-WJum1fk/edit?tab=t.0#heading=h.5bvxli85krky">Master Doc</a>, go ahead and <a href="https://discord.com/invite/GDEFRBTT3Z">join the Discord</a> and check the <code>#-game-links channel</code> for more links.</p>
+        <p>You are getting this email becuase you have previously created a CCPorted account.</p>
+        <p>Many people have been saying that none of the links have been working for them. In order to fix this, I have created a new "underground" document. This document should be shared to students only, and it will not be visible on any public pages.</p>
+        <p>Share it with all of your friends, so that everyone can have access to the games.</p>
+        <p>Last but not least, remember to <a href="https://discord.com/invite/GDEFRBTT3Z">join the Discord</a></p>
+
+        <p>Here is the link: <a href = "https://docs.google.com/document/d/1-mXdD-aplqeTUOwv41YpcxqU-VwurYxsIZPAHXSYTzY/edit?tab=t.0">CCPorted Underground Doc</a></p>
     </div>
 </body>
 </html>
@@ -80,15 +81,13 @@ const emailHTML = `
 const emailText = `
 Hello!
 
-CCPorted has changed the login/signup system. Please login to your account using either your username or email address.
-Then, click "forgot password" to reset your password.
-Thank you for using CCPorted!
+You are getting this email becuase you have previously created a CCPorted account.
+Many people have been saying that none of the links have been working for them. In order to fix this, I have created a new "underground" document. This document should be shared to students only, and it will not be visible on any public pages.
+Share it with all of your friends, so that everyone can have access to the games.
 
-If you have any questions, please respond to this email.
-If some of the links do not work for you on the Master Doc, go ahead and join the Discord and check the #-game-links channel for more links.
+Last but not least, remember to join the Discord: https://discord.com/invite/GDEFRBTT3Z
 
-(Master Doc: https://docs.google.com/document/d/11yw7n2F84XOkAwpM8tF-ZYHESuus1Gg7dmJ-WJum1fk/edit?tab=t.0#heading=h.5bvxli85krky)
-(Discord: https://discord.com/invite/GDEFRBTT3Z)
+Here is the link: https://docs.google.com/document/d/1-mXdD-aplqeTUOwv41YpcxqU-VwurYxsIZPAHXSYTzY/edit?tab=t.0
 `
 
 async function sendEmails(recipients) {
@@ -110,7 +109,7 @@ async function sendEmails(recipients) {
                 },
                 Subject: {
                     Charset: 'UTF-8',
-                    Data: 'CCPorted Login System Update'
+                    Data: 'CCPorted Unblocked Links (Underground Document)'
                 }
             },
             Source: 'sojscoder@gmail.com'
