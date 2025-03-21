@@ -64,7 +64,18 @@ jobs:
           user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_message: 'Deploy: ${{ github.event.head_commit.message }}'
           enable_jekyll: false
-
+  deploy-to-surge:
+    needs: build-and-deploy-gh-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm install -g surge
+      - run: surge --project ./ --domain {{ secrets.SURGE_DOMAIN }} --token {{ secrets.SURGE_TOKEN }}
   deploy-to-s3:
     needs: build-and-deploy-gh-pages
     runs-on: ubuntu-latest
