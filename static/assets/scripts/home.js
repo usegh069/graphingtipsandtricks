@@ -163,7 +163,7 @@ try {
         const servers = serversText.split('\n');
         while (!server) {
             const toAttemptIndex = Math.floor(Math.random() * servers.length);
-            const toAttempt = servers[toAttemptIndex];
+            const toAttempt = servers[toAttemptIndex].split(",")[0];
             try {
                 console.log(`[CCPORTED: Attempting server ${toAttempt} (${toAttemptIndex})`);
                 const res = await fetch(`https://${toAttempt}/blocked_res.txt`);
