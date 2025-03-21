@@ -110,4 +110,5 @@ function normalize(string) {
 
 listRoms().then(() => {
     console.log("ROMS loaded");
+    setupSearch()
 })
