@@ -436,8 +436,7 @@
                         }
                         return `https://${domain.trim()}`
                     });
-                    console.log(allowedOrigins);
-                    if (!allowedOrigins.includes(event.origin)) {
+                    if (!["http://localhost:8080",...allowedOrigins].includes(event.origin)) {
                         console.warn(`Rejected message from unauthorized origin: ${event.origin}`);
                         return;
                     }
@@ -484,6 +483,9 @@
                         // Send response back to the exact source iframe
                         console.log(response, event.origin);
                         event.source.postMessage(response, event.origin);
+                    } else if(data.action === "SWITCH_SERVER"){
+                        console.log("OVERALL XXX",data)
+                        updateIframe(data.server);
                     } else {
                         // Handle unknown action
                         event.source.postMessage({
@@ -549,6 +551,7 @@
             requestGameData();
 
             function updateIframe(server) {
+                console.log("UPDATING TO", server)
                 if(server.index == serverID) return;
                 iframe.src = `https://${server.address.split(",")[0]}/games/${gameID}/index.html`;
                 let query = new URLSearchParams(window.location.search);
