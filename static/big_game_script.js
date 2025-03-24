@@ -2971,7 +2971,9 @@ window.ccPorted = window.ccPorted || {};
     installGTAG();
 
     shortcut([17, 81], toggleStats);
-    createGameStorageSandbox(window.gameID || "ccported")();
+    if(!window.ccPorted.config || typeof window.ccPorted.config?.sandboxStorage == "undefined" || window.ccPorted.config.sandboxStorage){
+        createGameStorageSandbox(window.gameID || "ccported")();
+    }
 
     link.href = "/assets/styles/master.css";
     link.setAttribute("rel", "stylesheet");
