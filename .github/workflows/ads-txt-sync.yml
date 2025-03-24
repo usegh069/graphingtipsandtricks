@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false  # Use the same token for pushing
 
       - name: Fetch latest ads.txt
         run: |
@@ -30,4 +32,4 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add static/ads.txt
           git commit -m "update ads.txt"
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
