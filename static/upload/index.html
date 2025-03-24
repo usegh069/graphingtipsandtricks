@@ -87,6 +87,9 @@
     <label>Proxy Path:</label>
     <input type="text" id="proxyPath" /><br />
 
+    <label>zip file actually swf (flash)?</label>
+    <input type="checkbox" id="isSwf" /><br />
+
     <label>Tags (comma-separated):</label>
     <input type="text" id="tags" /><br />
 
@@ -187,63 +190,135 @@
       region: "us-west-2",
     });
     async function uploadToS3() {
+      document.getElementById("upload").textContent = "Uploading...";
       document.getElementById("upload").disabled = true;
-      const zipFile = document.getElementById("zipFile").files[0];
-      const thumbFile = document.getElementById("thumbFile").files[0];
-      const name = document.getElementById("name").value;
-      const description = document.getElementById("description").value;
-      const forceKey = document.getElementById("forceKey").value;
-      const thumbPath =
-        document.getElementById("thumbPath").value || "/thumb.jpg";
-      const isProxy = document.getElementById("isProxy").checked;
-      const proxyPath = document.getElementById("proxyPath").value;
-      const tags = document.getElementById("tags").value.split(",");
+      if (document.getElementById("isSwf").checked) {
+        const template = await fetch("/flash/template.html");
+        const templateText = await template.text();
+        const swf = document.getElementById("zipFile").files[0];
+        const name = document.getElementById("name").value;
+        const description = document.getElementById("description").value;
+        const thumbPath =
+          document.getElementById("thumbPath").value || "/thumb.jpg";
+        const thumbFile = document.getElementById("thumbFile").files[0];
+        const isProxy = document.getElementById("isProxy").checked;
+        const proxyPath = document.getElementById("proxyPath").value;
+        const tags = document.getElementById("tags").value.split(",");
 
-      if (!zipFile) {
-        alert("Please select a ZIP file.");
-        return;
-      }
-
-      const dataJson = {
-        name,
-        description,
-        thumb_path: thumbPath,
-        is_proxy: isProxy,
-        proxy_path: proxyPath,
-        tags,
-      };
-
-      const zip = await JSZip.loadAsync(zipFile);
-      zip.file("ccported_game_data.json", JSON.stringify(dataJson));
-
-      if (thumbFile) {
-        zip.file("thumb.jpg", thumbFile);
-      }
-
-      const blob = await zip.generateAsync({ type: "blob" });
-
-      const params = {
-        Bucket: "ccportedtempstore",
-        Key: (forceKey.length > 0) ? forceKey : `game_${Date.now().toString(16).substring(7)}_${Math.random()
-          .toString(16)
-          .substring(2)}.zip`,
-        Body: blob,
-        ContentType: "application/zip"
-      };
-
-      s3.upload(params, (err, data) => {
-        if (err) {
-          console.error("Error uploading to S3", err);
-          alert("Something went wrong. Please try again. (Check the console for more information, and DM me on discord with what it says)");
-        } else {
-          console.log("Uploaded to S3", data);
-          document.getElementById("upload").textContent = "Uploaded!";
-          setTimeout(() => {
-            document.getElementById("upload").disabled = false;
-            document.getElementById("upload").textContent = "Upload";
-          }, 2000);
+        const swfFileName = name.split(" ").join("-").toLowerCase();
+        const templateMap = {
+          name: name,
+          description: description,
+          filename: swfFileName,
         }
-      });
+        const templateTextReplaced = templateText.replace(
+          /{{(.*?)}}/g,
+          (match, p1) => {
+            return templateMap[p1];
+          }
+        );
+
+        const zip = new JSZip();
+        zip.file("index.html", templateTextReplaced);
+        zip.file(`${swfFileName}.swf`, swf);
+
+        if (thumbFile) {
+          zip.file("thumb.jpg", thumbFile);
+        }
+
+        const dataJson = {
+          name,
+          description,
+          thumb_path: thumbPath,
+          is_proxy: isProxy,
+          proxy_path: proxyPath,
+          tags,
+        };
+        zip.file("ccported_game_data.json", JSON.stringify(dataJson));
+        const blob = await zip.generateAsync({ type: "blob" });
+
+
+
+        const params = {
+          Bucket: "ccportedtempstore",
+          Key: `game_${Date.now().toString(16).substring(7)}_${Math.random()
+            .toString(16)
+            .substring(2)}.zip`,
+          Body: blob,
+          ContentType: "application/zip"
+        };
+        s3.upload(params, (err, data) => {
+          if (err) {
+            console.error("Error uploading to S3", err);
+            alert("Something went wrong. Please try again. (Check the console for more information, and DM me on discord with what it says)");
+          } else {
+            console.log("Uploaded to S3", data);
+            document.getElementById("upload").textContent = "Uploaded!";
+            setTimeout(() => {
+              document.getElementById("upload").disabled = false;
+              document.getElementById("upload").textContent = "Upload";
+            }, 2000);
+          }
+        });
+
+      } else {
+        const zipFile = document.getElementById("zipFile").files[0];
+        const thumbFile = document.getElementById("thumbFile").files[0];
+        const name = document.getElementById("name").value;
+        const description = document.getElementById("description").value;
+        const forceKey = document.getElementById("forceKey").value;
+        const thumbPath =
+          document.getElementById("thumbPath").value || "/thumb.jpg";
+        const isProxy = document.getElementById("isProxy").checked;
+        const proxyPath = document.getElementById("proxyPath").value;
+        const tags = document.getElementById("tags").value.split(",");
+
+        if (!zipFile) {
+          alert("Please select a ZIP file.");
+          return;
+        }
+
+        const dataJson = {
+          name,
+          description,
+          thumb_path: thumbPath,
+          is_proxy: isProxy,
+          proxy_path: proxyPath,
+          tags,
+        };
+
+        const zip = await JSZip.loadAsync(zipFile);
+        zip.file("ccported_game_data.json", JSON.stringify(dataJson));
+
+        if (thumbFile) {
+          zip.file("thumb.jpg", thumbFile);
+        }
+
+        const blob = await zip.generateAsync({ type: "blob" });
+
+        const params = {
+          Bucket: "ccportedtempstore",
+          Key: (forceKey.length > 0) ? forceKey : `game_${Date.now().toString(16).substring(7)}_${Math.random()
+            .toString(16)
+            .substring(2)}.zip`,
+          Body: blob,
+          ContentType: "application/zip"
+        };
+
+        s3.upload(params, (err, data) => {
+          if (err) {
+            console.error("Error uploading to S3", err);
+            alert("Something went wrong. Please try again. (Check the console for more information, and DM me on discord with what it says)");
+          } else {
+            console.log("Uploaded to S3", data);
+            document.getElementById("upload").textContent = "Uploaded!";
+            setTimeout(() => {
+              document.getElementById("upload").disabled = false;
+              document.getElementById("upload").textContent = "Upload";
+            }, 2000);
+          }
+        });
+      }
     }
     document.getElementById("upload").addEventListener("click", uploadToS3);
     document.getElementById("load").addEventListener("click", load);
