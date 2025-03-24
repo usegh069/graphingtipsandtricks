@@ -801,6 +801,12 @@ video.unrulymedia.com, 5672421953199218469, RESELLER
 yahoo.com, 57289, RESELLER, e1a5b5b6e3255540
 zetaglobal.net, 891, RESELLER
 google.com, pub-3944954862316283, RESELLER, f08c47fec0942fa0
+imds.tv, 82151, RESELLER, ae6c32151e71f19d 
+synacor.com, 82151, RESELLER, e108f11b2cdf7d5b 
+rhythmone.com, 78519861, RESELLER, a670c89d4a324e47 
+emxdgt.com, 1284, RESELLER, 1e1d41537f7cad7f 
+inmobi.com, 5ca65892bdc34cc8a63ea3550cbd15d0, RESELLER, 83e75a7ae333ca9d 
+video.unrulymedia.com, 78519861, RESELLER
 
 # ALL CUSTOM RECORDS MUST BE BELOW THIS LINE
 
