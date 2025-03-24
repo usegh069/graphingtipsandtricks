@@ -66,14 +66,15 @@
     <script>
         window.RufflePlayer = window.RufflePlayer || {};
         window.RufflePlayer.config = {
-            // Enable CORS mode
-            allowScriptAccess: true,
-            upgradeToHttps: false,
-            logLevel: "warn",
-            openUrlMode: "allow",
-            allowNetworking: "all",
-            warnOnUnsupportedContent: true,
-            polyfills: true
+            "autoplay": "off",
+            "contextMenu": "off",
+            "splashScreen": false,
+            "openUrlMode": "confirm",
+            "favorFlash": true,
+            "playerRuntime": "flashPlayer",
+            "allowFullscreen": true,
+            "allowScriptAccess": true,
+            "upgradeToHttps": true,
         };
     </script>
     <script>
@@ -138,19 +139,7 @@
                 ruffleContainer.appendChild(player);
 
                 // Load the SWF
-                player.load({
-                    url: url,
-                    autoplay: true,
-                    letterbox: 'on',
-                    unmuteOverlay: 'visible',
-                    allowScriptAccess: true,
-                    parameters: {
-                        allowNetworking: "all"
-                    },
-                    // Configure cross-origin handling
-                    crossorigin: "anonymous",
-                    corsModeEnabled: true
-                });
+                player.load(url);
 
                 // Clean up object URL when done
                 player.addEventListener('loadeddata', () => {
