@@ -1,0 +1,33 @@
+name: Sync ads.txt nightly
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs nightly at midnight UTC
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  update-ads:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch latest ads.txt
+        run: |
+          curl -sS -o /tmp/remote_ads.txt "https://monu.delivery/adstxt/e/4/500442-526a-41af-9981-22db9286cd37.txt"
+
+      - name: Compare and update ads.txt if needed
+        run: |
+          if ! cmp -s /tmp/remote_ads.txt static/ads.txt; then
+            mv /tmp/remote_ads.txt static/ads.txt
+            echo "UPDATED=true" >> $GITHUB_ENV
+          fi
+
+      - name: Commit and push changes
+        if: env.UPDATED == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add static/ads.txt
+          git commit -m "update ads.txt"
+          git push
