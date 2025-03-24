@@ -1,3 +1,5 @@
+const unsupported = ["dreamcast", "dos"];
+
 async function init() {
     try {
         const dataLibraryBaseUrl = await findDataCDN();
@@ -90,7 +92,7 @@ async function createSelect() {
 
     // Create optgroups for each category
     Object.keys(romsJSON).forEach((category) => {
-        if(category === "dos") return;
+        if(unsupported.includes(category)) return;
         const group = document.createElement('optgroup');
         group.label = formatCategoryName(category);
         allGroups[category] = group;

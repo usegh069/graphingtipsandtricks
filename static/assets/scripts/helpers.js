@@ -220,7 +220,12 @@ function refreshAWSCredentials() {
             if (error) {
                 reject(error);
                 log("Failed to refresh credentials:", error);
-            } else {
+                if(sessionStorage.getItem("refreshed") !== "true"){
+                    sessionStorage.setItem("refreshed", "true");
+                    window.location.reload();
+                }
+                log("Failed to refresh credentials:", error);
+                } else {
                 log("Credentials refreshed successfully");
                 resolve();
             }

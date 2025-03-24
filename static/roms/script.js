@@ -1,4 +1,4 @@
-
+const unsupported = ["dos","dreamcast"];
 
 // Utility function to capitalize words
 const capitalizeWords = (str) => {
@@ -67,7 +67,7 @@ async function displayRoms(roms) {
                              <div class="name">${title}</div>
                              <div class="links">
                                  <a href="https://ccportedroms.s3-us-west-2.amazonaws.com/${console}/${filename}" target="_blank">Download</a>
-                                 ${(console != "dos") ? `<a href="/emulator/?core=${console}&rom=${filename}" target="_blank">Play</a>` : ''}
+                                 ${(!unsupported.includes(console)) ? `<a href="/emulator/?core=${console}&rom=${filename}" target="_blank">Play</a>` : ''}
                              </div>
                          </li>
                      `).join('')}
