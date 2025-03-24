@@ -84,9 +84,9 @@ try {
         const params = {
             TableName: 'games_list',
             ProjectionExpression: 'gameID, clicks, description, fName, tags, thumbPath',
-            FilterExpression: 'online = :online',
+            FilterExpression: 'isOnline = :o',
             ExpressionAttributeValues: {
-                ':online': true
+                ':o': true
             }
         };
 
