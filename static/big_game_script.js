@@ -2945,7 +2945,7 @@ window.ccPorted = window.ccPorted || {};
         }
         setupTracking();
         window.ccPorted.stateSync = new GameStateSync(
-            window.ccPorted.user.id,
+            window.ccPorted.user.sub,
         );
     }
     async function init() {
