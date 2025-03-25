@@ -1285,7 +1285,7 @@ async function handleUserLoggedIn() {
     setupTracking();
     if (typeof window.ccPorted?.config?.stateSyncEnabled == "undefined" || window.ccPorted?.config?.stateSyncEnabled) {
         window.ccPorted.stateSync = new GameStateSync(
-            window.ccPorted.user.id,
+            window.ccPorted.user.sub,
         );
     }
 }
