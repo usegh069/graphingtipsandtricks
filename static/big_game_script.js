@@ -336,6 +336,7 @@ window.ccPorted = window.ccPorted || {};
         setupKeyboardListeners() {
             // Track if Ctrl key is pressed
             let ctrlPressed = false;
+            let uiOpen = false;
 
             document.addEventListener('keydown', (event) => {
                 // Check if Ctrl key is pressed
@@ -346,9 +347,11 @@ window.ccPorted = window.ccPorted || {};
                 if (ctrlPressed) {
                     if (event.key === ']') {
                         event.preventDefault();
+                        uiOpen = true;
                         this.nextServer();
                     } else if (event.key === '[') {
                         event.preventDefault();
+                        uiOpen = true;
                         this.prevServer();
                     }
                 }
@@ -356,9 +359,10 @@ window.ccPorted = window.ccPorted || {};
 
             // Hide UI when Ctrl key is released
             document.addEventListener('keyup', (event) => {
-                if (event.key === 'Control') {
+                if (event.key === 'Control' && uiOpen) {
                     ctrlPressed = false;
                     this.hideUI();
+                    uiOpen = false;
                     this.switchCallback(this.getCurrentServer())
                 }
             });
