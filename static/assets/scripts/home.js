@@ -84,7 +84,12 @@ try {
         const params = {
             TableName: 'games_list',
             ProjectionExpression: 'gameID, clicks, description, fName, tags, thumbPath',
+            FilterExpression: 'isOnline = :o',
+            ExpressionAttributeValues: {
+                ':o': true
+            }
         };
+
 
         try {
             const data = await dynamodb.scan(params).promise();
