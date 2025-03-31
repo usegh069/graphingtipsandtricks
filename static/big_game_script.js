@@ -37,15 +37,15 @@ window.ccPorted = window.ccPorted || {};
         async init() {
             await this.loadServers();
             const serverIndex = this.servers.findIndex(server => server.address.trim() == window.Location.hostname);
-            if(serverIndex !== -1 && this.initialServerIndex == -1){
+            if (serverIndex !== -1 && this.initialServerIndex == -1) {
                 this.initialServerIndex = serverIndex;
-            } else if (this.initialServerIndex == -1){
+            } else if (this.initialServerIndex == -1) {
                 this.initialServerIndex = 0;
             }
             this.isOnServer = serverIndex;
             this.createUI();
             this.setupKeyboardListeners();
-            for(var i = 0; i < this.initialServerIndex; i++){
+            for (var i = 0; i < this.initialServerIndex; i++) {
                 this.nextServer(true);
             }
         }
@@ -64,7 +64,7 @@ window.ccPorted = window.ccPorted || {};
         async loadServers() {
             const serversText = await this.getServerText();
 
-            this.servers = serversText.split('\n').map((line,i) => {
+            this.servers = serversText.split('\n').map((line, i) => {
                 const [address, friendlyName] = line.split(',');
                 return {
                     address,
@@ -325,7 +325,7 @@ window.ccPorted = window.ccPorted || {};
 
         nextServer(hideUI = false) {
             this.currentServerIndex = (this.currentServerIndex + 1) % this.servers.length;
-            if(!hideUI) this.showUI();
+            if (!hideUI) this.showUI();
         }
 
         prevServer() {
@@ -384,9 +384,9 @@ window.ccPorted = window.ccPorted || {};
         }
     }
     window.ccPorted.serverToggle = new ServerToggle(-1, (server) => {
-        if(framed){
+        if (framed) {
             log("SENDING SWITCH_SERVER");
-            parent.postMessage({action: 'SWITCH_SERVER', server: server}, parentOrigin);
+            parent.postMessage({ action: 'SWITCH_SERVER', server: server }, parentOrigin);
         }
     });
     class Leaderboard {
@@ -2716,7 +2716,7 @@ window.ccPorted = window.ccPorted || {};
             const newTokens = await refreshTokens(refreshToken);
             if (!newTokens) {
                 console.error("Failed to refresh token. User must log in again.");
-                return null;
+                return initializeUnathenticated();
             }
             userData = parseJwt(newTokens.id_token);
         }
@@ -2761,52 +2761,52 @@ window.ccPorted = window.ccPorted || {};
         window.ccPorted["identityProvider"] = new AWS.CognitoIdentityServiceProvider({
             region: 'us-west-2'
         });
-        let idToken = localStorage.getItem("[ns_ccported]_idToken");
-        let accessToken = localStorage.getItem("[ns_ccported]_accessToken");
-        let refreshToken = localStorage.getItem("[ns_ccported]_refreshToken");
-        let user = null;
-        if (!idToken || !accessToken) {
-            console.warn("No valid tokens found. Checking for auth code...");
-            const authCode = new URLSearchParams(window.location.search).get("code");
+        if (!framed) {
+            let idToken = localStorage.getItem("[ns_ccported]_idToken");
+            let accessToken = localStorage.getItem("[ns_ccported]_accessToken");
+            let refreshToken = localStorage.getItem("[ns_ccported]_refreshToken");
+            let user = null;
+            if (!idToken || !accessToken) {
+                console.warn("No valid tokens found. Checking for auth code...");
+                const authCode = new URLSearchParams(window.location.search).get("code");
 
-            if (authCode) {
-                console.log("Auth code found. Exchanging for tokens...");
-                const tokens = await exchangeAuthCodeForTokens(authCode);
-                if (!tokens) {
-                    console.error("Failed to exchange auth code for tokens.");
-                    return null;
-                }
-                idToken = tokens.id_token;
-                accessToken = tokens.access_token;
-                refreshToken = tokens.refresh_token;
-
-                user = await initializeAuthenticated(idToken, accessToken, refreshToken);
-            } else {
-                console.warn("No auth code found in URL. User may need to log in.");
-                if (framed) {
-                    try {
-                        const tokens = await getTokensFromParent();
-                        const { idToken, accessToken, refreshToken } = tokens;
-
-                        if (!idToken || !accessToken) {
-                            console.log("Invalid tokens received, initializing unauthenticated.");
-                            user = await initializeUnathenticated();
-                        } else {
-                            user = await initializeAuthenticated(idToken, accessToken, refreshToken);
-                        }
-                    } catch (error) {
-                        console.error("Authentication error:", error.message);
+                if (authCode) {
+                    console.log("Auth code found. Exchanging for tokens...");
+                    const tokens = await exchangeAuthCodeForTokens(authCode);
+                    if (!tokens) {
+                        console.error("Failed to exchange auth code for tokens.");
                         user = await initializeUnathenticated();
+                    } else {
+                        idToken = tokens.id_token;
+                        accessToken = tokens.access_token;
+                        refreshToken = tokens.refresh_token;
+
+                        user = await initializeAuthenticated(idToken, accessToken, refreshToken);
                     }
                 } else {
-                    console.log("No parent to recieve tokens from... initializing unauthenticated");
+                    console.warn("No auth code found in URL. User may need to log in.");
+                }
+            } else {
+                log("Tokens found. Initializing user...");
+                user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+            }
+        } else {
+            if (framed) {
+                try {
+                    const tokens = await getTokensFromParent();
+                    const { idToken, accessToken, refreshToken } = tokens;
+
+                    if (!idToken || !accessToken) {
+                        console.log("Invalid tokens received, initializing unauthenticated.");
+                        user = await initializeUnathenticated();
+                    } else {
+                        user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+                    }
+                } catch (error) {
+                    console.error("Authentication error:", error.message);
                     user = await initializeUnathenticated();
                 }
             }
-        } else {
-            log("Tokens found. Initializing user...");
-            user = await initializeAuthenticated(idToken, accessToken, refreshToken);
-
         }
         window.ccPorted["s3Client"] = new AWS.S3({
             region: "us-west-2",
@@ -2971,7 +2971,7 @@ window.ccPorted = window.ccPorted || {};
     installGTAG();
 
     shortcut([17, 81], toggleStats);
-    if(!window.ccPorted.config || typeof window.ccPorted.config?.sandboxStorage == "undefined" || window.ccPorted.config.sandboxStorage){
+    if (!window.ccPorted.config || typeof window.ccPorted.config?.sandboxStorage == "undefined" || window.ccPorted.config.sandboxStorage) {
         createGameStorageSandbox(window.gameID || "ccported")();
     }
 

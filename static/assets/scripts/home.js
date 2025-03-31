@@ -7,7 +7,6 @@ try {
     const allTags = document.querySelectorAll(".tag");
     const sortButton = document.getElementById("sort");
     const pickForMe = document.getElementById("pickforme");
-    // const addGameRequestButton = document.getElementById("addGameRequestButton");
     const sortDirectionText = document.getElementById("order");
     const header = document.querySelector('header');
     const toggleBtn = document.querySelector('.toggle-btn');
@@ -195,11 +194,6 @@ try {
             window.ccPorted.serverBlocked = true;
             window.ccPorted.baseRendering = true;
 
-            // createNotif({
-            //     message: "Something is blocking the connection to the server. You will not be able to login, which means that high scores will not be saved and your games will not save across domains and devices.",
-            //     cta: false,
-            //     autoClose: 5
-            // });
             const { games } = gamesJson;
             log(`Games ${games.length} found.`);
             games.forEach(game => {
@@ -323,14 +317,6 @@ try {
         window.ccPorted.gameServer = {};
         window.ccPorted.gameServer.server = chosenServer;
         window.ccPorted.gameServer.index = index;
-        // createPopup({
-        //     title: 'Hiring!',
-        //     message: "We are hiring! We are looking for interns to help add games and manage the community.",
-        //     cta: {
-        //         text: "Apply",
-        //         link: "https://forms.gle/kWJRXuYN93unLkZRA"
-        //     }
-        // });
         const gamesJson = await importGames();
         setTimeout(() => {
             baseRender(gamesJson);
@@ -422,24 +408,6 @@ try {
             log('Clicks incremented:', data.Attributes.clicks);
         } catch (e) {
             log(e);
-        }
-    }
-    async function getGameClicks(gameID) {
-        try {
-            log(`Getting clicks for game ${gameID}`);
-            let { data: game_clicks, error } = await client
-                .from('game_clicks')
-                .select('clicks')
-                .eq('gameID', gameID);
-
-            if (error) {
-                log('Error getting game clicks:', error.message);
-                return;
-            }
-            return (game_clicks[0] || { clicks: 0 }).clicks;
-        } catch (e) {
-            log(e);
-            return 0;
         }
     }
     function pickRandomCard() {
@@ -572,26 +540,6 @@ try {
 
         return results;
     }
-    async function addGameRequest(game_name) {
-        try {
-            log(`Adding game request for ${game_name}`);
-            // run function 'notion-integration'
-            const response = await fetch('https://dahljrdecyiwfjgklnvz.supabase.co/functions/v1/notion-integration', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaGxqcmRlY3lpd2ZqZ2tsbnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNjE3NzMsImV4cCI6MjA0MzgzNzc3M30.8-YlXqSXsYoPTaDlHMpTdqLxfvm89-8zk2HG2MCABRI',
-                    'Content-Type': 'application/json'
-                },
-                cors: 'no-cors',
-                body: JSON.stringify({ name: game_name })
-            });
-
-
-            log('Game request added:');
-        } catch (error) {
-            log('Error adding game request:', error.message);
-        }
-    };
     function hideAds() {
         log("Hiding ads");
         showingAds = false;
@@ -621,28 +569,6 @@ try {
         string = string.replace(/[^a-z0-9]/g, "");
         string = string.replace(/\s/g, "");
         return string;
-    }
-    function createAddGamePopup() {
-        log("Creating game request popup");
-        const popup = document.createElement("div");
-        popup.classList.add("popup");
-        popup.innerHTML = `
-        <div class="popup-content">
-            <h2>Request a game</h2>
-            <input type="text" id="gameRequestInput" placeholder="Game name">
-            <div class = "popup-buttons">
-                <button id = "nvmd">Close</button><button id="sendGameRequestButton">Send</button>
-            </div>
-        </div>
-    `;
-        document.body.appendChild(popup);
-        window.gameRQPopupOpen = true;
-        return popup;
-    }
-    function closePopup() {
-        log("Closing game request popup");
-        document.querySelector(".popup").remove();
-        window.gameRQPopupOpen = false;
     }
     function sortCardsAlphabetically(direction, middle = () => { }) {
         log(`Sorting cards alphabetically`);
@@ -889,7 +815,7 @@ try {
         });
         rerenderAds(layout)
     }
-    function rerenderAds(layout) {
+    function rerenderAds() {
         // shuffle ads
         const ads = document.querySelectorAll('.inxxx');
         // remove all ads

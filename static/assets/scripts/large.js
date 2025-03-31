@@ -500,14 +500,11 @@ class Stats {
         this.initTime = new Date().getTime();
         this.isDragging = false;
         this.ableToDrag = false;
-        this.logs = [];
-        this.requests = [];
         this.interceptRequests = (localStorage.getItem('[ns_ccported]_statsConfig_interceptRequests') ? true : false);
         const [dom] = this.generateDom();
         this.dom = dom;
         this.workerLoaded = false;
         dom.style.display = "none";
-        this.clientID = Math.random().toString(36).substring(2);
         this.contentBeforeLoad = {
             logs: [],
             requestsIntercepted: [],
@@ -579,12 +576,6 @@ class Stats {
                 }
             }
         });
-    }
-    getPanel(panel = 0) {
-        return this.dom.children[panel];
-    }
-    destroy() {
-        this.dom.remove();
     }
     tick() {
         if (this.isOpen) {
@@ -798,7 +789,7 @@ class Stats {
     renderTableFromJSON(json) {
         if (!json) {
             this.log("No JSON to render");
-            return "";
+            return document.createElement("table");
         }
         const table = document.createElement("table");
         table.style.borderCollapse = "collapse";
