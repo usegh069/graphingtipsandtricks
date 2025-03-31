@@ -158,34 +158,15 @@ declare  function hideAds(): void;
  */
 declare  function openSearch(): void;
 
-
-/**
- * @function markGameSeen
- * 
- * Marks a game as seen in localStorage.
- * 
- * @param {string} gameID - The gameID of the game to mark as seen.
- */
-declare  function markGameSeen(gameID: string): void;
-
-
 /**
  * @function checkGameSeen
  * 
  * Checks if a game has been seen before and applies highlighting if not.
  * 
- * @param {string} gameID - The gameID of the game to check if seen.
+ * @param {string} game - The game object to check if seen.
  * @param {HTMLElement} card - The HTMLElement of the card to check if seen. (Will apply highlighting if not seen)
  */
-declare  function checkGameSeen(gameID: string, card: HTMLElement): void;
-
-/**
- * @function checkRomSeen
- * 
- * @param {string} romID - The ID of the ROM to check if seen.
- * @returns {boolean} - Whether the ROM has been seen before.
- */
-declare  function checkRomSeen(romID: string): boolean;
+declare  function checkGameSeen(game: Game, card: HTMLElement): void;
 
 /**
  * @function normalize

@@ -215,7 +215,6 @@ try {
                     window.open(links[0].href, '_blank');
                 });
                 checkSeenGame(id, card);
-                markGameSeen(id);
                 cardsCache.push(card);
                 cardsContainer.appendChild(card);
             });
@@ -223,28 +222,6 @@ try {
             loadPinnedStates();
             log("Loading ROMs")
             document.querySelector(".cards").classList.remove("loading");
-            try {
-                let romsJSON = await importJSON("/roms/roms.json");
-                let unseenRoms = [];
-                log(`Roms found (length not calculated - reason: deep)`);
-                Object.keys(romsJSON).forEach(key => {
-                    const romsList = romsJSON[key];
-                    romsList.forEach(([romLink, romID]) => {
-                        const name = `${key}-${normalize(romID)}`;
-                        if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
-                        markGameSeen(name);
-                    })
-                });
-                if (unseenRoms.length > 0) {
-                    if (unseenRoms.length == 1) {
-                        document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`;
-                    } else {
-                        document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`;
-                    }
-                }
-            } catch (e) {
-                log("Failed to load ROMs: " + e);
-            }
             if (query.has("q")) {
                 if (query.get("q").length > 0) {
                     log(`Search query exists: <${query.get('q')}>`);
@@ -343,7 +320,6 @@ try {
                 window.open(links[0].href, '_blank');
             });
             checkSeenGame(id, card);
-            markGameSeen(id);
             cardsCache.push(card);
             cardsContainer.appendChild(card);
         });
@@ -351,27 +327,6 @@ try {
         loadPinnedStates();
         document.querySelector(".cards").classList.remove("loading");
         window.ccPorted.cardsRendered = true;
-        try {
-            let romsJSON = await importJSON("/roms/roms.json");
-            let unseenRoms = []
-            Object.keys(romsJSON).forEach(key => {
-                const romsList = romsJSON[key];
-                romsList.forEach(([romLink, romID]) => {
-                    const name = `${key}-${normalize(romID)}`;
-                    if (!checkRomSeen(name)) unseenRoms.push([key, romID]);
-                    markGameSeen(name);
-                })
-            });
-            if (unseenRoms.length > 0) {
-                if (unseenRoms.length == 1) {
-                    document.getElementById("romLinks").innerHTML += ` (${unseenRoms[0][0]}/${unseenRoms[0][1]} New!)`
-                } else {
-                    document.getElementById("romLinks").innerHTML += ` (${unseenRoms.length} New!)`
-                }
-            }
-        } catch (e) {
-            log("Failed to load roms.json: " + e);
-        }
         if (query.has("q")) {
             if (query.get("q").length > 0) {
                 log(`Search query exists: <${query.get('q')}>`)
@@ -552,17 +507,26 @@ try {
         searchInput.type = "text";
         searchInput.focus();
     }
-    function markGameSeen(id) {
-        localStorage.setItem(`seen-${id}`, "yes");
-    }
-    function checkSeenGame(id, card) {
-        if (localStorage.getItem(`seen-${id}`) !== "yes") {
-            card.querySelector(".card-content .card-title").textContent += " (New)";
-            card.classList.add("new");
+    function checkSeenGame(game, card) {
+        const uploaded = game.uploadedTimestamp;
+        const updated = game.updatedTimestamp;
+        const now = Date.now();
+        const threshold = 1000 * 60 * 60 * 24 * 2; // 2 days
+        if (uploaded && updated) {
+            if (now - uploaded < threshold) {
+                card.classList.add("new");
+            } else if (now - updated < threshold) {
+                card.classList.add("updated");
+            }
+        } else if (uploaded) {
+            if (now - uploaded < threshold) {
+                card.classList.add("new");
+            }
+        } else if (updated) {
+            if (now - updated < threshold) {
+                card.classList.add("updated");
+            }
         }
-    }
-    function checkRomSeen(id) {
-        return localStorage.getItem(`seen-${id}`) == "yes";
     }
     function normalize(string) {
         string = string.toLowerCase();

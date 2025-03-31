@@ -340,13 +340,19 @@ a:visited {
   transition: 0.3s ease;
 }
 
-.new {
+.new, .updated {
   order: -1;
   /* add a glowing gold shadow effect */
   box-shadow: 0 0 20px var(--glow-color);
   animation: glowing 1300ms infinite;
   border: 5px solid var(--glow-color);
   box-sizing: border-box;
+}
+.new h2::after{
+  content: " (NEW)";
+}
+.updated h2::after{
+  content: " (UPDATED)";
 }
 
 @keyframes glowing {

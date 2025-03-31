@@ -199,6 +199,8 @@ interface Game {
     proxiedPath?: string;
     tags: string[];
     thumbPath: string;
+    uploadedTimestamp: number;
+    updatedTimestamp: number;
 }
 
 /**
