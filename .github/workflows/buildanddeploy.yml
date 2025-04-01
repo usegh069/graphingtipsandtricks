@@ -97,6 +97,7 @@ jobs:
   sync-biggamescript:
       needs: build-and-deploy-gh-pages
       runs-on: ubuntu-latest
+      
       steps:
         - uses: actions/checkout@v4
           with:
@@ -111,6 +112,7 @@ jobs:
 
         - name: Deploy to S3
           run: |
+            ls
             aws s3 sync ./big_game_script.js s3://ccportedgames/big_game_script.js --exact-timestamps
 
   deploy-to-firebase:
