@@ -65,11 +65,12 @@ window.ccPorted = window.ccPorted || {};
             const serversText = await this.getServerText();
 
             this.servers = serversText.split('\n').map((line, i) => {
-                const [address, friendlyName] = line.split(',');
+                const [address, friendlyName, path] = line.split(',');
                 return {
                     address,
                     friendlyName,
                     index: i,
+                    path: path.trim(),
                     isLive: null // Will be populated when checked
                 };
             });
@@ -1140,13 +1141,13 @@ window.ccPorted = window.ccPorted || {};
           const decomp = await this.syncUtil.executeWorkerTask('decompressData', data.Body);
           log(`[CCPorted State Manager] State decompressed successfully`);
           
-          const timestamp = decomp.timestamp;
+          const timestamp = parseInt(decomp.timestamp);
           log('[CCPorted State Manager] Last save timestamp: ' + timestamp);
           
           const currentSave = localStorage.getItem('ccStateLastSave');
           log('[CCPorted State Manager] Current save timestamp: ' + currentSave);
           
-          if (!currentSave || timestamp > currentSave) {
+          if (!currentSave || timestamp > parseInt(currentSave)) {
             log('[CCPorted State Manager] Game state has been updated');
             localStorage.setItem('ccStateLastSave', timestamp, true);
             log('[CCPorted State Manager] Importing state....');
@@ -1861,17 +1862,20 @@ window.ccPorted = window.ccPorted || {};
                 Key: `${window.ccPorted.user.sub}/${key}`,
                 Body: file,
                 ContentType: file.type,
+                PartSize: 5 * 1024 * 1024, // 5MB parts for large files
+                QueueSize: 10, // Upload parts concurrently
                 ...customparams
-            }
+            };
+            
             window.ccPorted.s3Client.upload(uploadParams, (err, data) => {
                 if (err) {
                     reject(err);
                 } else {
                     resolve(data);
                 }
-            })
+            });
         });
-    }
+    };
     window.ccPorted.updateUser = async (attributes) => {
         await window.ccPorted.awsPromise;
         return new Promise((resolve, reject) => {

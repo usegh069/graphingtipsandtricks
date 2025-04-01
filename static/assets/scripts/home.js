@@ -160,29 +160,30 @@ try {
         return res.json() || {};
     }
     async function testOpenServers() {
-        let server = null;
+        let pserver = null;
         let serverIndex = 0;
         const serverList = await fetch('/servers.txt');
         const serversText = await serverList.text();
         const servers = serversText.split('\n');
-        while (!server) {
-            const toAttemptIndex = Math.floor(Math.random() * servers.length);
-            const toAttempt = servers[toAttemptIndex].split(",")[0];
+        for(const server of servers){
+
+            const [address, name, path] = server.split(",");
+            const toAttempt = address.trim();
             try {
-                console.log(`[CCPORTED: Attempting server ${toAttempt} (${toAttemptIndex})`);
+                log(`Attempting server ${toAttempt}`);
                 const res = await fetch(`https://${toAttempt}/blocked_res.txt`);
                 if (res.ok) {
                     const text = await res.text();
                     if (text.indexOf("===NOT_BLOCKED===") !== -1) {
-                        server = toAttempt;
-                        serverIndex = toAttemptIndex;
+                        pserver = toAttempt;
+                        return [toAttempt, serverIndex, path];
                     }
                 }
             } catch (e) {
-                console.log(`[CCPORTED: Server ${toAttempt} failed: ${e}`);
+                log(`Server ${toAttempt} failed: ${e}`);
             }
+            serverIndex++;
         }
-        return [server.trim(), serverIndex];
     }
     async function baseRender(gamesJson) {
         try {
@@ -290,10 +291,11 @@ try {
         if (!window.ccPorted.adsEnabled) {
             hideAds();
         }
-        const [chosenServer, index] = await testOpenServers();
+        const [chosenServer, index, path] = await testOpenServers();
         window.ccPorted.gameServer = {};
         window.ccPorted.gameServer.server = chosenServer;
         window.ccPorted.gameServer.index = index;
+        window.ccPorted.gameServer.path = path
         const gamesJson = await importGames();
         setTimeout(() => {
             baseRender(gamesJson);
@@ -670,8 +672,7 @@ try {
 
         const bg = document.createElement("div");
         bg.classList.add("card-bg");
-        bg.style.backgroundImage = `url('https://${window.ccPorted.gameServer.server}/games/${game.gameID}${game.thumbPath}')`;
-
+        bg.style.backgroundImage = `url('https://${window.ccPorted.gameServer.server}/${window.ccPorted.gameServer.path}${game.gameID}${game.thumbPath}')`;
         const content = document.createElement("div");
         content.classList.add("card-content");
 

@@ -167,11 +167,12 @@
                 const serversText = await this.getServerText();
 
                 this.servers = serversText.split('\n').map((line,i) => {
-                    const [address, friendlyName] = line.split(',');
+                    const [address, friendlyName, path] = line.split(',');
                     return {
                         address,
                         friendlyName,
                         index: i,
+                        path: path.trim(),
                         isLive: null // Will be populated when checked
                     };
                 });
@@ -407,9 +408,10 @@
             const serversText = await serverList.text();
             const servers = serversText.split('\n');
             if (typeof serverID != "undefined") {
-                iframe.src = `https://${servers[serverID].split(",")[0]}/games/${gameID}/index.html`;
+                iframe.src = `https://${servers[serverID].split(",")[0]}/${servers[serverID].split(",")[2]}${gameID}/index.html`;
             } else {
-                iframe.src = `https://${servers[Math.floor(Math.random() * servers.length)].split(",")[0]}/games/${gameID}/index.html`;
+                const serverID = Math.floor(Math.random() * servers.length);
+                iframe.src = `https://${servers[serverID].split(",")[0]}/${servers[serverID].split(",")[2]}${gameID}/index.html`;
             }
             iframe.addEventListener("load", (e) => {
                 const w = iframe.contentWindow;
@@ -553,7 +555,7 @@
             function updateIframe(server) {
                 console.log("UPDATING TO", server)
                 if(server.index == serverID) return;
-                iframe.src = `https://${server.address.split(",")[0]}/games/${gameID}/index.html`;
+                iframe.src = `https://${server.address.split(",")[0]}/${server.path}${gameID}/index.html`;
                 let query = new URLSearchParams(window.location.search);
                 query.set("server",server.index);
                 var url = new URL(window.location.href);
