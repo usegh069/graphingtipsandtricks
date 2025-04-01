@@ -113,7 +113,7 @@ jobs:
         - name: Deploy to S3
           run: |
             ls
-            aws s3 sync ./big_game_script.js s3://ccportedgames/big_game_script.js --exact-timestamps
+            aws s3 sync big_game_script.js s3://ccportedgames/big_game_script.js --exact-timestamps
 
   deploy-to-firebase:
     needs: build-and-deploy-gh-pages
