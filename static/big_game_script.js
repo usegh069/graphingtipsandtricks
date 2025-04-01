@@ -894,6 +894,7 @@ window.ccPorted = window.ccPorted || {};
               log(`[CCPorted State Manager] Successfully deleted database: ${dbInfo.name}`);
               resolve();
             };
+            setTimeout(resolve, 10000); // timeout after 10 seconds.
           });
           
           // Allow UI to breathe between operations
