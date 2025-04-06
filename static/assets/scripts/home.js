@@ -82,7 +82,7 @@ try {
         const games = [];
         const params = {
             TableName: 'games_list',
-            ProjectionExpression: 'gameID, clicks, description, fName, tags, thumbPath',
+            ProjectionExpression: 'gameID, clicks, description, fName, tags, thumbPath, uploadedTimestamp, updatedTimestamp',
             FilterExpression: 'isOnline = :o',
             ExpressionAttributeValues: {
                 ':o': true
@@ -215,7 +215,7 @@ try {
                     incrementClicks(id);
                     window.open(links[0].href, '_blank');
                 });
-                checkSeenGame(id, card);
+                checkSeenGame(game, card);
                 cardsCache.push(card);
                 cardsContainer.appendChild(card);
             });
@@ -293,9 +293,9 @@ try {
         }
         const [chosenServer, index, path] = await testOpenServers();
         window.ccPorted.gameServer = {};
-        window.ccPorted.gameServer.server = chosenServer;
+        window.ccPorted.gameServer.server = chosenServer.trim();
         window.ccPorted.gameServer.index = index;
-        window.ccPorted.gameServer.path = path
+        window.ccPorted.gameServer.path = path.trim();
         const gamesJson = await importGames();
         setTimeout(() => {
             baseRender(gamesJson);
@@ -321,7 +321,7 @@ try {
                 incrementClicks(id);
                 window.open(links[0].href, '_blank');
             });
-            checkSeenGame(id, card);
+            checkSeenGame(game, card);
             cardsCache.push(card);
             cardsContainer.appendChild(card);
         });
@@ -510,10 +510,14 @@ try {
         searchInput.focus();
     }
     function checkSeenGame(game, card) {
+        console.log(`Checking seen game`, game);
         const uploaded = game.uploadedTimestamp;
         const updated = game.updatedTimestamp;
         const now = Date.now();
         const threshold = 1000 * 60 * 60 * 24 * 2; // 2 days
+        if(uploaded || updated){
+            console.log(`Uploaded: ${uploaded}, Updated: ${updated}, Now: ${now}`);
+        }
         if (uploaded && updated) {
             if (now - uploaded < threshold) {
                 card.classList.add("new");
