@@ -26,11 +26,13 @@
             box-sizing: border-box;
             /* overflow: hidden; */
         }
-        .server-toggle-wheel p{
+
+        .server-toggle-wheel p {
             font-size: 9pt;
             color: #ccc;
 
         }
+
         .wheel-container {
             position: relative;
             width: 100%;
@@ -147,7 +149,7 @@
                 await this.loadServers();
                 this.createUI();
                 this.setupKeyboardListeners();
-                for(var i = 0; i < this.initialServerIndex; i++){
+                for (var i = 0; i < this.initialServerIndex; i++) {
                     this.nextServer(true);
                 }
             }
@@ -166,7 +168,7 @@
             async loadServers() {
                 const serversText = await this.getServerText();
 
-                this.servers = serversText.split('\n').map((line,i) => {
+                this.servers = serversText.split('\n').map((line, i) => {
                     const [address, friendlyName, path] = line.split(',');
                     return {
                         address,
@@ -335,7 +337,7 @@
 
             nextServer(hideUI = false) {
                 this.currentServerIndex = (this.currentServerIndex + 1) % this.servers.length;
-                if(!hideUI) this.showUI();
+                if (!hideUI) this.showUI();
             }
 
             prevServer() {
@@ -438,7 +440,7 @@
                         }
                         return `https://${domain.trim()}`
                     });
-                    if (!["http://localhost:8080",...allowedOrigins].includes(event.origin)) {
+                    if (!["http://localhost:8080", ...allowedOrigins].includes(event.origin)) {
                         console.warn(`Rejected message from unauthorized origin: ${event.origin}`);
                         return;
                     }
@@ -485,8 +487,8 @@
                         // Send response back to the exact source iframe
                         console.log(response, event.origin);
                         event.source.postMessage(response, event.origin);
-                    } else if(data.action === "SWITCH_SERVER"){
-                        console.log("OVERALL XXX",data)
+                    } else if (data.action === "SWITCH_SERVER") {
+                        console.log("OVERALL XXX", data)
                         updateIframe(data.server);
                     } else {
                         // Handle unknown action
@@ -554,10 +556,10 @@
 
             function updateIframe(server) {
                 console.log("UPDATING TO", server)
-                if(server.index == serverID) return;
+                if (server.index == serverID) return;
                 iframe.src = `https://${server.address.split(",")[0]}/${server.path}${gameID}/index.html`;
                 let query = new URLSearchParams(window.location.search);
-                query.set("server",server.index);
+                query.set("server", server.index);
                 var url = new URL(window.location.href);
                 url.search = query.toString();
                 window.history.pushState({}, '', url);
@@ -570,6 +572,14 @@
         })();
 
     </script>
+    <!-- Monumetric Footer In-screen D: 728x90 T: 728x90 M: 320x50,320x100  START -->
+
+    <div id="mmt-c2522ff2-7549-433b-a689-0cd63517722c"></div>
+    <script type="text/javascript"
+        data-cfasync="false">$MMT = window.$MMT || {}; $MMT.cmd = $MMT.cmd || []; $MMT.cmd.push(function () { $MMT.display.slots.push(["c2522ff2-7549-433b-a689-0cd63517722c"]); })</script>
+
+    <!-- Monumetric Footer In-screen D: 728x90 T: 728x90 M: 320x50,320x100  ENDS -->
+
 </body>
 
 </html>
