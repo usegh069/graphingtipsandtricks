@@ -1,19 +1,5 @@
-# ccported
-Long list of links to games
+# Unblocked games for all!!
 
-- Cookie Clicker
-  - [ccported](https://ccported.github.io/cc/)
-- Champion Island
-  - [ccported](https://ccported.github.io/ci)
-- Drift Hunters
-  - [ccported](https://ccported.github.io/dh)
-- Mr. Mine
-  - [ccported](https://ccported.github.io/mm)
-- Tiny Fishing
-  - [ccported](https://ccported.github.io/tf)
-- NES Emulator
-  - [ccported](https://ccported.github.io/nes/project)
-- Spelunky
-  - [ccported](https://ccported.github.io/sp/src)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T81D9XVW)
 
-and more! visit https://ccported.github.io
+Visit [ccported.github.io](https://ccported.github.io)
