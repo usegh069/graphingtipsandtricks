@@ -284,8 +284,11 @@ try {
         window.ccPorted.cardsRendered = false;
         window.ccPorted.adsEnabled = await adsEnabled();
         createNotif({
-            cta: "https://ko-fi.com/s/f33346d0ae",
-            message: "Get a new fully custom domain!",
+            cta: {
+                "link":"https://ko-fi.com/s/f33346d0ae",
+                "text":"Get your own domain"
+            },
+            message: "Get your own custom CCPorted link!",
             autoClose: 7
         })
         if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
