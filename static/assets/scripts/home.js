@@ -283,6 +283,11 @@ try {
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
         window.ccPorted.adsEnabled = await adsEnabled();
+        createNotif({
+            cta: "https://ko-fi.com/s/f33346d0ae",
+            message: "Get a new fully custom domain!",
+            autoClose: 7
+        })
         if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
             // add margin for the ads
             document.querySelector(".cards").style.marginRight = "300px";
