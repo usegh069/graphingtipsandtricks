@@ -283,14 +283,15 @@ try {
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
         window.ccPorted.adsEnabled = await adsEnabled();
-        createNotif({
-            cta: {
-                "link":"https://ko-fi.com/s/f33346d0ae",
-                "text":"Get your own domain"
-            },
-            message: "Get your own custom CCPorted link!",
-            autoClose: 7
-        })
+        showKofiDonationModal();
+        // createNotif({
+        //     cta: {
+        //         "link":"https://ko-fi.com/s/f33346d0ae",
+        //         "text":"Get your own domain"
+        //     },
+        //     message: "Get your own custom CCPorted link!",
+        //     autoClose: 7
+        // })
         if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
             // add margin for the ads
             document.querySelector(".cards").style.marginRight = "300px";
@@ -791,6 +792,222 @@ try {
             card.classList.toggle('grid', layout === 'grid');
         });
         rerenderAds(layout)
+    }
+
+    function showKofiDonationModal(options = {}) {
+      // Default options
+      const defaults = {
+        kofiUrl: 'https://ko-fi.com/ccported',
+        goalAmount: '500',
+        deadline: 'May 31, 2025',
+        siteName: 'CCPorted',
+        showOnce: false
+      };
+    
+      // Merge defaults with provided options
+      const config = { ...defaults, ...options };
+      
+    
+      // Check if we should show the modal (if showOnce is true)
+      if (config.showOnce) {
+        const hasSeenModal = localStorage.getItem('kofiModalSeen');
+        if (hasSeenModal) return;
+      }
+    
+      // Create modal container
+      const modalOverlay = document.createElement('div');
+      modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      `;
+    
+      // Create modal content
+      const modalContent = document.createElement('div');
+      modalContent.style.cssText = `
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        width: 90%;
+        max-width: 480px;
+        padding: 32px;
+        position: relative;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+      `;
+    
+      // Close button
+      const closeButton = document.createElement('button');
+      closeButton.innerHTML = '&times;';
+      closeButton.style.cssText = `
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+      `;
+    
+    
+      // Title
+      const title = document.createElement('h2');
+      title.textContent = 'Support CCPorted';
+      title.style.cssText = `
+        margin: 0 0 12px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+      `;
+    
+      // Progress text 
+      const progressText = document.createElement('div');
+      progressText.style.cssText = `
+        text-align: center;
+        margin-bottom: 16px;
+      `;
+      progressText.innerHTML = `
+        <p style="margin: 0 0 8px; color: #333; font-size: 16px;">
+          If $${config.goalAmount} isn't raised by ${config.deadline}, ${config.siteName} will be shutting down.
+        </p>
+      `;
+    
+      // Call to action
+      const ctaText = document.createElement('p');
+      ctaText.textContent = 'Please consider supporting us with a donation to help keep the site running.';
+      ctaText.style.cssText = `
+        margin: 0 0 20px;
+        text-align: center;
+        color: #555;
+        font-size: 16px;
+      `;
+    
+      // Progress bar container
+      const progressContainer = document.createElement('div');
+      progressContainer.style.cssText = `
+        width: 100%;
+        background-color: #f1f1f1;
+        border-radius: 8px;
+        height: 16px;
+        margin-bottom: 24px;
+        overflow: hidden;
+      `;
+    
+      // Progress bar (initially empty)
+      const progressBar = document.createElement('div');
+      progressBar.style.cssText = `
+        width: 0%;
+        height: 100%;
+        background-color: #29abe0;
+        border-radius: 8px;
+        transition: width 1s ease;
+      `;
+      progressContainer.appendChild(progressBar);
+    
+      // Donation button
+      const donateButton = document.createElement('a');
+      donateButton.href = config.kofiUrl;
+      donateButton.target = '_blank';
+      donateButton.style.cssText = `
+        display: block;
+        background-color: #29abe0;
+        color: white;
+        text-align: center;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        font-size: 18px;
+        margin: 0 auto;
+        width: 80%;
+        transition: background-color 0.2s ease;
+      `;
+      donateButton.textContent = 'Support us on Ko-fi';
+      donateButton.onmouseover = function() {
+        this.style.backgroundColor = '#1e8bba';
+      };
+      donateButton.onmouseout = function() {
+        this.style.backgroundColor = '#29abe0';
+      };
+    
+      // Maybe later button
+      const maybeLaterButton = document.createElement('button');
+      maybeLaterButton.textContent = 'Maybe later';
+      maybeLaterButton.style.cssText = `
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 14px;
+        margin: 16px auto 0;
+        display: block;
+        cursor: pointer;
+        text-decoration: underline;
+      `;
+    
+      // Assemble modal
+      modalContent.appendChild(closeButton);
+      modalContent.appendChild(title);
+      modalContent.appendChild(progressText);
+      modalContent.appendChild(ctaText);
+      modalContent.appendChild(progressContainer);
+      modalContent.appendChild(donateButton);
+      modalContent.appendChild(maybeLaterButton);
+      modalOverlay.appendChild(modalContent);
+    
+      // Add to document
+      document.body.appendChild(modalOverlay);
+    
+      // Animate in
+      setTimeout(() => {
+        modalOverlay.style.opacity = '1';
+        modalContent.style.transform = 'translateY(0)';
+      }, 10);
+    
+      // Close modal function
+      const closeModal = () => {
+        modalOverlay.style.opacity = '0';
+        modalContent.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          document.body.removeChild(modalOverlay);
+        }, 300);
+        
+        // Set flag in localStorage if showOnce is true
+        if (config.showOnce) {
+          localStorage.setItem('kofiModalSeen', 'true');
+        }
+      };
+    
+      // Event listeners
+      closeButton.addEventListener('click', closeModal);
+      maybeLaterButton.addEventListener('click', closeModal);
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
+    
+      // Show some initial progress in the bar (optional, you can remove this or customize)
+      setTimeout(() => {
+        // You could replace this with actual progress data if you have it
+        progressBar.style.width = '0%'; 
+      }, 500);
+    
+      // Return an object with methods to control the modal
+      return {
+        close: closeModal,
+        updateProgress: (percentComplete) => {
+          progressBar.style.width = `${percentComplete}%`;
+        }
+      };
     }
     function rerenderAds() {
         // shuffle ads
