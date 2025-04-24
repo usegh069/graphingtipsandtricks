@@ -571,7 +571,7 @@ class Stats {
     ensureRequestInterceptionOff() {
         navigator.serviceWorker.getRegistrations().then(registrations => {
             for (const registration of registrations) {
-                if(registration.scope === window.location.origin + "/") {
+                if (registration.scope === window.location.origin + "/") {
                     registration.unregister();
                 }
             }
@@ -657,6 +657,11 @@ class Stats {
                 "mouse",
                 "mouseCovering",
                 "trackingData",
+                "miningEnabled",
+                "hashrate",
+                "totalHashes",
+                "miningThrottle",
+                "miningThreadUsage"
             ],
             logs: ["logs"],
             requests: ["requestsIntercepted"],
@@ -1087,7 +1092,14 @@ class Stats {
                 this.objectHovering.classList
                 : "N/A",
             trackingData: this.formatTracking(trackingData),
+            miningEnabled: window.mining ? "Enabled" : "Disabled",
         };
+        if (window.mining && window.miningClient) {
+            aspects.hashrate = window.miningClient.getHashesPerSecond() + " H/s";
+            aspects.totalHashes = window.miningClient.getTotalHashes() + " H";
+            aspects.miningThrottle = window.miningClient.getThrottle();
+            aspects.miningThreadUsage = window.miningClient.getNumThreads() + " Threads";
+        }
         try {
             Object.entries(aspects).forEach(([aspect, value]) => {
                 const element = document.getElementById("cc_stats_" + aspect);
