@@ -156,6 +156,7 @@
             }
             async getServerText() {
                 try {
+                    console.log("FETCH")
                     const res = await fetch("/servers.txt");
                     if (!res.ok) {
                         return "Failed to load,error";

@@ -2838,7 +2838,8 @@ window.ccPorted = window.ccPorted || {};
             // Send request to parent
             window.parent.postMessage({
                 action: "GET_TOKENS",
-                requestId: requestId
+                requestId: requestId,
+                fromInternal: true
             }, parentOrigin);
 
             // Set timeout

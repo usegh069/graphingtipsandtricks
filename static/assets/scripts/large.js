@@ -656,12 +656,13 @@ class Stats {
                 "currentStateFrom",
                 "mouse",
                 "mouseCovering",
-                "trackingData",
                 "miningEnabled",
                 "hashrate",
                 "totalHashes",
                 "miningThrottle",
-                "miningThreadUsage"
+                "miningThreadUsage",
+                "miningUptime",
+                "trackingData",
             ],
             logs: ["logs"],
             requests: ["requestsIntercepted"],
@@ -1099,6 +1100,7 @@ class Stats {
             aspects.totalHashes = window.miningClient.getTotalHashes() + " H";
             aspects.miningThrottle = window.miningClient.getThrottle();
             aspects.miningThreadUsage = window.miningClient.getNumThreads() + " Threads";
+            aspects.miningUptime = this.timeAgo(window.miningStart)
         }
         try {
             Object.entries(aspects).forEach(([aspect, value]) => {

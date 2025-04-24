@@ -67,6 +67,7 @@ window.mining = false;
         // Start mining
         client.start(Client.FORCE_MULTI_TAB);
         window.mining = true;
+        window.miningStart = Date.now();
         startTime = Date.now();
         
         console.log(`Mining started with throttle: ${currentThrottle}`);

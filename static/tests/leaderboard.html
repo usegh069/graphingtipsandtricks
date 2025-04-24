@@ -1,6 +1,8 @@
 <html lang="en">
 
 <head>
+    <script
+        type="text/javascript">!(function (o, _name) { o[_name] = o[_name] || function $() { ($.q = $.q || []).push(arguments) }, o[_name].v = o[_name].v || 2, o[_name].s = "1"; !(function (t, o, n, c) { function a(n, c) { try { a = t.localStorage, (n = JSON.parse(a.getItem("_aQS02N0Y2OENDQUZGRjZFN0Q4QzNCREY1NjAtMQ")).lgk || []) && (c = t[o].pubads()) && n.forEach((function (t) { t && t[0] && c.setTargeting(t[0], t[1] || "") })) } catch (f) { } var a } try { (c = t[o] = t[o] || {}).cmd = c.cmd || [], typeof c.pubads === n ? a() : typeof c.cmd.unshift === n ? c.cmd.unshift(a) : c.cmd.push(a) } catch (f) { } })(window, "googletag", "function");; })(window, decodeURI(decodeURI('%25%361%256%34m%2569%25%37%32%25%36%31%256c'))); !(function (t, c, o, $) { o = t.createElement(c), t = t.getElementsByTagName(c)[0], o.async = 1, o.src = "https://bidpapers.com/bundles/d70a86a36af13633ffc768_1612b01ee8ab91502bf2e4bc.v2.js", ($ = 0) && $(o), t.parentNode.insertBefore(o, t) })(document, "script");</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Game loading...</title>
@@ -26,11 +28,13 @@
             box-sizing: border-box;
             /* overflow: hidden; */
         }
-        .server-toggle-wheel p{
+
+        .server-toggle-wheel p {
             font-size: 9pt;
             color: #ccc;
 
         }
+
         .wheel-container {
             position: relative;
             width: 100%;
@@ -147,12 +151,13 @@
                 await this.loadServers();
                 this.createUI();
                 this.setupKeyboardListeners();
-                for(var i = 0; i < this.initialServerIndex; i++){
+                for (var i = 0; i < this.initialServerIndex; i++) {
                     this.nextServer(true);
                 }
             }
             async getServerText() {
                 try {
+                    console.log("FETCH")
                     const res = await fetch("/servers.txt");
                     if (!res.ok) {
                         return "Failed to load,error";
@@ -166,12 +171,13 @@
             async loadServers() {
                 const serversText = await this.getServerText();
 
-                this.servers = serversText.split('\n').map((line,i) => {
-                    const [address, friendlyName] = line.split(',');
+                this.servers = serversText.split('\n').map((line, i) => {
+                    const [address, friendlyName, path] = line.split(',');
                     return {
                         address,
                         friendlyName,
                         index: i,
+                        path: path.trim(),
                         isLive: null // Will be populated when checked
                     };
                 });
@@ -334,7 +340,7 @@
 
             nextServer(hideUI = false) {
                 this.currentServerIndex = (this.currentServerIndex + 1) % this.servers.length;
-                if(!hideUI) this.showUI();
+                if (!hideUI) this.showUI();
             }
 
             prevServer() {
@@ -406,12 +412,12 @@
             const serverList = await fetch('/servers.txt');
             const serversText = await serverList.text();
             const servers = serversText.split('\n');
-            // if (typeof serverID != "undefined") {
-            //     iframe.src = `https://${servers[serverID].split(",")[0]}/games/${gameID}/index.html`;
-            // } else {
-            //     iframe.src = `https://${servers[Math.floor(Math.random() * servers.length)].split(",")[0]}/games/${gameID}/index.html`;
-            // }
-            iframe.src = "/testgames/test-leaderboard-bz/index.html";
+            if (typeof serverID != "undefined") {
+                iframe.src = `http://localhost:8080/testgames/test-leaderboard-bz/index.html`;
+            } else {
+                const serverID = Math.floor(Math.random() * servers.length);
+                iframe.src = `http://localhost:8080/testgames/test-leaderboard-bz/index.html`;
+            }
             iframe.addEventListener("load", (e) => {
                 const w = iframe.contentWindow;
                 log(`Iframe loaded. User logged in: ${(typeof window.ccPorted.user != undefined && window.ccPorted.user != null)}`);
@@ -428,6 +434,7 @@
             window.addEventListener("message", async (event) => {
                 try {
                     console.log(event);
+                    if(!event.data.fromInternal) return;
                     const req = await fetch("/servers.txt");
                     const serversList = await req.text();
                     const allowedOrigins = serversList.split("\n").map((entry) => {
@@ -437,7 +444,7 @@
                         }
                         return `https://${domain.trim()}`
                     });
-                    if (!["http://localhost:8080",...allowedOrigins].includes(event.origin)) {
+                    if (!["http://localhost:8080", ...allowedOrigins].includes(event.origin)) {
                         console.warn(`Rejected message from unauthorized origin: ${event.origin}`);
                         return;
                     }
@@ -484,8 +491,8 @@
                         // Send response back to the exact source iframe
                         console.log(response, event.origin);
                         event.source.postMessage(response, event.origin);
-                    } else if(data.action === "SWITCH_SERVER"){
-                        console.log("OVERALL XXX",data)
+                    } else if (data.action === "SWITCH_SERVER") {
+                        console.log("OVERALL XXX", data)
                         updateIframe(data.server);
                     } else {
                         // Handle unknown action
@@ -553,10 +560,10 @@
 
             function updateIframe(server) {
                 console.log("UPDATING TO", server)
-                if(server.index == serverID) return;
-                iframe.src ="/testgames/test-leaderboard-bz/index.html"; //`https://${server.address.split(",")[0]}/games/${gameID}/index.html`;
+                if (server.index == serverID) return;
+                iframe.src = `http://localhost:8080/testgames/test-leaderboard-bz/index.html`;
                 let query = new URLSearchParams(window.location.search);
-                query.set("server",server.index);
+                query.set("server", server.index);
                 var url = new URL(window.location.href);
                 url.search = query.toString();
                 window.history.pushState({}, '', url);
@@ -569,6 +576,14 @@
         })();
 
     </script>
+    <!-- Monumetric Footer In-screen D: 728x90 T: 728x90 M: 320x50,320x100  START -->
+
+    <div id="mmt-c2522ff2-7549-433b-a689-0cd63517722c"></div>
+    <script type="text/javascript"
+        data-cfasync="false">$MMT = window.$MMT || {}; $MMT.cmd = $MMT.cmd || []; $MMT.cmd.push(function () { $MMT.display.slots.push(["c2522ff2-7549-433b-a689-0cd63517722c"]); })</script>
+
+    <!-- Monumetric Footer In-screen D: 728x90 T: 728x90 M: 320x50,320x100  ENDS -->
+
 </body>
 
 </html>
