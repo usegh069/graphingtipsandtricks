@@ -922,7 +922,7 @@ try {
         `;
         progressText.innerHTML = `
           <p style="margin: 0 0 8px; color: #333; font-size: 16px;">
-            If $${config.goalAmount} isn't raised by ${config.deadline}, ${config.siteName} will be shutting down.
+            If $${config.goalAmount} isn't raised by ${config.deadline}, ${config.siteName} will be shutting down, because we will not habe enough money for servers.
           </p>
         `;
 
