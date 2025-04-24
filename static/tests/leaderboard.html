@@ -418,6 +418,15 @@
                 const serverID = Math.floor(Math.random() * servers.length);
                 iframe.src = `http://localhost:8080/testgames/test-leaderboard-bz/index.html`;
             }
+            const req = await fetch("/servers.txt");
+            const serversList = await req.text();
+            const allowedOrigins = serversList.split("\n").map((entry) => {
+                const domain = entry.split(",")[0]
+                if (domain.indexOf("localhost") > -1) {
+                    return `http://${domain.trim()}`
+                }
+                return `https://${domain.trim()}`
+            });
             iframe.addEventListener("load", (e) => {
                 const w = iframe.contentWindow;
                 log(`Iframe loaded. User logged in: ${(typeof window.ccPorted.user != undefined && window.ccPorted.user != null)}`);
@@ -434,16 +443,7 @@
             window.addEventListener("message", async (event) => {
                 try {
                     console.log(event);
-                    if(!event.data.fromInternal) return;
-                    const req = await fetch("/servers.txt");
-                    const serversList = await req.text();
-                    const allowedOrigins = serversList.split("\n").map((entry) => {
-                        const domain = entry.split(",")[0]
-                        if (domain.indexOf("localhost") > -1) {
-                            return `http://${domain.trim()}`
-                        }
-                        return `https://${domain.trim()}`
-                    });
+                    if (!event.data.fromInternal) return;
                     if (!["http://localhost:8080", ...allowedOrigins].includes(event.origin)) {
                         console.warn(`Rejected message from unauthorized origin: ${event.origin}`);
                         return;

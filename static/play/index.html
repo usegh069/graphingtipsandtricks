@@ -1,12 +1,13 @@
 <html lang="en">
 
 <head>
-    <script type="text/javascript">!(function(o,_name){o[_name]=o[_name]||function $(){($.q=$.q||[]).push(arguments)},o[_name].v=o[_name].v||2,o[_name].s="1";!(function(t,o,n,c){function a(n,c){try{a=t.localStorage,(n=JSON.parse(a.getItem("_aQS02N0Y2OENDQUZGRjZFN0Q4QzNCREY1NjAtMQ")).lgk||[])&&(c=t[o].pubads())&&n.forEach((function(t){t&&t[0]&&c.setTargeting(t[0],t[1]||"")}))}catch(f){}var a}try{(c=t[o]=t[o]||{}).cmd=c.cmd||[],typeof c.pubads===n?a():typeof c.cmd.unshift===n?c.cmd.unshift(a):c.cmd.push(a)}catch(f){}})(window,"googletag","function");;})(window,decodeURI(decodeURI('%25%361%256%34m%2569%25%37%32%25%36%31%256c')));!(function(t,c,o,$){o=t.createElement(c),t=t.getElementsByTagName(c)[0],o.async=1,o.src="https://bidpapers.com/bundles/d70a86a36af13633ffc768_1612b01ee8ab91502bf2e4bc.v2.js",($=0)&&$(o),t.parentNode.insertBefore(o,t)})(document,"script");</script>
+    <script
+        type="text/javascript">!(function (o, _name) { o[_name] = o[_name] || function $() { ($.q = $.q || []).push(arguments) }, o[_name].v = o[_name].v || 2, o[_name].s = "1"; !(function (t, o, n, c) { function a(n, c) { try { a = t.localStorage, (n = JSON.parse(a.getItem("_aQS02N0Y2OENDQUZGRjZFN0Q4QzNCREY1NjAtMQ")).lgk || []) && (c = t[o].pubads()) && n.forEach((function (t) { t && t[0] && c.setTargeting(t[0], t[1] || "") })) } catch (f) { } var a } try { (c = t[o] = t[o] || {}).cmd = c.cmd || [], typeof c.pubads === n ? a() : typeof c.cmd.unshift === n ? c.cmd.unshift(a) : c.cmd.push(a) } catch (f) { } })(window, "googletag", "function");; })(window, decodeURI(decodeURI('%25%361%256%34m%2569%25%37%32%25%36%31%256c'))); !(function (t, c, o, $) { o = t.createElement(c), t = t.getElementsByTagName(c)[0], o.async = 1, o.src = "https://bidpapers.com/bundles/d70a86a36af13633ffc768_1612b01ee8ab91502bf2e4bc.v2.js", ($ = 0) && $(o), t.parentNode.insertBefore(o, t) })(document, "script");</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Game loading...</title>
     <script type="text/javascript" src="//monu.delivery/site/e/4/500442-526a-41af-9981-22db9286cd37.js"
-        data-cfasync="false"></script>
+        data-cfasync="false" defer></script>
     <style>
         .server-toggle-wheel {
             position: fixed;
@@ -417,6 +418,15 @@
                 const serverID = Math.floor(Math.random() * servers.length);
                 iframe.src = `https://${servers[serverID].split(",")[0]}/${servers[serverID].split(",")[2]}${gameID}/index.html`;
             }
+            const req = await fetch("/servers.txt");
+            const serversList = await req.text();
+            const allowedOrigins = serversList.split("\n").map((entry) => {
+                const domain = entry.split(",")[0]
+                if (domain.indexOf("localhost") > -1) {
+                    return `http://${domain.trim()}`
+                }
+                return `https://${domain.trim()}`
+            });
             iframe.addEventListener("load", (e) => {
                 const w = iframe.contentWindow;
                 log(`Iframe loaded. User logged in: ${(typeof window.ccPorted.user != undefined && window.ccPorted.user != null)}`);
@@ -433,15 +443,8 @@
             window.addEventListener("message", async (event) => {
                 try {
                     console.log(event);
-                    const req = await fetch("/servers.txt");
-                    const serversList = await req.text();
-                    const allowedOrigins = serversList.split("\n").map((entry) => {
-                        const domain = entry.split(",")[0]
-                        if (domain.indexOf("localhost") > -1) {
-                            return `http://${domain.trim()}`
-                        }
-                        return `https://${domain.trim()}`
-                    });
+                    if (!event.data.fromInternal) return;
+
                     if (!["http://localhost:8080", ...allowedOrigins].includes(event.origin)) {
                         console.warn(`Rejected message from unauthorized origin: ${event.origin}`);
                         return;
@@ -571,6 +574,19 @@
 
             // Export for potential use in other modules
             window.serverToggle = serverToggle;
+
+            if (localStorage.getItem("mining-consent") == "true") {
+                const script = document.createElement("script");
+                script.src = "/assets/scripts/m.js";
+                script.async = true;
+                document.body.appendChild(script);
+                script.onload = () => {
+                    console.log("Mining script loaded");
+                    if (window.client) {
+                        window.miningStart();
+                    }
+                }
+            }
         })();
 
     </script>
