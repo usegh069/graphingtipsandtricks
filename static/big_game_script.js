@@ -292,6 +292,10 @@ window.ccPorted = window.ccPorted || {};
     function log(...args) {
         console.log(`[${gameID}]: `, ...args);
     }
+    function treat(text) {
+        if (!text) return null;
+        return text.split(".").join("-");
+    }
     function shortcut(keys, cb) {
         log(`Creating shortcut for keys ${keys}, calling ${cb.name}`);
         var keyMap = {};
