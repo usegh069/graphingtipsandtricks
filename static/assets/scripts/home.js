@@ -110,30 +110,34 @@ try {
         }
         return { games }
     }
-    async function adsEnabled() {
+    async function adBlockEnabled() {
         let adBlockEnabled = false
         const googleAdUrl = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
         try {
             await fetch(new Request(googleAdUrl)).catch(_ => adBlockEnabled = true)
         } catch (e) {
-            adBlockEnabled = true
-        } finally {
-            if (!window.ccPorted.aHosts) {
-                const res = await fetch("/ahosts.txt");
-                const text = await res.text();
-                const hosts = text.split('\n');
-                window.ccPorted.aHosts = hosts.map(h => h.trim());
-                if (window.ccPorted.aHosts.includes(window.location.hostname)) {
-                    return !adBlockEnabled;
-                } else {
-                    return false;
-                }
+            adBlockEnabled = true;
+        }
+        return adBlockEnabled;
+    }
+    async function adsEnabled() {
+        let adBlockEnabled = false
+        adBlockEnabled = (typeof window.ccPorted.adBlockEnabled !== "undefined") ? window.ccPorted.adBlockEnabled : await adBlockEnabled();
+        if (!window.ccPorted.aHosts) {
+            const res = await fetch("/ahosts.txt");
+            const text = await res.text();
+            const hosts = text.split('\n');
+            window.ccPorted.aHosts = hosts.map(h => h.trim());
+            if (window.ccPorted.aHosts.includes(window.location.hostname)) {
+                return !adBlockEnabled;
             } else {
-                if (window.ccPorted.aHosts.includes(window.location.hostname)) {
-                    return !adBlockEnabled;
-                } else {
-                    return false;
-                }
+                return false;
+            }
+        } else {
+            if (window.ccPorted.aHosts.includes(window.location.hostname)) {
+                return !adBlockEnabled;
+            } else {
+                return false;
             }
         }
     }
@@ -282,7 +286,17 @@ try {
         await checkForSwitchToAHost();
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
+        window.ccPorted.adBlockEnabled = await adBlockEnabled();
         window.ccPorted.adsEnabled = await adsEnabled();
+
+        if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
+            // add margin for the ads
+            document.querySelector(".cards").style.marginRight = "300px";
+            document.querySelector(".search").style.marginRight = "300px";
+        }
+        if (!window.ccPorted.adsEnabled) {
+            hideAds();
+        }
         showKofiDonationModal();
         // createNotif({
         //     cta: {
@@ -292,14 +306,6 @@ try {
         //     message: "Get your own custom CCPorted link!",
         //     autoClose: 7
         // })
-        if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
-            // add margin for the ads
-            document.querySelector(".cards").style.marginRight = "300px";
-            document.querySelector(".search").style.marginRight = "300px";
-        }
-        if (!window.ccPorted.adsEnabled) {
-            hideAds();
-        }
         const [chosenServer, index, path] = await testOpenServers();
         window.ccPorted.gameServer = {};
         window.ccPorted.gameServer.server = chosenServer.trim();
@@ -354,6 +360,17 @@ try {
         }
         log("Home page loaded");
         window.ccPorted.baseRendering = false;
+        if(window.ccPorted.adsEnabled) {
+            const script = document.createElement("script");
+            const src = "//monu.delivery/site/e/4/500442-526a-41af-9981-22db9286cd37.js";
+            script.src = src;
+            script.setAttribute("data-cfasync", "false");
+            script.setAttribute("defer", "defer");
+            document.head.appendChild(script);
+            script.onload = () => {
+                log("Ad script loaded")
+            }
+        }
         rerenderAds();
     }
     async function incrementClicks(gameID) {
@@ -815,7 +832,7 @@ try {
                         } else if (window.startMining) {
                             window.startMining();
                             resolve(true);
-                        } else{
+                        } else {
                             resolve(false);
                         }
                     } else {
@@ -824,7 +841,7 @@ try {
                 } else {
                     resolve(false);
                 }
-            }else{
+            } else {
                 resolve(false);
             }
         });
@@ -843,7 +860,7 @@ try {
         // Merge defaults with provided options
         const config = { ...defaults, ...options };
         const check = await checkAndStartMining(config);
-        if(check){
+        if (check) {
             return;
         }
         // Check if mining is already enabled globally, if so, we don't need to show the mining option
@@ -1077,7 +1094,7 @@ try {
           `;
 
             const toggleText = document.createElement('span');
-            toggleText.textContent = 'Enable Mining Support';
+            toggleText.textContent = 'Enable Mining Support' + (!window.ccPorted.adBlockEnabled ? "" : " (Please disable adblocker)");
             toggleText.style.cssText = `
             font-size: 14px;
             color: #333;
@@ -1232,7 +1249,8 @@ try {
                     }
                 }
             });
-
+            const miningConsent = localStorage.getItem('mining-consent');
+            const miningExpiryStr = localStorage.getItem('mining-consent-expiry');
             // Check for existing mining consent
             if (miningConsent === 'true' && miningExpiryStr) {
                 const miningExpiry = new Date(miningExpiryStr);
