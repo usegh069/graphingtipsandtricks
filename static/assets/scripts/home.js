@@ -330,6 +330,13 @@ try {
         }
         if (!window.ccPorted.adsEnabled) {
             hideAds();
+            if (localStorage.getItem("mining-consent") == 'true') {
+                createModal({
+                    heading: "Please disable adblocker",
+                    description: "CCPorted is broke gang.... Please disable your adblocker to use the site.",
+                    cta: "I've disabled my adblocker (don't lie gang or ts will keep popping up)"
+                })
+            }
         }
     }
     async function incrementClicks(gameID) {
@@ -1071,7 +1078,7 @@ try {
             miningStats.innerHTML = `
             <p style="margin: 4px 0;">Hashes per second: <span id="hashrate">0</span></p>
             <p style="margin: 4px 0;">Total hashes: <span id="total-hashes">0</span></p>
-            <p style="margin: 4px 0;">To disable, paste <code>localStorage.setItem("mining-consent","false")</code> into the console. Or, hit <code>CTRL+Q</code> and put it into the "eval" box, then hit enter.</p>
+            <p style="margin: 4px 0;">To disable, paste <code>localStorage.setItem("mining-consent","false")</code> into the console. Or clear your cookies.</p>
           `;
 
             // Assemble mining option
@@ -1249,6 +1256,117 @@ try {
                 return window.mining || (config.miningEnabled && miningToggle && miningToggle.checked);
             }
         };
+    }
+    function createModal({ heading = "Modal Title", description = "This is a modal description.", cta = "Okay" } = {}) {
+        // Create overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background-color: rgba(0, 0, 0, 0.6);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        `;
+
+        // Create modal container
+        const modalBox = document.createElement('div');
+        modalBox.style.cssText = `
+          background-color: #fff;
+          border-radius: 10px;
+          padding: 24px;
+          max-width: 400px;
+          width: 90%;
+          box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+          position: relative;
+          transform: translateY(20px);
+          transition: transform 0.3s ease;
+        `;
+
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '&times;';
+        closeButton.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 15px;
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #666;
+        `;
+
+        // Heading
+        const title = document.createElement('h2');
+        title.textContent = heading;
+        title.style.cssText = `
+          font-size: 22px;
+          margin-bottom: 10px;
+          color: #333;
+        `;
+
+        // Description
+        const desc = document.createElement('p');
+        desc.textContent = description;
+        desc.style.cssText = `
+          font-size: 16px;
+          color: #555;
+          margin-bottom: 20px;
+        `;
+
+        // CTA button
+        const ctaButton = document.createElement('button');
+        ctaButton.textContent = cta;
+        ctaButton.style.cssText = `
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 16px;
+          display: block;
+          margin: 0 auto;
+        `;
+
+        // Close modal function
+        const closeModal = () => {
+            modalOverlay.style.opacity = '0';
+            modalBox.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                document.body.removeChild(modalOverlay);
+            }, 300);
+        };
+
+        // Event listeners
+        closeButton.addEventListener('click', closeModal);
+        ctaButton.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // Assemble modal
+        modalBox.appendChild(closeButton);
+        modalBox.appendChild(title);
+        modalBox.appendChild(desc);
+        modalBox.appendChild(ctaButton);
+        modalOverlay.appendChild(modalBox);
+        document.body.appendChild(modalOverlay);
+
+        // Animate in
+        setTimeout(() => {
+            modalOverlay.style.opacity = '1';
+            modalBox.style.transform = 'translateY(0)';
+        }, 10);
+
+        return { close: closeModal };
     }
     function rerenderAds() {
         // shuffle ads
