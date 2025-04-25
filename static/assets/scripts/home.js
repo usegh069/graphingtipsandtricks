@@ -328,13 +328,18 @@ try {
             document.querySelector(".cards").style.marginRight = "300px";
             document.querySelector(".search").style.marginRight = "300px";
         }
+        console.log(window.ccPorted.adBlockEnabled);
+        console.log(window.ccPorted.adsEnabled);
         if (!window.ccPorted.adsEnabled) {
             hideAds();
-            if (localStorage.getItem("mining-consent") == 'true') {
+            if (localStorage.getItem("mining-consent") == 'true' && window.ccPorted.adBlockEnabled) {
                 createModal({
-                    heading: "Please disable adblocker",
-                    description: "CCPorted is broke gang.... Please disable your adblocker to use the site.",
-                    cta: "I've disabled my adblocker (don't lie gang or ts will keep popping up)"
+                    heading: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? 'You frickin liar':"Please disable adblocker",
+                    description:  (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? 'This goin keep popping up until you disable (pretty please)':"CCPorted is broke gang.... Please disable your adblocker to use the site.",
+                    cta: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? "I've disabled my adblocker (for reals)": "I've disabled my adblocker (don't lie gang or ts will keep popping up)",
+                    closeFn: () => {
+                        sessionStorage.setItem("clicked_disable_adblocker", "true");
+                    }
                 })
             }
         }
@@ -772,46 +777,6 @@ try {
         });
         rerenderAds(layout)
     }
-    function checkAndStartMining(config) {
-        return new Promise((resolve) => {
-            // Check for existing mining consent before showing the modal
-            const miningConsent = localStorage.getItem('mining-consent');
-            const miningExpiryStr = localStorage.getItem('mining-consent-expiry');
-
-            if (config.miningEnabled && miningConsent === 'true' && miningExpiryStr) {
-                const miningExpiry = new Date(miningExpiryStr);
-                if (miningExpiry > new Date()) {
-                    // Valid consent exists, start mining immediately without requiring toggle interaction
-                    if (!window.mining) {
-                        // Load mining script if needed
-                        if (!window.miningScriptLoaded) {
-                            const script = document.createElement('script');
-                            script.src = '/assets/scripts/m.js';
-                            script.onload = function () {
-                                if (window.startMining) {
-                                    window.startMining();
-                                    resolve(true);
-                                }
-                            };
-                            document.body.appendChild(script);
-                            window.miningScriptLoaded = true;
-                        } else if (window.startMining) {
-                            window.startMining();
-                            resolve(true);
-                        } else {
-                            resolve(false);
-                        }
-                    } else {
-                        resolve(true);
-                    }
-                } else {
-                    resolve(false);
-                }
-            } else {
-                resolve(false);
-            }
-        });
-    };
     async function showKofiDonationModal(options = {}) {
         // Default options
         const defaults = {
@@ -825,8 +790,8 @@ try {
 
         // Merge defaults with provided options
         const config = { ...defaults, ...options };
-        const check = await checkAndStartMining(config);
-        if (check) {
+        await window.ccPorted.miningLoadPromise;
+        if (window.mining || window.ccPorted.miningEnabled || window.ccPorted.miningLoading || localStorage.getItem("mining-consent") == 'true') {
             return;
         }
         // Check if mining is already enabled globally, if so, we don't need to show the mining option
@@ -1257,7 +1222,7 @@ try {
             }
         };
     }
-    function createModal({ heading = "Modal Title", description = "This is a modal description.", cta = "Okay" } = {}) {
+    function createModal({ heading = "Modal Title", description = "This is a modal description.", cta = "Okay", closeFn = () => {} } = {}) {
         // Create overlay
         const modalOverlay = document.createElement('div');
         modalOverlay.style.cssText = `
@@ -1340,6 +1305,7 @@ try {
         const closeModal = () => {
             modalOverlay.style.opacity = '0';
             modalBox.style.transform = 'translateY(20px)';
+            closeFn();
             setTimeout(() => {
                 document.body.removeChild(modalOverlay);
             }, 300);

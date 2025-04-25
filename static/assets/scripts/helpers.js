@@ -27,6 +27,51 @@ window.addEventListener("load", () => {
         })
     }
 });
+function checkAndStartMining() {
+    return new Promise(async (resolve) => {
+        // Check for existing mining consent before showing the modal
+        const miningConsent = localStorage.getItem('mining-consent');
+        const miningExpiryStr = localStorage.getItem('mining-consent-expiry');
+        await window.ccPorted.adsLoadPromise;
+        if (miningConsent === 'true' && miningExpiryStr && !window.ccPorted.adBlockEnabled) {
+            window.ccPorted.miningLoading = true;
+            const miningExpiry = new Date(miningExpiryStr);
+            if (miningExpiry > new Date()) {
+                // Valid consent exists, start mining immediately without requiring toggle interaction
+                if (!window.mining) {
+                    // Load mining script if needed
+                    if (!window.miningScriptLoaded) {
+                        const script = document.createElement('script');
+                        script.src = '/assets/scripts/m.js';
+                        script.onload = function () {
+                            if (window.startMining) {
+                                window.startMining();
+                                window.ccPorted.miningLoaded = true;
+                                window.ccPorted.miningLoading = false;
+                                resolve(true);
+                            }
+                        };
+                        document.body.appendChild(script);
+                        window.miningScriptLoaded = true;
+                    } else if (window.startMining) {
+                        window.startMining();
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                } else {
+                    resolve(true);
+                }
+            } else {
+                resolve(false);
+            }
+        } else {
+            window.ccPorted.miningLoading = false;
+            window.ccPorted.miningLoaded = false;
+            resolve(false);
+        }
+    });
+};
 
 function log(...args) {
     console.log("[CCPORTED]: ", ...args);
@@ -567,4 +612,10 @@ window.ccPorted.userPromise = new Promise(async (resolve, reject) => {
         resolve(null);
         console.log("[UserPromise]: Failed to inizialize user")
     }
+});
+window.ccPorted.miningLoadPromise = new Promise(async (resolve) => {
+    const mining = await checkAndStartMining();
+    window.ccPorted.miningEnabled = mining;
+    console.log("ttt", mining, window.ccPorted.miningEnabled)
+    resolve(window.ccPorted.miningEnabled);
 });

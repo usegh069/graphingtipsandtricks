@@ -1,17 +1,17 @@
 window.ccPorted = window.ccPorted || {};
-async function adBlockEnabled() {
-    let adBlockEnabled = false
+async function detectAdBlockEnabled() {
+    let isAdBlockEnabled = false
     const googleAdUrl = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
     try {
-        await fetch(new Request(googleAdUrl)).catch(_ => adBlockEnabled = true)
+        await fetch(new Request(googleAdUrl)).catch(_ => isAdBlockEnabled = true)
     } catch (e) {
-        adBlockEnabled = true;
+        isAdBlockEnabled = true;
     }
-    return adBlockEnabled;
+    return isAdBlockEnabled;
 }
 async function adsEnabled() {
     let isAdBlockEnabled = false
-    isAdBlockEnabled = (typeof window.ccPorted.adBlockEnabled !== "undefined") ? window.ccPorted.adBlockEnabled : await adBlockEnabled();
+    isAdBlockEnabled = await detectAdBlockEnabled();
     if (!window.ccPorted.aHosts) {
         const res = await fetch("/ahosts.txt");
         const text = await res.text();
@@ -31,7 +31,8 @@ async function adsEnabled() {
     }
 }
 async function loadAds() {
-    window.ccPorted.adBlockEnabled = await adBlockEnabled();
+    let x = await detectAdBlockEnabled();
+    window.ccPorted.adBlockEnabled = x;
     window.ccPorted.adsEnabled = await adsEnabled();
     if (window.ccPorted.adsEnabled) {
         const script = document.createElement('script');
