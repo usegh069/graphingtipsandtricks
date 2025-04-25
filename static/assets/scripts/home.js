@@ -255,14 +255,6 @@ try {
         await checkForSwitchToAHost();
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
-        if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
-            // add margin for the ads
-            document.querySelector(".cards").style.marginRight = "300px";
-            document.querySelector(".search").style.marginRight = "300px";
-        }
-        if (!window.ccPorted.adsEnabled) {
-            hideAds();
-        }
         showKofiDonationModal();
         // createNotif({
         //     cta: {
@@ -326,18 +318,19 @@ try {
         }
         log("Home page loaded");
         window.ccPorted.baseRendering = false;
-        if(window.ccPorted.adsEnabled) {
-            const script = document.createElement("script");
-            const src = "//monu.delivery/site/e/4/500442-526a-41af-9981-22db9286cd37.js";
-            script.src = src;
-            script.setAttribute("data-cfasync", "false");
-            script.setAttribute("defer", "defer");
-            document.head.appendChild(script);
-            script.onload = () => {
-                log("Ad script loaded")
-            }
-        }
+        checkIfAdsLoaded();
         rerenderAds();
+    }
+    async function checkIfAdsLoaded() {
+        await window.ccPorted.adsLoadPromise;
+        if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
+            // add margin for the ads
+            document.querySelector(".cards").style.marginRight = "300px";
+            document.querySelector(".search").style.marginRight = "300px";
+        }
+        if (!window.ccPorted.adsEnabled) {
+            hideAds();
+        }
     }
     async function incrementClicks(gameID) {
         try {
