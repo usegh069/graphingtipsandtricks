@@ -13,7 +13,7 @@ async function init() {
             if (rom.startsWith("http") || rom.startsWith("//")) {
                 url = rom;
             } else {
-                url = `https://ccportedroms.s3-us-west-2.amazonaws.com/${core}/${rom}`;
+                url = `https://ccgstatic.com/romss/${core}/${rom}`;
             }
             window.EJS_player = "#game";
             window.EJS_core = core;
@@ -35,7 +35,7 @@ async function init() {
     }
 }
 async function findDataCDN() {
-    var cdns = ["https://ccported.github.io/emdata", "https://emdata.onrender.com", "https://sojs-coder.github.io/emdata", "https://d0136284.ccportedemdata.pages.dev", "https://main.dtbdx4d2gvp5v.amplifyapp.com/"];
+    var cdns = ["https://ccported.github.io/emdata", "https://emdata.onrender.com", "https://sojs-coder.github.io/emdata", "https://d0136284.ccportedemdata.pages.dev", "https://main.dtbdx4d2gvp5v.amplifyapp.com/", "https://ccportedemdata.pages.dev"];
     for (var i = 0; i < cdns.length; i++) {
         try {
             const response = await fetch(cdns[i] + '/blocked_res.txt', {
