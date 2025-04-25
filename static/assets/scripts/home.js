@@ -110,37 +110,6 @@ try {
         }
         return { games }
     }
-    async function adBlockEnabled() {
-        let adBlockEnabled = false
-        const googleAdUrl = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
-        try {
-            await fetch(new Request(googleAdUrl)).catch(_ => adBlockEnabled = true)
-        } catch (e) {
-            adBlockEnabled = true;
-        }
-        return adBlockEnabled;
-    }
-    async function adsEnabled() {
-        let adBlockEnabled = false
-        adBlockEnabled = (typeof window.ccPorted.adBlockEnabled !== "undefined") ? window.ccPorted.adBlockEnabled : await adBlockEnabled();
-        if (!window.ccPorted.aHosts) {
-            const res = await fetch("/ahosts.txt");
-            const text = await res.text();
-            const hosts = text.split('\n');
-            window.ccPorted.aHosts = hosts.map(h => h.trim());
-            if (window.ccPorted.aHosts.includes(window.location.hostname)) {
-                return !adBlockEnabled;
-            } else {
-                return false;
-            }
-        } else {
-            if (window.ccPorted.aHosts.includes(window.location.hostname)) {
-                return !adBlockEnabled;
-            } else {
-                return false;
-            }
-        }
-    }
     async function importJSON(path) {
         let url;
         if (path.startsWith("/") && !path.startsWith("//")) {
@@ -286,9 +255,6 @@ try {
         await checkForSwitchToAHost();
         window.ccPorted = window.ccPorted || {};
         window.ccPorted.cardsRendered = false;
-        window.ccPorted.adBlockEnabled = await adBlockEnabled();
-        window.ccPorted.adsEnabled = await adsEnabled();
-
         if (window.ccPorted.adsEnabled && window.innerWidth > 800) {
             // add margin for the ads
             document.querySelector(".cards").style.marginRight = "300px";
