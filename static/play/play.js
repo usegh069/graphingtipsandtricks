@@ -25,9 +25,14 @@
         }
         return `https://${domain.trim()}`
     });
-    iframe.addEventListener("load", (e) => {
+    iframe.addEventListener("load", async (e) => {
         const w = iframe.contentWindow;
-        log(`Iframe loaded. User logged in: ${(typeof window.ccPorted.user != undefined && window.ccPorted.user != null)}`);
+        if(window.ccPorted.userPromise){
+            await window.ccPorted.userPromise;
+        } else {
+            console.log("User promise does not exist. This should not happen. Anyways not setting user tokens (unless between the running time of this and the next if statement the user suddenly defines itself");
+        }
+        log(`Iframe loaded. User logged in: ${(typeof window.ccPorted.user != "undefined" && window.ccPorted.user != null)}`);
         if (window.ccPorted.user) {
             log("User logged in, sending tokens");
             console.log(window.ccPorted.getUserTokens());
