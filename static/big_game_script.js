@@ -296,6 +296,13 @@ window.ccPorted = window.ccPorted || {};
         if (!text) return null;
         return text.split(".").join("-");
     }
+    function pageInFrame() {
+        try {
+            return window.self !== window.top;
+        } catch (e) {
+            return true;
+        }
+    }
     function shortcut(keys, cb) {
         log(`Creating shortcut for keys ${keys}, calling ${cb.name}`);
         var keyMap = {};
