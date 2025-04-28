@@ -159,10 +159,6 @@ window.ccPorted = window.ccPorted || {};
         }
     }
     window.ccPorted.Leaderboard = Leaderboard;
-
-    window.addEventListener("load", () => {
-        init();
-    });
     window.ccPorted.getUserTokens = () => {
         return {
             accessToken: localStorage.getItem("[ns_ccported]_accessToken"),
@@ -1090,7 +1086,6 @@ window.ccPorted = window.ccPorted || {};
     }
 
 
-    shortcut([17, 81], toggleStats);
     if (!window.ccPorted.config || typeof window.ccPorted.config?.sandboxStorage == "undefined" || window.ccPorted.config.sandboxStorage) {
         createGameStorageSandbox(window.gameID || "ccported")();
     }
