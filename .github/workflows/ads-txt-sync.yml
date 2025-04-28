@@ -18,10 +18,24 @@ jobs:
         run: |
           curl -sS -o /tmp/remote_ads.txt "https://monu.delivery/adstxt/e/4/500442-526a-41af-9981-22db9286cd37.txt"
 
-      - name: Compare and update ads.txt if needed
+      - name: Remove comments and process ads.txt
         run: |
-          if ! cmp -s /tmp/remote_ads.txt static/ads.txt; then
-            mv /tmp/remote_ads.txt static/ads.txt
+          # Create a cleaned version with comments removed
+          grep -v "^#" /tmp/remote_ads.txt > /tmp/cleaned_ads.txt
+          
+          # Compare the cleaned file with existing ads.txt
+          if [ -f static/ads.txt ]; then
+            # Create a cleaned version of the existing file for comparison
+            grep -v "^#" static/ads.txt > /tmp/existing_cleaned.txt
+            
+            if ! cmp -s /tmp/cleaned_ads.txt /tmp/existing_cleaned.txt; then
+              # Only copy the cleaned version (without comments)
+              cp /tmp/cleaned_ads.txt static/ads.txt
+              echo "UPDATED=true" >> $GITHUB_ENV
+            fi
+          else
+            # If ads.txt doesn't exist yet, create it from the cleaned version
+            cp /tmp/cleaned_ads.txt static/ads.txt
             echo "UPDATED=true" >> $GITHUB_ENV
           fi
 
