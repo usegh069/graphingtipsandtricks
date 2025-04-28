@@ -135,11 +135,11 @@
                 // changeFavicon(`https://d1yh00vn2fvto7.cloudfront.net/games/${gameID}${item.thumbPath}`);
                 setDescription(item.description + " Play now on CCPorted!");
                 if(window.gtag) {
-                    window.gtag.push(["event", "game_loaded", {
+                    window.gtag("event", "game_loaded", {
                         gameID: gameID,
                         gameName: item.fName,
                         hostname: window.location.hostname
-                    }])
+                    })
                 }
             }
         });
