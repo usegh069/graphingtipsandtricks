@@ -1094,5 +1094,4 @@ window.ccPorted = window.ccPorted || {};
     link.setAttribute("rel", "stylesheet");
     document.head.appendChild(link);
 
-    window.ccPorted.stats = stats;
 })();
