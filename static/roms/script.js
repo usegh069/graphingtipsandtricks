@@ -1,5 +1,5 @@
 const unsupported = ["dos","dreamcast"];
-
+let foundRoms = 0;
 // Utility function to capitalize words
 const capitalizeWords = (str) => {
     return str.split('_').map(word =>
@@ -19,18 +19,22 @@ async function listRoms() {
             Bucket: bucketName,
             Delimiter: '/'
         }).promise();
-
+        const total = CommonPrefixes.length;
         // Get ROMs for each console
+        let current = 0;
         for (const prefix of CommonPrefixes) {
             const consoleType = prefix.Prefix.replace('/', '');
             const response = await window.ccPorted.s3Client.listObjects({
                 Bucket: bucketName,
                 Prefix: prefix.Prefix
             }).promise();
-
+            current++;
+            updatePercent(current, total);
             roms[consoleType] = response.Contents
                 .filter(item => item.Key !== prefix.Prefix)
                 .map(item => {
+                    foundRoms++;
+                    updateRomCount();
                     const fileName = item.Key.split('/').pop();
                     return [
                         fileName,
@@ -56,6 +60,7 @@ async function listRoms() {
 // Function to display ROMs
 async function displayRoms(roms) {
     await window.ccPorted.userPromise;
+    document.getElementById("searchInput").placeholder = `Search ${foundRoms} ROMs...`;
     const container = document.querySelector('.container');
     container.innerHTML = Object.entries(roms)
         .map(([console, romList]) => `
@@ -108,6 +113,16 @@ function normalize(string) {
     return string;
 }
 
+function updatePercent(current, total) {
+    const percent = Math.floor((current / total) * 100);
+    document.querySelector(".loading-bar-fill").style.width = `${percent}%`;
+    if (percent >= 100) {
+        document.querySelector(".loading-bar").style.display = "none";
+    }
+}
+function updateRomCount() {
+    document.getElementById("romCount").innerText = `${foundRoms}`;
+}
 listRoms().then(() => {
     console.log("ROMS loaded");
     setupSearch()
