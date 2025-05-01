@@ -281,7 +281,8 @@ window.ccPorted = window.ccPorted || {};
             }
             resolve(userData);
         } else {
-            reject("Failed to initialize user.");
+            console.log("No user data found, returning null");
+            resolve(null);
         }
     });
 
