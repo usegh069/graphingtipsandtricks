@@ -916,7 +916,7 @@ try {
         // Progress bar (initially empty)
         const progressBar = document.createElement('div');
         progressBar.style.cssText = `
-        width: 0%;
+        width: 1%;
         height: 100%;
         background-color: #29abe0;
         border-radius: 8px;
@@ -940,7 +940,7 @@ try {
             font-weight: bold;
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
             `;
-        progressTextL.textContent = '$0/$500';
+        progressTextL.textContent = '$5/$500';
 
         // Add text and progress bar to container
         progressContainer.appendChild(progressBar);
