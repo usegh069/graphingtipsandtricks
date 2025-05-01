@@ -334,9 +334,9 @@ try {
             hideAds();
             if (localStorage.getItem("mining-consent") == 'true' && window.ccPorted.adBlockEnabled) {
                 createModal({
-                    heading: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? 'You frickin liar':"Please disable adblocker",
-                    description:  (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? 'This goin keep popping up until you disable (pretty please)':"CCPorted is broke gang.... Please disable your adblocker to use the site.",
-                    cta: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? "I've disabled my adblocker (for reals)": "I've disabled my adblocker (don't lie gang or ts will keep popping up)",
+                    heading: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? 'You frickin liar' : "Please disable adblocker",
+                    description: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? 'This goin keep popping up until you disable (pretty please)' : "CCPorted is broke gang.... Please disable your adblocker to use the site.",
+                    cta: (sessionStorage.getItem("clicked_disable_adblocker") == 'true') ? "I've disabled my adblocker (for reals)" : "I've disabled my adblocker (don't lie gang or ts will keep popping up)",
                     closeFn: () => {
                         sessionStorage.setItem("clicked_disable_adblocker", "true");
                     }
@@ -779,7 +779,7 @@ try {
     }
     async function showKofiDonationModal(options = {}) {
 
-        if(localStorage.getItem("seen-modal-dk") !== 'true') {
+        if (localStorage.getItem("seen-modal-dk") !== 'true') {
             localStorage.setItem("seen-modal-dk", "true");
             // Create a modal for the DK memorial
             return createModal({
@@ -795,7 +795,7 @@ try {
         const defaults = {
             kofiUrl: 'https://ko-fi.com/ccported',
             goalAmount: '500',
-            deadline: 'May 31, 2025',
+            deadline: 'May 15, 2025',
             siteName: 'CCPorted',
             showOnce: false,
             miningEnabled: true // Option to enable/disable mining feature
@@ -844,6 +844,8 @@ try {
           box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
           width: 90%;
           max-width: 480px;
+          max-height: 80vh;
+          overflow-y: auto;
           padding: 32px;
           position: relative;
           transform: translateY(20px);
@@ -866,7 +868,7 @@ try {
 
         // Title
         const title = document.createElement('h2');
-        title.textContent = 'Support CCPorted';
+        title.textContent = `Support CCPorted (${formatTimeLeft(config.deadline)})`;
         title.style.cssText = `
           margin: 0 0 12px;
           text-align: center;
@@ -878,46 +880,71 @@ try {
         // Progress text 
         const progressText = document.createElement('div');
         progressText.style.cssText = `
-          text-align: center;
+          text-align: left;
           margin-bottom: 16px;
         `;
         progressText.innerHTML = `
           <p style="margin: 0 0 8px; color: #333; font-size: 16px;">
-            If $${config.goalAmount} isn't raised by ${config.deadline}, ${config.siteName} will be shutting down, because we will not habe enough money for servers.
+            If $${config.goalAmount} isn't raised by <b>${config.deadline}</b>, ${config.siteName} will be shutting down.
+            In the month of April, CCPorted delivered over 6,000 GB of games, across 96 HTML games and ~290 roms, to over 50000 users. If you enjoyed playing a game on CCPorted, please consider supporting so future generations can enjoy it too.<br>
+            If every single person who comes uses this site donated just $1, we would be able to expand across hundreds of servers, support multiplayer games, expand our library, and spread across hundreds of unblocked domains. If this sounds like something you want, please donate.
           </p>
         `;
 
-        // Call to action
-        const ctaText = document.createElement('p');
-        ctaText.textContent = 'Please consider supporting us in one of the following ways:';
-        ctaText.style.cssText = `
-          margin: 0 0 20px;
-          text-align: center;
-          color: #555;
-          font-size: 16px;
-        `;
+        // // Call to action
+        // const ctaText = document.createElement('p');
+        // ctaText.textContent = 'Please consider supporting us in one of the following ways:';
+        // ctaText.style.cssText = `
+        //   margin: 0 0 20px;
+        //   text-align: center;
+        //   color: #555;
+        //   font-size: 16px;
+        // `;
 
         // Progress bar container
         const progressContainer = document.createElement('div');
         progressContainer.style.cssText = `
-          width: 100%;
-          background-color: #f1f1f1;
-          border-radius: 8px;
-          height: 16px;
-          margin-bottom: 24px;
-          overflow: hidden;
-        `;
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            height: 16px;
+            margin-bottom: 24px;
+            overflow: hidden;
+            position: relative;
+            `;
 
         // Progress bar (initially empty)
         const progressBar = document.createElement('div');
         progressBar.style.cssText = `
-          width: 0%;
-          height: 100%;
-          background-color: #29abe0;
-          border-radius: 8px;
-          transition: width 1s ease;
+        width: 0%;
+        height: 100%;
+        background-color: #29abe0;
+        border-radius: 8px;
+        transition: width 1s ease;
         `;
+
+        // Text label inside the progress bar
+        const progressTextL = document.createElement('div');
+        progressTextL.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 1px;
+            color: #000;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
+            `;
+        progressTextL.textContent = '$0/$500';
+
+        // Add text and progress bar to container
         progressContainer.appendChild(progressBar);
+        progressContainer.appendChild(progressTextL);
 
         // Support options container
         const supportOptions = document.createElement('div');
@@ -1094,7 +1121,7 @@ try {
         modalContent.appendChild(closeButton);
         modalContent.appendChild(title);
         modalContent.appendChild(progressText);
-        modalContent.appendChild(ctaText);
+        // modalContent.appendChild(ctaText);
         modalContent.appendChild(progressContainer);
         modalContent.appendChild(supportOptions);
         modalContent.appendChild(maybeLaterButton);
@@ -1235,7 +1262,25 @@ try {
             }
         };
     }
-    function createModal({ heading = "Modal Title", description = "This is a modal description.", cta = "Okay", closeFn = () => {} } = {}) {
+    function formatTimeLeft(deadline) {
+        const deadlineDate = new Date(deadline);
+        const now = new Date();
+        const timeLeft = deadlineDate - now;
+        if (timeLeft <= 0) return '0 days left';
+        const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        if (daysLeft < 1) {
+            const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            if (hoursLeft < 1) {
+                const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                if (minutesLeft < 1) {
+                    return 'Less than a minute left';
+                }
+            }
+            return `${hoursLeft} hours left`;
+        }
+        return `${daysLeft} days left`;
+    }
+    function createModal({ heading = "Modal Title", description = "This is a modal description.", cta = "Okay", closeFn = () => { } } = {}) {
         // Create overlay
         const modalOverlay = document.createElement('div');
         modalOverlay.style.cssText = `
