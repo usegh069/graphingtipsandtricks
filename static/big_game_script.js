@@ -878,9 +878,12 @@ window.ccPorted = window.ccPorted || {};
 
                         resolve(tokens);
                     } else if (data.action === "NO_USER") {
-                        reject(new Error("No authenticated user in parent"));
+                        console.log("No user found in parent, initializing unauthenticated.");
+                        resolve(null);
                     } else if (data.action === "UNKNOWN_ACTION") {
-                        reject(new Error("Unknown action"));
+                       console.log("Unknown action received from parent:", data.action);
+                       // always soft resolve
+                       resolve();
                     }
                 }
             };

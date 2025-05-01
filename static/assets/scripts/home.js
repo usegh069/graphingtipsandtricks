@@ -778,6 +778,19 @@ try {
         rerenderAds(layout)
     }
     async function showKofiDonationModal(options = {}) {
+
+        if(localStorage.getItem("seen-modal-dk") !== 'true') {
+            localStorage.setItem("seen-modal-dk", "true");
+            // Create a modal for the DK memorial
+            return createModal({
+                heading: "RIP DK",
+                description: `<p>Hello CCPorted,</p><p style = "text-indent: 30px">It has come to our attention that one the admins on our discord server, ! THΣ DK, was recently killed in a shooting.
+! THΣ DK  was a great person and contributed immensely to CCPorted as an Admin and the Creator of the legendary Gemmy bot. He will be missed.
+<br><br>
+-SoJS, Derky, Lucas, Ian and the CCPorted Community.</p>`,
+                cta: "RIP DK"
+            });
+        }
         // Default options
         const defaults = {
             kofiUrl: 'https://ko-fi.com/ccported',
@@ -1279,7 +1292,7 @@ try {
 
         // Description
         const desc = document.createElement('p');
-        desc.textContent = description;
+        desc.innerHTML = description;
         desc.style.cssText = `
           font-size: 16px;
           color: #555;
