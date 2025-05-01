@@ -881,9 +881,9 @@ window.ccPorted = window.ccPorted || {};
                         console.log("No user found in parent, initializing unauthenticated.");
                         resolve(null);
                     } else if (data.action === "UNKNOWN_ACTION") {
-                       console.log("Unknown action received from parent:", data.action);
-                       // always soft resolve
-                       resolve();
+                        console.log("Unknown action received from parent:", data.action);
+                        // always soft resolve
+                        resolve();
                     }
                 }
             };
@@ -1001,13 +1001,18 @@ window.ccPorted = window.ccPorted || {};
         } else {
             try {
                 const tokens = await getTokensFromParent();
-                const { idToken, accessToken, refreshToken } = tokens;
-
-                if (!idToken || !accessToken) {
-                    console.log("Invalid tokens received, initializing unauthenticated.");
+                if (!tokens || tokens == null) {
+                    console.warn("No tokens received from parent. Initializing unauthenticated.");
                     user = await initializeUnathenticated();
                 } else {
-                    user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+                    const { idToken, accessToken, refreshToken } = tokens;
+
+                    if (!idToken || !accessToken) {
+                        console.log("Invalid tokens received, initializing unauthenticated.");
+                        user = await initializeUnathenticated();
+                    } else {
+                        user = await initializeAuthenticated(idToken, accessToken, refreshToken);
+                    }
                 }
             } catch (error) {
                 console.error("Authentication error:", error.message);
