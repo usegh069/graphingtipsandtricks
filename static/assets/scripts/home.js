@@ -916,7 +916,7 @@ try {
         // Progress bar (initially empty)
         const progressBar = document.createElement('div');
         progressBar.style.cssText = `
-        width: 1%;
+        width: 0%;
         height: 100%;
         background-color: #29abe0;
         border-radius: 8px;
@@ -1248,7 +1248,7 @@ try {
         // Show some initial progress in the bar (optional, you can remove this or customize)
         setTimeout(() => {
             // You could replace this with actual progress data if you have it
-            progressBar.style.width = '0%';
+            progressBar.style.width = '1%';
         }, 500);
 
         // Return an object with methods to control the modal
