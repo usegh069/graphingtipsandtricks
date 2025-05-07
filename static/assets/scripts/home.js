@@ -779,7 +779,7 @@ try {
     }
     async function showKofiDonationModal(options = {}) {
 
-        localStorage.removeItem("seen-modal-dk"0;
+        localStorage.removeItem("seen-modal-dk");
         // Default options
         const defaults = {
             kofiUrl: 'https://ko-fi.com/ccported',
