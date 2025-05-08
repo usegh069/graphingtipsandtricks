@@ -929,7 +929,7 @@ try {
             font-weight: bold;
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
             `;
-        progressTextL.textContent = '$5/$500';
+        progressTextL.textContent = '$10/$500';
 
         // Add text and progress bar to container
         progressContainer.appendChild(progressBar);
@@ -1237,7 +1237,7 @@ try {
         // Show some initial progress in the bar (optional, you can remove this or customize)
         setTimeout(() => {
             // You could replace this with actual progress data if you have it
-            progressBar.style.width = '1%';
+            progressBar.style.width = '2%';
         }, 500);
 
         // Return an object with methods to control the modal
