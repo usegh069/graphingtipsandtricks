@@ -786,8 +786,9 @@ try {
             deadline: 'May 15, 2025 23:59 UTC',
             siteName: 'CCPorted',
             showOnce: false,
-            miningEnabled: true // Option to enable/disable mining feature
+            miningEnabled: false // Option to enable/disable mining feature
         };
+
 
         // Merge defaults with provided options
         const config = { ...defaults, ...options };
@@ -806,7 +807,10 @@ try {
         //     const hasSeenModal = localStorage.getItem('kofiModalSeen');
         //     if (hasSeenModal) return;
         // }
-
+        if(!config.miningEnabled){
+            // remove mining-consent from local-strage
+            localStorage.removeItem("mining-consent");
+        }
         // Create modal container
         const modalOverlay = document.createElement('div');
         modalOverlay.style.cssText = `
