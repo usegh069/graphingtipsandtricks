@@ -778,24 +778,11 @@ try {
         rerenderAds(layout)
     }
     async function showKofiDonationModal(options = {}) {
-
-        if (localStorage.getItem("seen-modal-dk") !== 'true') {
-            localStorage.setItem("seen-modal-dk", "true");
-            // Create a modal for the DK memorial
-            return createModal({
-                heading: "RIP DK",
-                description: `<p>Hello CCPorted,</p><p style = "text-indent: 30px">It has come to our attention that one the admins on our discord server, ! THΣ DK, was recently killed in a shooting.
-! THΣ DK  was a great person and contributed immensely to CCPorted as an Admin and the Creator of the legendary Gemmy bot. He will be missed.
-<br><br>
--SoJS, Derky, Lucas, Ian and the CCPorted Community.</p>`,
-                cta: "RIP DK"
-            });
-        }
         // Default options
         const defaults = {
             kofiUrl: 'https://ko-fi.com/ccported',
             goalAmount: '500',
-            deadline: 'May 15, 2025',
+            deadline: 'May 15, 2025 23:59 UTC',
             siteName: 'CCPorted',
             showOnce: false,
             miningEnabled: true // Option to enable/disable mining feature
@@ -803,21 +790,21 @@ try {
 
         // Merge defaults with provided options
         const config = { ...defaults, ...options };
-        await window.ccPorted.miningLoadPromise;
-        if (window.mining || window.ccPorted.miningEnabled || window.ccPorted.miningLoading || localStorage.getItem("mining-consent") == 'true') {
-            return;
-        }
+        // await window.ccPorted.miningLoadPromise;
+        // if (window.mining || window.ccPorted.miningEnabled || window.ccPorted.miningLoading || localStorage.getItem("mining-consent") == 'true') {
+        //     return;
+        // }
         // Check if mining is already enabled globally, if so, we don't need to show the mining option
-        if (config.miningEnabled && window.mining) {
-            console.log("Mining is already active, not showing mining toggle in modal");
-        }
+        // if (config.miningEnabled && window.mining) {
+        //     console.log("Mining is already active, not showing mining toggle in modal");
+        // }
 
 
         // Check if we should show the modal (if showOnce is true)
-        if (config.showOnce) {
-            const hasSeenModal = localStorage.getItem('kofiModalSeen');
-            if (hasSeenModal) return;
-        }
+        // if (config.showOnce) {
+        //     const hasSeenModal = localStorage.getItem('kofiModalSeen');
+        //     if (hasSeenModal) return;
+        // }
 
         // Create modal container
         const modalOverlay = document.createElement('div');
@@ -1268,7 +1255,7 @@ try {
         const timeLeft = deadlineDate - now;
         if (timeLeft <= 0) return '0 days left';
         const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-        if (daysLeft < 1) {
+        if (daysLeft <= 1) {
             const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             if (hoursLeft < 1) {
                 const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));

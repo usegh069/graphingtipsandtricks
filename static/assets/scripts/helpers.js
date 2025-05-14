@@ -1,7 +1,7 @@
 window.ccPorted = window.ccPorted || {};
 const COGNITO_DOMAIN = "https://us-west-2lg1qptg2n.auth.us-west-2.amazoncognito.com"; // Replace with your Cognito domain
 const CLIENT_ID = "4d6esoka62s46lo4d398o3sqpi"; // Replace with your App Client ID
-const REDIRECT_URI = window.location.origin; 
+const REDIRECT_URI = window.location.origin;
 const isFramed = window !== window.top;
 const isMobile = /Mobi/.test(navigator.userAgent);
 
@@ -28,6 +28,8 @@ window.addEventListener("load", () => {
     }
 });
 function checkAndStartMining() {
+    // mining on pause for now.
+    return;
     return new Promise(async (resolve) => {
         // Check for existing mining consent before showing the modal
         const miningConsent = localStorage.getItem('mining-consent');
@@ -265,12 +267,12 @@ function refreshAWSCredentials() {
             if (error) {
                 reject(error);
                 log("Failed to refresh credentials:", error);
-                if(sessionStorage.getItem("refreshed") !== "true"){
+                if (sessionStorage.getItem("refreshed") !== "true") {
                     sessionStorage.setItem("refreshed", "true");
                     window.location.reload();
                 }
                 log("Failed to refresh credentials:", error);
-                } else {
+            } else {
                 log("Credentials refreshed successfully");
                 resolve();
             }
@@ -333,7 +335,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
             return null;
         }
         userData = parseJwt(newTokens.id_token);
-        if(isTokenExpired(userData)){
+        if (isTokenExpired(userData)) {
             console.log("ok now what the heck")
         }
     }
@@ -360,7 +362,7 @@ async function initializeAuthenticated(idToken, accessToken, refreshToken) {
         attributes: userDataJSON
     };
 
-    if(redirectToProfileAfterLogin){
+    if (redirectToProfileAfterLogin) {
         window.location.assign("/profile/")
     }
     return user;
@@ -619,3 +621,76 @@ window.ccPorted.miningLoadPromise = new Promise(async (resolve) => {
     console.log("ttt", mining, window.ccPorted.miningEnabled)
     resolve(window.ccPorted.miningEnabled);
 });
+
+
+async function enforceDonationLockout(goalAmount = 500) {
+    const allowedDomains = ['ccported.github.io', 'ccported.click'];
+    const currentDomain = window.location.hostname;
+
+    if (allowedDomains.includes(currentDomain)) return;
+
+    try {
+        const res = await fetch('/current_amount.txt');
+        const text = await res.text();
+        const currentAmount = parseFloat(text.replace(/[^0-9.]/g, ''));
+
+        if (isNaN(currentAmount) || currentAmount >= goalAmount) return;
+        window.locked = true;
+        // Ensure it is past May 15, 2025
+        const currentDate = new Date();
+        const lockoutDate = new Date('May 15, 2025 23:59 UTC');
+        if (currentDate < lockoutDate) return;
+        // Replace body with donation page
+        document.body.innerHTML = '';
+        document.body.style.cssText = `
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      `;
+
+        const container = document.createElement('div');
+        container.style.cssText = `
+        background: white;
+        padding: 32px;
+        max-width: 480px;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        text-align: center;
+      `;
+
+        container.innerHTML = `
+        <h2 style="margin-top: 0; color: #333;">Support CCPorted</h2>
+        <p style="color: #555; font-size: 16px; margin-bottom: 16px;">
+          We did not meet our donation goal of $${goalAmount}. CCPorted may shut down unless we can raise more support. If this site has helped you access or enjoy games, please consider donating.
+        </p>
+        <p style="font-weight: bold; margin-bottom: 16px;">
+          Current Raised: $${currentAmount.toFixed(2)} / $${goalAmount}
+        </p>
+        <a href="https://ko-fi.com/ccported" target="_blank" style="
+          display: block;
+          background-color: #29abe0;
+          color: white;
+          text-decoration: none;
+          padding: 12px 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          font-weight: bold;
+        ">Donate on Ko-fi</a>
+        <div style="margin-bottom: 12px;">
+          <p style="margin-bottom: 8px;">Or Venmo <b>@ccported</b></p>
+          <img src="/assets/images/venmo.png" alt="Venmo QR" style="width: 200px; height: auto; border-radius: 8px;" />
+        </div>
+        <p style="color: #999; font-size: 13px; margin-top: 24px;">We appreciate your support ❤️</p>
+      `;
+
+        document.body.appendChild(container);
+    } catch (err) {
+        console.error('Failed to check donation status:', err);
+    }
+}
+enforceDonationLockout();  
