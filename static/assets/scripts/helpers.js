@@ -624,6 +624,37 @@ window.ccPorted.miningLoadPromise = new Promise(async (resolve) => {
 
 
 async function enforceDonationLockout(goalAmount = 500) {
+    // roll a 10 sided die (allow 10% of users to bypass this)
+    const now = Date.now();
+    const THIRTY_MIN = 30 * 60 * 1000;
+
+    // Helper to check expiry
+    function isExpired(key) {
+        const expiry = parseInt(sessionStorage.getItem(key + "_expiry") || "0", 10);
+        return !expiry || now > expiry;
+    }
+
+    if (!sessionStorage.getItem("rolled") || isExpired("rolled")) {
+        const roll = Math.floor(Math.random() * 10) + 1;
+        if (roll !== 1 || localStorage.getItem("lucky") === "true") {
+            // allow this user to continue
+            localStorage.setItem("donationLockout", "true");
+            localStorage.setItem("donationLockout_expiry", (now + THIRTY_MIN).toString());
+            sessionStorage.setItem("rolled", "true");
+            sessionStorage.setItem("rolled_expiry", (now + THIRTY_MIN).toString());
+            return;
+        } else {
+            sessionStorage.setItem("rolled", "true");
+            sessionStorage.setItem("rolled_expiry", (now + THIRTY_MIN).toString());
+        }
+    } else {
+        // Check if donationLockout is still valid
+        const lockoutExpiry = parseInt(localStorage.getItem("donationLockout_expiry") || "0", 10);
+        if (localStorage.getItem("donationLockout") === "true" && now < lockoutExpiry) {
+            return;
+        }
+    }
+
     const allowedDomains = ['ccported.github.io', 'ccported.click'];
     const currentDomain = window.location.hostname;
 
