@@ -778,6 +778,7 @@ try {
         rerenderAds(layout)
     }
     async function showKofiDonationModal(options = {}) {
+
         // Default options
         const defaults = {
             kofiUrl: 'https://ko-fi.com/ccported',
@@ -791,9 +792,9 @@ try {
         // Merge defaults with provided options
         const config = { ...defaults, ...options };
         // await window.ccPorted.miningLoadPromise;
-        // if (window.mining || window.ccPorted.miningEnabled || window.ccPorted.miningLoading || localStorage.getItem("mining-consent") == 'true') {
-        //     return;
-        // }
+        // // if (window.mining || window.ccPorted.miningEnabled || window.ccPorted.miningLoading || localStorage.getItem("mining-consent") == 'true') {
+        // //     return;
+        // // }
         // Check if mining is already enabled globally, if so, we don't need to show the mining option
         // if (config.miningEnabled && window.mining) {
         //     console.log("Mining is already active, not showing mining toggle in modal");
@@ -927,7 +928,7 @@ try {
             font-weight: bold;
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
             `;
-        progressTextL.textContent = '$5/$500';
+        progressTextL.textContent = '$11/$500';
 
         // Add text and progress bar to container
         progressContainer.appendChild(progressBar);
@@ -1235,7 +1236,7 @@ try {
         // Show some initial progress in the bar (optional, you can remove this or customize)
         setTimeout(() => {
             // You could replace this with actual progress data if you have it
-            progressBar.style.width = '1%';
+            progressBar.style.width = '2.2%';
         }, 500);
 
         // Return an object with methods to control the modal
